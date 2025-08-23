@@ -1,4 +1,4 @@
-import { ChevronLeft, ChevronRight, CircleCheckBig, File, FlagTriangleRight, GanttChartSquare, Home, MessageSquareText, Milestone } from "lucide-react";
+import { ChevronLeft, ChevronRight, CircleCheckBig, File, FlagTriangleRight, GanttChartSquare, Home, MessageSquareText, Milestone, Video } from "lucide-react";
 import { useRef } from "react";
 import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
@@ -97,6 +97,12 @@ const Sidebar = ({ isSidebarOpen, setIsSidebarOpen }) => {
                             <li className={`sidebar-link ${!isSidebarOpen ? "justify-center" : ""}`}>
                                 <File size={20} />
                                 {isSidebarOpen ? "Documents" : ""}
+                            </li>
+                        </NavLink>
+                        <NavLink to="/meetings">
+                            <li className={`sidebar-link ${!isSidebarOpen ? "justify-center" : ""}`}>
+                                <Video size={20} />
+                                {isSidebarOpen ? "Meetings" : ""}
                             </li>
                         </NavLink>
                     </ul>

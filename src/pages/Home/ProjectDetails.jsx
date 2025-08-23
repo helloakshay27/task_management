@@ -19,6 +19,7 @@ import {
 import AddProjectModal from "../../components/Home/Projects/AddProjectModal";
 import { attachFiles } from "../../redux/slices/projectSlice";
 import toast from "react-hot-toast";
+import MeetingButton from "../../components/Meeting/MeetingButton";
 
 const Issues = () => {
     return <IssuesTable />;
@@ -517,6 +518,14 @@ const ProjectDetails = () => {
                             <Trash2 size={15} />
                             <span>Delete Project</span>
                         </span>
+
+                        <span className="h-6 w-[1px] border border-gray-300"></span>
+
+                        <MeetingButton 
+                            projectId={project.id}
+                            variant="small"
+                            className="flex items-center gap-1"
+                        />
                     </div>
                 </div>
                 <div className="border-b-[3px] border-grey my-3 "></div>

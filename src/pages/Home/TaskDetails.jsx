@@ -30,6 +30,7 @@ import { fetchUsers } from "../../redux/slices/userSlice";
 import { MentionsInput, Mention } from "react-mentions";
 import { fetchStatus } from "../../redux/slices/statusSlice";
 import { fetchActiveTags } from "../../redux/slices/tagsSlice";
+import MeetingButton from "../../components/Meeting/MeetingButton";
 
 const mapStatusToDisplay = (rawStatus) => {
     const statusMap = {
@@ -949,6 +950,12 @@ const TaskDetails = () => {
                             >
                                 <Trash2 className="mx-1" size={15} /> Delete Task
                             </span>
+                            <span className="h-6 w-[1px] border border-gray-300"></span>
+                            <MeetingButton 
+                                taskId={task.id}
+                                variant="small"
+                                className="flex items-center gap-1"
+                            />
                         </div>
                     </div>
                     <div className="border-b-[3px] border-grey my-3"></div>

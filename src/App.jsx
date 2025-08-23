@@ -47,6 +47,9 @@ import Country from "./pages/Setup/Country.jsx";
 import Company from "./pages/Setup/Company.jsx";
 import Organizations from "./pages/Setup/Organizations.jsx";
 import { WebSocketProvider } from "./contexts/WebSocketContext.jsx";
+import MeetingRoom from "./components/Meeting/MeetingRoom.jsx";
+import MeetingsList from "./components/Meeting/MeetingsList.jsx";
+import Meetings from "./pages/Home/Meetings.jsx";
 
 const App = () => {
   const token = localStorage.getItem('token');
@@ -54,7 +57,7 @@ const App = () => {
 
   return (
     <>
-      {/* <WebSocketProvider accessToken={token} wsUrl={'wss://uat-tasks.lockated.com/cable'}> */}
+      <WebSocketProvider accessToken={token} wsUrl={'wss://uat-tasks.lockated.com/cable'}>
       <Toaster />
       <Routes>
         <Route path="/login" element={<Login />} />
@@ -103,6 +106,7 @@ const App = () => {
 
                   <Route path="/channels/*" element={<Channel />} />
                   <Route path="/documents" element={<Documents />} />
+                  <Route path="/meetings" element={<Meetings />} />
 
                   {/* Setup Routes */}
                   <Route
@@ -160,8 +164,11 @@ const App = () => {
             </ProtectedRoute>
           }
         />
+
+        {/* Meeting Room (outside protected layout) */}
+        <Route path="/meeting/:meetingId" element={<MeetingRoom />} />
       </Routes>
-      {/* </WebSocketProvider> */}
+      </WebSocketProvider>
     </>
   );
 };

@@ -176,6 +176,138 @@ class WebSocketManager {
         return subscription;
     }
 
+    // Subscribe to meeting updates
+    subscribeToMeeting(meetingId, callbacks = {}) {
+        if (!this.cable) {
+            console.error('WebSocket not connected. Call connect() first.');
+            return null;
+        }
+
+        const channelKey = `meeting_${meetingId}`;
+
+        // Unsubscribe from previous meeting if exists
+        this.unsubscribeFromMeeting(meetingId);
+
+        const subscription = this.cable.subscriptions.create(
+            {
+                channel: 'MeetingChannel',
+                meeting_id: meetingId
+            },
+            {
+                connected: () => {
+                    console.log(`Connected to meeting ${meetingId}`);
+                    callbacks.onConnected?.();
+                },
+
+                disconnected: () => {
+                    console.log(`Disconnected from meeting ${meetingId}`);
+                    callbacks.onDisconnected?.();
+                },
+
+                received: (data) => {
+                    console.log('Received meeting data:', data);
+
+                    switch (data.type) {
+                        case 'participant_joined':
+                            callbacks.onParticipantJoined?.(data.participant);
+                            break;
+                        case 'participant_left':
+                            callbacks.onParticipantLeft?.(data.participant);
+                            break;
+                        case 'chat_message':
+                            callbacks.onMessage?.(data.message);
+                            break;
+                        case 'hand_raised':
+                            callbacks.onHandRaised?.(data.participant);
+                            break;
+                        case 'screen_share':
+                            callbacks.onScreenShare?.(data.participant, data.isSharing);
+                            break;
+                        case 'meeting_ended':
+                            callbacks.onMeetingEnded?.(data.reason);
+                            break;
+                        default:
+                            console.log('Unknown meeting message type:', data.type);
+                    }
+                }
+            }
+        );
+
+        this.subscriptions.set(channelKey, subscription);
+        return subscription;
+    }
+
+    // Subscribe to meeting signaling for WebRTC
+    subscribeToMeetingSignaling(meetingId, callbacks = {}) {
+        if (!this.cable) {
+            console.error('WebSocket not connected. Call connect() first.');
+            return null;
+        }
+
+        const channelKey = `meeting_signaling_${meetingId}`;
+
+        const subscription = this.cable.subscriptions.create(
+            {
+                channel: 'MeetingSignalingChannel',
+                meeting_id: meetingId
+            },
+            {
+                connected: () => {
+                    console.log(`Connected to meeting signaling ${meetingId}`);
+                    callbacks.onConnected?.();
+                },
+
+                disconnected: () => {
+                    console.log(`Disconnected from meeting signaling ${meetingId}`);
+                    callbacks.onDisconnected?.();
+                },
+
+                received: (data) => {
+                    console.log('Received signaling data:', data);
+
+                    switch (data.type) {
+                        case 'webrtc-signal':
+                            callbacks.onSignal?.(data);
+                            break;
+                        case 'participant_joined':
+                            callbacks.onParticipantJoined?.(data.participant);
+                            break;
+                        case 'participant_left':
+                            callbacks.onParticipantLeft?.(data.participant);
+                            break;
+                        default:
+                            console.log('Unknown signaling message type:', data.type);
+                    }
+                }
+            }
+        );
+
+        this.subscriptions.set(channelKey, subscription);
+        return subscription;
+    }
+
+    // Send meeting update
+    sendMeetingUpdate(meetingId, data) {
+        const subscription = this.subscriptions.get(`meeting_${meetingId}`);
+        if (subscription) {
+            subscription.send({
+                type: 'meeting_update',
+                ...data
+            });
+        }
+    }
+
+    // Send WebRTC signaling data
+    sendMeetingSignal(meetingId, data) {
+        const subscription = this.subscriptions.get(`meeting_signaling_${meetingId}`);
+        if (subscription) {
+            subscription.send({
+                type: 'signaling_data',
+                ...data
+            });
+        }
+    }
+
     // Unsubscribe from conversation
     unsubscribeFromConversation(conversationId) {
         const channelKey = `conversation_${conversationId}`;
@@ -208,6 +340,30 @@ class WebSocketManager {
             subscription.unsubscribe();
             this.subscriptions.delete('user_notifications');
             console.log('Unsubscribed from user notifications');
+        }
+    }
+
+    // Unsubscribe from meeting
+    unsubscribeFromMeeting(meetingId) {
+        const channelKey = `meeting_${meetingId}`;
+        const subscription = this.subscriptions.get(channelKey);
+
+        if (subscription) {
+            subscription.unsubscribe();
+            this.subscriptions.delete(channelKey);
+            console.log(`Unsubscribed from meeting ${meetingId}`);
+        }
+    }
+
+    // Unsubscribe from meeting signaling
+    unsubscribeFromMeetingSignaling(meetingId) {
+        const channelKey = `meeting_signaling_${meetingId}`;
+        const subscription = this.subscriptions.get(channelKey);
+
+        if (subscription) {
+            subscription.unsubscribe();
+            this.subscriptions.delete(channelKey);
+            console.log(`Unsubscribed from meeting signaling ${meetingId}`);
         }
     }
 
