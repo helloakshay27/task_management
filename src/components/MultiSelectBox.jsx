@@ -10,6 +10,8 @@ export default function MultiSelectBox({
     control: (base, state) => ({
       ...base,
       minHeight: "30px",
+      maxHeight: "75px",
+      overflowY: "auto",
       padding: "1px 3px",
       position: "relative",
       zIndex: 10,
