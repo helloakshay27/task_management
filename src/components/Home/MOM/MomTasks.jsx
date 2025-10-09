@@ -71,8 +71,13 @@ const MomTasks = ({ tasks = [] }) => {
                 >
                   <td className="px-4 py-3 text-gray-600">{task.id}</td>
 
-                  <td className="px-4 py-3 max-w-[22rem] truncate">
-                    {task.description || "—"}
+                  <td className="px-4 py-3 align-top">
+                    <div
+                      className="max-h-[80px] overflow-y-auto overflow-x-hidden pr-2 text-gray-700 text-sm border border-gray-100 rounded-md bg-gray-50"
+                      style={{ scrollbarWidth: "thin" }}
+                    >
+                      {task.description || "—"}
+                    </div>
                   </td>
 
                   <td className="px-4 !py-3 text-gray-600">
