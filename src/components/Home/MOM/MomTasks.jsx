@@ -75,7 +75,7 @@ const MomTasks = ({ tasks = [] }) => {
                     {task.description || "—"}
                   </td>
 
-                  <td className="px-4 py-3 text-gray-600">
+                  <td className="px-4 !py-3 text-gray-600">
                     {task.raised_by || "N/A"}
                   </td>
 
@@ -91,10 +91,10 @@ const MomTasks = ({ tasks = [] }) => {
                     {task.status ? (
                       <span
                         className={`px-2 py-1 rounded-full text-xs font-semibold ${task.status === "Completed"
-                            ? "bg-green-100 text-green-700"
-                            : task.status === "In Progress"
-                              ? "bg-yellow-100 text-yellow-700"
-                              : "bg-gray-100 text-gray-600"
+                          ? "bg-green-100 text-green-700"
+                          : task.status === "In Progress"
+                            ? "bg-yellow-100 text-yellow-700"
+                            : "bg-gray-100 text-gray-600"
                           }`}
                       >
                         {task.status}
