@@ -1,3 +1,5 @@
+import { Box, Tooltip, Typography } from "@mui/joy";
+
 const MomTasks = ({ tasks = [] }) => {
   return (
     <div className="text-sm font-light my-6">
@@ -24,7 +26,26 @@ const MomTasks = ({ tasks = [] }) => {
                   <td className="px-4 py-3 text-gray-600">{task.id}</td>
 
                   <td className="px-4 py-3 max-w-[22rem] truncate">
-                    {task.description || "—"}
+                    <Tooltip
+                      placement="top-end"
+                      variant="outlined"
+                      arrow
+                      title={
+                        <Box
+                          sx={{
+                            display: 'flex',
+                            flexDirection: 'column',
+                            maxWidth: 320,
+                            justifyContent: 'center',
+                            p: 1,
+                          }}
+                        >
+                          <Typography level="body2">{task.description}</Typography>
+                        </Box>
+                      }
+                    >
+                      {task.description || "—"}
+                    </Tooltip>
                   </td>
 
                   <td className="px-4 !py-3 text-gray-600">
