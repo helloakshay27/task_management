@@ -23,7 +23,7 @@ const MomTasks = ({ tasks = [] }) => {
                 >
                   <td className="px-4 py-3 text-gray-600">{task.id}</td>
 
-                  <td className="px-4 py-3 max-w-[22rem] text-wrap">
+                  <td className="px-4 py-3 max-w-[22rem] truncate">
                     {task.description || "—"}
                   </td>
 
