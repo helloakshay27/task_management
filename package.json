@@ -26,6 +26,8 @@
     "axios": "^1.9.0",
     "dhtmlx-gantt": "^9.0.10",
     "gsap": "^3.12.7",
+    "jspdf": "^3.0.3",
+    "jspdf-autotable": "^5.0.2",
     "lucide-react": "^0.475.0",
     "qs": "^6.14.0",
     "react": "^18.3.1",

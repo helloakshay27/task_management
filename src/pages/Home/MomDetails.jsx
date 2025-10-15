@@ -1,12 +1,14 @@
 import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
-import { ChevronDownCircle } from "lucide-react";
+import { ChevronDownCircle, Download } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
 import { fetchMomDetails } from "../../redux/slices/momSlice";
 import MomTasks from "../../components/Home/MOM/MomTasks";
 import MomAttachments from "../../components/Home/MOM/MomAttachments";
+import { generateDetailedMomPDF } from "../../utils/momPdfGenerator";
+import toast from "react-hot-toast";
 
 function formatToDDMMYYYY_AMPM(dateString) {
     const date = new Date(dateString);
@@ -73,6 +75,21 @@ const MomDetails = () => {
         dispatch(fetchMomDetails({ token, id }))
     }, [dispatch])
 
+    const handleDownloadPDF = async () => {
+        if (!mom || !mom.id) {
+            toast.error("MoM data not loaded yet");
+            return;
+        }
+        
+        try {
+            await generateDetailedMomPDF(mom);
+            toast.success("PDF downloaded successfully!");
+        } catch (error) {
+            console.error("Error generating PDF:", error);
+            toast.error("Failed to generate PDF");
+        }
+    };
+
     return (
         <div className='m-4'>
             <div className="px-4 pt-1">
@@ -84,7 +101,7 @@ const MomDetails = () => {
                 <div className="border-b-[3px] border-[rgba(190, 190, 190, 1)]"></div>
                 <div className="flex items-center justify-between my-3 text-[12px]">
                     <div className="flex items-center gap-3 text-[#323232]">
-                        <span>Created By : Atharv</span>
+                        <span>Created By : {mom.responsible_person?.name || 'N/A'}</span>
 
                         <span className="h-6 w-[1px] border border-gray-300"></span>
 
@@ -93,6 +110,13 @@ const MomDetails = () => {
                         </span>
                     </div>
 
+                    <button
+                        onClick={handleDownloadPDF}
+                        className="flex items-center gap-2 px-4 py-2 bg-[#C72030] text-white rounded hover:bg-[#a01828] transition-colors"
+                    >
+                        <Download size={16} />
+                        Download MOM
+                    </button>
                 </div>
                 <div className="border-b-[3px] border-grey my-3 "></div>
 
