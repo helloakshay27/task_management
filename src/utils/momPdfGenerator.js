@@ -143,7 +143,7 @@ export const generateMomPDF = async (momData) => {
     task.description || '',
     task.responsible_person_name || '',
     task.target_date ? new Date(task.target_date).toLocaleDateString('en-GB') : '',
-    task.status ? task.status.charAt(0).toUpperCase() + task.status.slice(1) : ''
+    'Closed'
   ]) || [];
 
   autoTable(doc, {
@@ -350,7 +350,7 @@ export const generateDetailedMomPDF = async (momData) => {
     task.description || '',
     task.responsible_person_name || '',
     task.target_date ? new Date(task.target_date).toLocaleDateString('en-GB') : '',
-    task.status ? task.status.charAt(0).toUpperCase() + task.status.slice(1) : ''
+    'Closed'
   ]) || [];
 
   autoTable(doc, {
