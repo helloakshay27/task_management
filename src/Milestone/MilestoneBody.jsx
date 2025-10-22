@@ -98,7 +98,9 @@ const GanttChart = () => {
                 align: "center",
                 width: 100,
                 template: function (task) {
-                    return task.status || "Open";
+                    const status = task.status || "Open";
+                    // Format status: replace underscores with spaces and capitalize each word
+                    return status.replace(/_/g, ' ').replace(/\b\w/g, char => char.toUpperCase());
                 },
             },
             {
@@ -108,6 +110,11 @@ const GanttChart = () => {
                 width: 130,
                 resize: true,
                 template: function (task) {
+                    // Only show action button for milestones
+                    if (task.type !== "milestone") {
+                        return "";
+                    }
+                    
                     // Use Tailwind classes for flex and gap
                     return `
                         <span class="flex items-center justify-center gap-3 mt-2 text-gray-500">
