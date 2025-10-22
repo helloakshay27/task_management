@@ -596,8 +596,8 @@ const IssuesTable = () => {
       parentId || newIssuesProjectId || ""
     );
     formData.append("issue[milestone_id]", newIssuesMilestoneId || "");
-    formData.append("issue[task_management_id]", newIssuesTaskId || "");
-    formData.append("issue[subtask_management_id]", newIssuesSubtaskId || "");
+    formData.append("issue[task_management_id]", newIssuesSubtaskId ? newIssuesSubtaskId : newIssuesTaskId || "");
+    // formData.append("issue[sub_task_management_id]", newIssuesSubtaskId || "");
     formData.append("issue[start_date]", newIssuesStartDate || "");
     formData.append("issue[end_date]", newIssuesEndDate || "");
     formData.append("issue[priority]", newIssuesPriority);
@@ -1115,7 +1115,7 @@ const IssuesTable = () => {
         cell: ({ row }) => {
           const issueId = row.original.id;
           const issuePath = isCloudRoute ? `/cloud-issues/${issueId}` : `/issues/${issueId}`;
-          
+
           return (
             <div className="flex gap-2 items-center">
               <Link

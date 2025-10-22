@@ -161,6 +161,9 @@ const AddProjectModal = ({ isModalOpen, setIsModalOpen, projectname = "New Proje
   const [tab, setTab] = useState("Details");
   const [openTagModal, setOpenTagModal] = useState(false);
   const [openTeamModal, setOpenTeamModal] = useState(false);
+  const { createProject: project = {} } = useSelector(
+    (state) => state.createProject
+  );
 
   useGSAP(() => {
     if (isModalOpen) {
@@ -181,6 +184,12 @@ const AddProjectModal = ({ isModalOpen, setIsModalOpen, projectname = "New Proje
     });
     dispatch(resetProjectCreateResponse())
   };
+
+  const handleSetMiletoneTab = () => {
+    if (project && project.id) {
+      setTab("Milestone")
+    }
+  }
 
   return (
     <div className="z-50">
@@ -211,10 +220,10 @@ const AddProjectModal = ({ isModalOpen, setIsModalOpen, projectname = "New Proje
                   }
 
                   {tab == "Milestone" ?
-                    <div onClick={() => setTab("Milestone")} className="cursor-pointer border-b-2 border-[#E95420] p-2">
+                    <div onClick={handleSetMiletoneTab} className="cursor-pointer border-b-2 border-[#E95420] p-2">
                       Milestone
                     </div> :
-                    <div onClick={() => setTab("Milestone")} className="cursor-pointer p-2">
+                    <div onClick={handleSetMiletoneTab} className="cursor-pointer p-2">
                       Milestone
                     </div>
                   }
