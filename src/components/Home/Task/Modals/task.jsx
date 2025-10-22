@@ -590,7 +590,7 @@ const Tasks = ({ isEdit, onCloseModal }) => {
         toast.success(
           isEdit ? "Task updated successfully." : "Task created successfully."
         );
-        // window.location.reload();
+        window.location.reload();
       } else {
         toast.error(isEdit ? "Task update failed." : "Task creation failed.");
       }

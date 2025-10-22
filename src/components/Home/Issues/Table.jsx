@@ -26,6 +26,7 @@ import {
 import { fetchProjects } from "../../../redux/slices/projectSlice";
 import { fetchMilestone } from "../../../redux/slices/milestoneSlice";
 import { editTaskComment, fetchTasks } from "../../../redux/slices/taskSlice";
+import toast from "react-hot-toast";
 
 const NewIssuesTextField = ({
   value,
@@ -203,7 +204,7 @@ const IssuesTable = () => {
   );
 
   const {
-    fetchTasks: tasks,
+    // fetchTasks: tasks,
     loading: loadingTasks,
     error: tasksFetchError,
   } = useSelector(
@@ -248,6 +249,7 @@ const IssuesTable = () => {
   const [localError, setLocalError] = useState(null);
   const [isFileDialogOpen, setIsFileDialogOpen] = useState(false);
   const [validator, setValidator] = useState(false);
+  const [tasks, setTasks] = useState([])
 
   const [pagination, setPagination] = useState({
     pageIndex: current_page - 1, // Convert to 0-based index for TanStack Table
@@ -322,25 +324,61 @@ const IssuesTable = () => {
   }, [current_page]);
 
   // Fetch tasks
+  // useEffect(() => {
+  //   if (!loadingTasks && !tasksFetchError) {
+  //     if (newIssuesMilestoneId) {
+  //       dispatch(fetchTasks({ id: newIssuesMilestoneId, token }));
+  //     } else if (!newIssuesProjectId && !newIssuesMilestoneId) {
+  //       // Fetch all tasks when no project or milestone is selected
+  //       dispatch(fetchTasks({ id: "", token }));
+  //     }
+  //     setNewIssuesTaskId(null);
+  //     setTaskOptions([]);
+  //     setNewIssuesSubtaskId(null);
+  //     setSubtaskOptions([]);
+  //   }
+  // }, [
+  //   dispatch,
+  //   newIssuesMilestoneId,
+  //   newIssuesProjectId,
+  //   token,
+  // ]);
+
   useEffect(() => {
-    if (!loadingTasks && !tasksFetchError) {
-      if (newIssuesMilestoneId) {
-        dispatch(fetchTasks({ id: newIssuesMilestoneId, token }));
-      } else if (!newIssuesProjectId && !newIssuesMilestoneId) {
-        // Fetch all tasks when no project or milestone is selected
-        dispatch(fetchTasks({ id: "", token }));
+    const loadTasks = async () => {
+      if (!loadingTasks && !tasksFetchError) {
+        try {
+          if (newIssuesMilestoneId) {
+            const response = await dispatch(fetchTasks({ id: newIssuesMilestoneId, token })).unwrap();
+            setTasks(response)
+          } else if (!newIssuesProjectId && !newIssuesMilestoneId) {
+            // Fetch all tasks when no project or milestone is selected
+            const response = await dispatch(fetchTasks({ id: "", token })).unwrap();
+            setTasks(response)
+          }
+
+          // Reset selections
+          setNewIssuesTaskId(null);
+          setTaskOptions([]);
+          setNewIssuesSubtaskId(null);
+          setSubtaskOptions([]);
+        } catch (err) {
+          console.error("Error fetching tasks:", err);
+          toast.error("Error fetching tasks");
+          setTaskOptions([]);
+          setSubtaskOptions([]);
+        }
       }
-      setNewIssuesTaskId(null);
-      setTaskOptions([]);
-      setNewIssuesSubtaskId(null);
-      setSubtaskOptions([]);
-    }
+    };
+
+    loadTasks();
   }, [
     dispatch,
     newIssuesMilestoneId,
     newIssuesProjectId,
     token,
   ]);
+
 
   // Set task options
   useEffect(() => {
