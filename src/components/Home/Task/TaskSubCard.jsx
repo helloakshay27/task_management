@@ -1,7 +1,10 @@
 import { User2 } from "lucide-react";
 import { useDrag } from "react-dnd";
+import { useNavigate } from "react-router-dom";
 
 const TaskSubCard = ({ subtask, isVisible }) => {
+    const navigate = useNavigate()
+
     const [{ isDragging }, dragRef] = useDrag(() => ({
         type: "SUBTASK",
         item: { type: "SUBTASK", id: subtask.id, fromTaskId: subtask.parentId },
@@ -17,7 +20,7 @@ const TaskSubCard = ({ subtask, isVisible }) => {
             className={`w-[90%] h-max bg-white p-2 shadow-xl text-sm flex flex-col space-y-3 mb-2 float-right transition-all duration-300 ${isVisible ? "block" : "hidden pointer-events-none"
                 }`}
         >
-            <p className="mb-2">
+            <p className="mb-2 cursor-pointer" onClick={() => navigate(`${subtask.id}`)}>
                 <span className="text-blue-500">{`T${subtask.parent_id}-S${subtask.id}`}</span> {subtask.title}
             </p>
             <div className="flex items-start gap-2">

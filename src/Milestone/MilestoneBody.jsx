@@ -89,6 +89,9 @@ const GanttChart = () => {
                 align: "center",
                 width: 70,
                 template: function (task) {
+                    if (task.type !== "milestone") {
+                        return "";
+                    }
                     return Math.round(task.progress) + " %";
                 },
             },

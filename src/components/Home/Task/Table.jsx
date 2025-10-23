@@ -698,11 +698,11 @@ const TaskTable = () => {
         } else {
           displayId = `T-${originalId}`;
         }
-        
+
         // Generate cloud-aware navigation path
         const taskPaths = getTaskPaths(id, mid, linkIdPart, isCloudRoute);
-        const navigationPath = taskPaths.taskDetailSimple;
-        
+        const navigationPath = mid ? taskPaths.taskDetail : taskPaths.taskDetailSimple;
+
         return (
           <Link
             to={navigationPath}
@@ -850,7 +850,7 @@ const TaskTable = () => {
         const taskId = row.original.id;
         const taskPaths = getTaskPaths(id, mid, taskId, isCloudRoute);
         const detailPath = taskPaths.taskDetailSimple;
-        
+
         return (
           <div className="flex gap-2 items-center">
             <Link
