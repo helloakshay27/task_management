@@ -168,12 +168,13 @@ const ActionIcons = ({ row }) => {
     );
 };
 
-const ProgressBar = ({ progressString }) => {
+const ProgressBar = ({ progressString, total = 0, completed = 0 }) => {
     const numericValue = parseInt(progressString, 10);
     const isValidPercentage =
         !isNaN(numericValue) && numericValue >= 0 && numericValue <= 100;
     return (
-        <div className="progress-bar-container">
+        <div className="progress-bar-container gap-1">
+            {completed}
             <div className="progress-bar">
                 <div
                     className="progress-bar-fill"
@@ -183,6 +184,7 @@ const ProgressBar = ({ progressString }) => {
                     {isValidPercentage ? `${numericValue}%` : "Invalid Percentage"}
                 </div>
             </div>
+            {total}
         </div>
     );
 };
@@ -324,6 +326,9 @@ const ProjectList = () => {
                             : "",
 
                     manager: project.project_owner_name || project.manager || "Unassigned",
+
+                    total_milestone_count: Number(project.total_milestone_count || 0),
+                    completed_milestone_count: Number(project.completed_milestone_count || 0),
                     milestones: (() => {
                         const totalCount = Number(project.total_milestone_count);
                         const completedCount = Number(project.completed_milestone_count);
@@ -334,6 +339,8 @@ const ProjectList = () => {
                         return percentage;
                     })(),
 
+                    total_task_management_count: Number(project.total_task_management_count || 0),
+                    completed_task_management_count: Number(project.completed_task_management_count || 0),
                     tasks: (() => {
                         const totalCount = Number(project.total_task_management_count);
                         const completedCount = Number(project.completed_task_management_count);
@@ -344,7 +351,16 @@ const ProjectList = () => {
                         console.log(percentage)
                         return percentage;
                     })(),
-                    issues: `${project.completed_issues_count} / ${project.total_issues_count}`,
+
+                    total_issues_count: Number(project.total_issues_count || 0),
+                    completed_issues_count: Number(project.completed_issues_count || 0),
+                    issues: (() => {
+                        const totalCount = Number(project.total_issues_count);
+                        const completedCount = Number(project.completed_issues_count);
+                        if (!totalCount || totalCount === 0) return 0;
+                        const percentage = Math.round((completedCount / totalCount) * 100);
+                        return percentage;
+                    })(),
                     startDate: project.start_date
                         ? new Date(project.start_date).toLocaleDateString("en-CA")
                         : "N/A",
@@ -701,23 +717,31 @@ const ProjectList = () => {
                 accessorKey: "milestones",
                 header: "Milestones",
                 size: 130,
-                cell: (info) => <ProgressBar progressString={info.getValue()} />,
+                cell: (info) => <ProgressBar
+                    progressString={info.getValue()}
+                    total={info.row.original.total_milestone_count}
+                    completed={info.row.original.completed_milestone_count}
+                />,
             },
             {
                 accessorKey: "tasks",
                 header: "Tasks",
                 size: 110,
-                cell: (info) => <ProgressBar progressString={info.getValue()} />,
+                cell: (info) => <ProgressBar
+                    progressString={info.getValue()}
+                    total={info.row.original.total_task_management_count}
+                    completed={info.row.original.completed_task_management_count}
+                />
             },
             {
                 accessorKey: "issues",
                 header: "Issues",
                 size: 100,
-                cell: (info) => (
-                    <div style={{ textAlign: "center", width: "100%" }}>
-                        {info.getValue()}
-                    </div>
-                ),
+                cell: (info) => <ProgressBar
+                    progressString={info.getValue()}
+                    total={info.row.original.total_issues_count}
+                    completed={info.row.original.completed_issues_count}
+                />
             },
             {
                 accessorKey: "startDate",

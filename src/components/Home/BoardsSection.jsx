@@ -7,7 +7,7 @@ import { cardsTitle } from "../../data/Data";
 import TaskSubCard from "./Task/TaskSubCard";
 import { useDispatch, useSelector, batch } from "react-redux";
 import { changeProjectStatus, fetchProjects } from "../../redux/slices/projectSlice";
-import { changeTaskStatus, fetchTasks } from "../../redux/slices/taskSlice";
+import { changeTaskStatus, fetchKanbanTasks } from "../../redux/slices/taskSlice";
 import useDeepCompareEffect from "use-deep-compare-effect";
 import { debounce } from "lodash";
 import { useParams } from "react-router-dom";
@@ -25,7 +25,7 @@ const BoardsSection = ({ section }) => {
   const [isUpdatingTask, setIsUpdatingTask] = useState(false);
   const [localError, setLocalError] = useState(null);
   const projectState = useSelector((state) => state.fetchProjects.fetchProjects);
-  const taskState = useSelector((state) => state.fetchTasks.fetchTasks);
+  const taskState = useSelector((state) => state.fetchKanbanTasks.fetchKanbanTasks);
   const { filterProjects, success } = useSelector((state) => state.filterProjects);
   const { filterTask, success: taskSuccess } = useSelector((state) => state.filterTask);
 
@@ -33,9 +33,9 @@ const BoardsSection = ({ section }) => {
     batch(() => {
       if (section === "Tasks") {
         if (mid) {
-          dispatch(fetchTasks({ token, id: mid }));
+          dispatch(fetchKanbanTasks({ token, id: mid }));
         } else {
-          dispatch(fetchTasks({ token, id: "" }));
+          dispatch(fetchKanbanTasks({ token, id: "" }));
         }
       } else {
         dispatch(fetchProjects({ token }));
@@ -116,9 +116,9 @@ const BoardsSection = ({ section }) => {
           `Update failed: ${error?.response?.data?.errors || error?.message || "Server error"}`
         );
         if (mid) {
-          dispatch(fetchTasks({ token, id: mid }));
+          dispatch(fetchKanbanTasks({ token, id: mid }));
         } else {
-          dispatch(fetchTasks({ token, id: "" }));
+          dispatch(fetchKanbanTasks({ token, id: "" }));
         }
       }
     }, 300),
@@ -221,8 +221,8 @@ const BoardsSection = ({ section }) => {
       const sourceTask = taskData.find((t) => t.id === sourceNum);
       const targetTask = taskData.find((t) => t.id === targetNum);
 
-      if (targetTask && Array.isArray(targetTask.predecessor_task)) {
-        const flatPredecessors = targetTask.predecessor_task.flat();
+      if (targetTask && Array.isArray(targetTask.predecessor_task_ids)) {
+        const flatPredecessors = targetTask.predecessor_task_ids.flat();
         if (flatPredecessors.includes(sourceNum)) {
           arrows.push({
             sourceId: `task-${sourceNum}`,
@@ -232,8 +232,8 @@ const BoardsSection = ({ section }) => {
         }
       }
 
-      if (sourceTask && Array.isArray(sourceTask.successor_task)) {
-        const flatSuccessors = sourceTask.successor_task.flat();
+      if (sourceTask && Array.isArray(sourceTask.successor_task_ids)) {
+        const flatSuccessors = sourceTask.successor_task_ids.flat();
         if (flatSuccessors.includes(targetNum)) {
           arrows.push({
             sourceId: `task-${sourceNum}`,
@@ -301,11 +301,11 @@ const BoardsSection = ({ section }) => {
                       const taskId = `task-${task.id}`;
                       let dependsOnArr = [];
 
-                      if (Array.isArray(task.predecessor_task)) {
-                        dependsOnArr = [...dependsOnArr, ...task.predecessor_task.flat().filter(Boolean)];
+                      if (Array.isArray(task.predecessor_task_ids)) {
+                        dependsOnArr = [...dependsOnArr, ...task.predecessor_task_ids.flat().filter(Boolean)];
                       }
-                      if (Array.isArray(task.successor_task)) {
-                        dependsOnArr = [...dependsOnArr, ...task.successor_task.flat().filter(Boolean)];
+                      if (Array.isArray(task.successor_task_ids)) {
+                        dependsOnArr = [...dependsOnArr, ...task.successor_task_ids.flat().filter(Boolean)];
                       }
 
                       dependsOnArr = [...new Set(dependsOnArr.filter((id) => id && id !== task.id))];

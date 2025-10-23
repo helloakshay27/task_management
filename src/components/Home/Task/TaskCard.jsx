@@ -5,6 +5,13 @@ import { useNavigate } from "react-router-dom";
 import { changeTaskStatus } from "../../../redux/slices/taskSlice";
 import { useDispatch } from "react-redux";
 
+export const getInitials = (name = "") => {
+    const parts = name.trim().split(" ");
+    if (parts.length === 0) return "";
+    if (parts.length === 1) return parts[0][0]?.toUpperCase() || "";
+    return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+};
+
 const TaskCard = ({ task, toggleSubCard, handleLink, iconColor = "#323232", count }) => {
     const token = localStorage.getItem("token");
     const dispatch = useDispatch();
@@ -61,17 +68,15 @@ const TaskCard = ({ task, toggleSubCard, handleLink, iconColor = "#323232", coun
             className="w-full h-max bg-white p-2 shadow-xl text-xs flex flex-col space-y-2 mb-2"
         >
             <p className="mb-2 truncate cursor-pointer text-start" onClick={() => navigate(`${task.id}`)}>
-                <span className="text-blue-500">{task.id}</span> {task.title}
+                <span className="text-blue-500">T-{task.id}</span> {task.title}
             </p>
             <div className="flex items-center gap-1">
                 <Flag className="text-[#C72030] flex-shrink-0" size={14} />
-                <span className="text-[10px] truncate">{typeof task.milestone === "object" && task.milestone !== null
-                    ? task.milestone.title || JSON.stringify(task.milestone)
-                    : task.milestone}</span>
+                <span className="text-[10px] truncate">{task.milestone_title}</span>
             </div>
             <div className="flex items-start gap-1">
                 <User2 className="text-[#C72030] flex-shrink-0" size={14} />
-                <span className="text-[10px] truncate">{task.responsible_person?.name}</span>
+                <span className="text-[10px] truncate">{task.responsible_person_name}</span>
             </div>
             <div className="flex items-start gap-1">
                 <Timer className="text-[#029464] flex-shrink-0" size={14} />
@@ -228,7 +233,7 @@ const TaskCard = ({ task, toggleSubCard, handleLink, iconColor = "#323232", coun
                         </span>
                     </span>
                     <span className="h-5 w-5 flex items-center justify-center bg-green-600 text-white rounded-full text-[7px] font-light">
-                        AT
+                        {getInitials(task.responsible_person_name)}
                     </span>
                 </div>
             </div>

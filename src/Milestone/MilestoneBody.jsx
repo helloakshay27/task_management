@@ -4,6 +4,7 @@ import "dhtmlx-gantt";
 import "dhtmlx-gantt/codebase/dhtmlxgantt.css";
 import { useParams, useNavigate } from "react-router-dom";
 import { baseURL } from "./../../apiDomain";
+import toast from "react-hot-toast";
 
 // Add custom styles to ensure visibility
 const ganttStyles = `
@@ -221,6 +222,50 @@ const GanttChart = () => {
         // gantt.templates.task_text = function (start, end, task) {
         //     return `| ${}]`;
         // };
+
+        // Add this after gantt.init() and before fetchMilestones()
+
+        // Handle delete button click in lightbox
+        gantt.attachEvent("onBeforeTaskDelete", function (id, task) {
+            // Determine the type and extract the actual ID
+            let entityType = '';
+            let entityId = '';
+
+            if (id.startsWith('milestone-')) {
+                entityType = 'milestone';
+                entityId = id.replace('milestone-', '');
+            } else if (id.startsWith('task-')) {
+                entityType = 'task';
+                entityId = id.split('-')[1]; // Extract ID from "task-123" or "task-123-milestone-456"
+            } else if (id.startsWith('subtask-')) {
+                entityType = 'subtask';
+                entityId = id.replace('subtask-', '');
+            }
+
+            const apiEndpoint = entityType === 'milestone'
+                ? `${baseURL}/milestones/${entityId}.json`
+                : entityType === 'task'
+                    ? `${baseURL}/task_managements/${entityId}.json`
+                    : `${baseURL}/task_managements/${entityId}.json`;
+
+            axios.delete(apiEndpoint, {
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem("token")}`,
+                },
+            })
+                .then(response => {
+                    console.log(`${entityType} deleted successfully:`, response.data);
+                    toast.success(`${entityType.charAt(0).toUpperCase() + entityType.slice(1)} deleted successfully!`);
+                })
+                .catch(error => {
+                    console.error(`Error deleting ${entityType}:`, error);
+                    toast.error(`Failed to delete ${entityType}. Please try again.`);
+                    gantt.undo();
+                });
+
+            // Return true to allow gantt to remove the task from UI
+            return true;
+        });
 
         gantt.templates.task_class = function (start, end, task) {
             if (task.type === "milestone") {

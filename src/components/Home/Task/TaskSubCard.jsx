@@ -1,6 +1,7 @@
 import { User2 } from "lucide-react";
 import { useDrag } from "react-dnd";
 import { useNavigate } from "react-router-dom";
+import { getInitials } from "./TaskCard";
 
 const TaskSubCard = ({ subtask, isVisible }) => {
     const navigate = useNavigate()
@@ -21,11 +22,12 @@ const TaskSubCard = ({ subtask, isVisible }) => {
                 }`}
         >
             <p className="mb-2 cursor-pointer" onClick={() => navigate(`${subtask.id}`)}>
-                <span className="text-blue-500">{`T${subtask.parent_id}-S${subtask.id}`}</span> {subtask.title}
+                <span className="text-blue-500">{`S-${subtask.id}`}</span> {subtask.title}
+                {/* T${subtask.parent_id}- */}
             </p>
             <div className="flex items-start gap-2">
                 <User2 className="text-[#C72030]" size={15} />{" "}
-                {/* <span className="text-[11px]">{subtask?.responsible_person.name || "-"}</span> */}
+                <span className="text-[11px]">{subtask?.responsible_person_name || "-"}</span>
             </div>
 
             <hr className="border border-gray-200" />
@@ -46,7 +48,7 @@ const TaskSubCard = ({ subtask, isVisible }) => {
                         </span>
                     </span>
                     <span className="h-6 w-6 flex items-center justify-center bg-green-600 text-white rounded-full text-[8px] font-light">
-                        AT
+                        {getInitials(subtask.responsible_person_name)}
                     </span>
                 </div>
             </div>
