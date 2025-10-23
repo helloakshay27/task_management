@@ -27,8 +27,12 @@ const TaskCard = ({ task, toggleSubCard, handleLink, iconColor = "#323232", coun
     const [countdown, setCountdown] = useState("");
 
     useEffect(() => {
-        if (!task?.target_date || task.status === "completed") {
-            setCountdown("Completed");
+        if (!task?.target_date || task.status === "completed" || task.status === "overdue") {
+            if (task.status === "overdue") {
+                setCountdown("Overdue");
+            } else if (task.status === "completed") {
+                setCountdown("Completed");
+            }
             return;
         }
 
@@ -40,7 +44,6 @@ const TaskCard = ({ task, toggleSubCard, handleLink, iconColor = "#323232", coun
             const diff = endMidnight - now;
 
             if (diff <= 0 && task.status !== "completed") {
-                setCountdown("Overdue");
                 dispatch(changeTaskStatus({ token, id: task.id, payload: { status: "overdue" } }));
                 clearInterval(interval);
             } else {
