@@ -95,7 +95,6 @@ const TaskCard = ({ task, toggleSubCard, handleLink, iconColor = "#323232", coun
                                 fill="#323232"
                             />
                         </svg>
-                        1
                     </span>
 
                     <svg onClick={handleLink}

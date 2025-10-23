@@ -114,7 +114,7 @@ const GanttChart = () => {
                     if (task.type !== "milestone") {
                         return "";
                     }
-                    
+
                     // Use Tailwind classes for flex and gap
                     return `
                         <span class="flex items-center justify-center gap-3 mt-2 text-gray-500">
@@ -417,18 +417,18 @@ const GanttChart = () => {
                     const tomorrow = new Date(today);
                     tomorrow.setDate(today.getDate() + 1);
 
-                    tasksData.push({
-                        id: "sample-milestone",
-                        text: "Sample Milestone",
-                        start_date: formatDateDMYFromISO(today.toISOString()),
-                        end_date: formatDateDMYFromISO(tomorrow.toISOString()),
-                        duration: 1,
-                        progress: 0.0,
-                        status: "Open",
-                        type: "milestone",
-                        parent: 0,
-                        open: true,
-                    });
+                    // tasksData.push({
+                    //     id: "sample-milestone",
+                    //     text: "Sample Milestone",
+                    //     start_date: formatDateDMYFromISO(today.toISOString()),
+                    //     end_date: formatDateDMYFromISO(tomorrow.toISOString()),
+                    //     duration: 1,
+                    //     progress: 0.0,
+                    //     status: "Open",
+                    //     type: "milestone",
+                    //     parent: 0,
+                    //     open: true,
+                    // });
                 }
 
                 // Clear and parse new data
