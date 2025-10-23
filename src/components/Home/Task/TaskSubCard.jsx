@@ -22,8 +22,7 @@ const TaskSubCard = ({ subtask, isVisible }) => {
                 }`}
         >
             <p className="mb-2 cursor-pointer" onClick={() => navigate(`${subtask.id}`)}>
-                <span className="text-blue-500">{`S-${subtask.id}`}</span> {subtask.title}
-                {/* T${subtask.parent_id}- */}
+                <span className="text-blue-500">{`T${subtask.parent_id}-S${subtask.id}`}</span> {subtask.title}
             </p>
             <div className="flex items-start gap-2">
                 <User2 className="text-[#C72030]" size={15} />{" "}
