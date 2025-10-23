@@ -382,17 +382,17 @@ const TaskTable = () => {
     if (myTasks === "false") {
       if (
         filterSuccess &&
-        Array.isArray(filterTasks) &&
+        Array.isArray(filterTasks.task_managements) &&
         (localStorage.getItem("taskFilters") ||
           localStorage.getItem("taskStatus"))
       ) {
-        newProcessedData = filterTasks.map((task) => processTaskData(task));
+        newProcessedData = filterTasks.task_managements.map((task) => processTaskData(task));
       } else if (
         tasksFromStore &&
-        Array.isArray(tasksFromStore) &&
-        tasksFromStore.length > 0
+        Array.isArray(tasksFromStore.task_managements) &&
+        tasksFromStore.task_managements.length > 0
       ) {
-        newProcessedData = tasksFromStore.map((task) => processTaskData(task));
+        newProcessedData = tasksFromStore.task_managements.map((task) => processTaskData(task));
       }
     } else {
       if (
@@ -402,8 +402,8 @@ const TaskTable = () => {
           localStorage.getItem("taskStatus"))
       ) {
         newProcessedData = filterTasks.map((task) => processTaskData(task));
-      } else if (myTaskSuccess && Array.isArray(myTasksFromStore)) {
-        newProcessedData = myTasksFromStore.map((task) =>
+      } else if (myTaskSuccess && Array.isArray(myTasksFromStore.task_managements)) {
+        newProcessedData = myTasksFromStore.task_managements.map((task) =>
           processTaskData(task)
         );
       }
@@ -752,7 +752,7 @@ const TaskTable = () => {
       cell: ({ getValue, row }) => {
         return (
           <SelectBox
-            options={(projectTeamMembers.length > 0 ? projectTeamMembers : users).map(
+            options={(projectTeamMembers?.length > 0 ? projectTeamMembers : users).map(
               (user) => ({
                 value: user.user_id || user.id,
                 label:
