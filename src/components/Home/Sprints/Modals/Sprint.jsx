@@ -8,6 +8,51 @@ import {
 } from "../../../../redux/slices/spirintSlice";
 import toast from "react-hot-toast";
 
+// Unified calculateDuration function
+const calculateDuration = (startDate, endDate) => {
+  if (!startDate || !endDate) return "";
+
+  const start = new Date(startDate);
+  const end = new Date(endDate);
+
+  if (end < start) return "Invalid: End date before start date";
+
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const startDay = new Date(start.getFullYear(), start.getMonth(), start.getDate());
+  const endDay = new Date(end.getFullYear(), end.getMonth(), end.getDate());
+
+  // If start date is today, calculate from current time
+  if (startDay.getTime() === today.getTime()) {
+    // Calculate full days between today and end date
+    const daysDiff = Math.floor((endDay - today) / (1000 * 60 * 60 * 24));
+
+    // Calculate remaining hours and minutes from now to end of today (midnight)
+    const endOfToday = new Date(today);
+    endOfToday.setHours(23, 59, 59, 999);
+
+    const msToday = endOfToday - now;
+    const totalMinutes = Math.floor(msToday / (1000 * 60));
+    const hours = Math.floor(totalMinutes / 60);
+    const minutes = totalMinutes % 60;
+
+    if (daysDiff > 0) {
+      return `${daysDiff}d : ${hours}h : ${minutes}m`;
+    } else {
+      // Same day - calculate to actual end time
+      const msToEnd = end - now;
+      const totalMins = Math.floor(msToEnd / (1000 * 60));
+      const hrs = Math.floor(totalMins / 60);
+      const mins = totalMins % 60;
+      return `${hrs}h : ${mins}m`;
+    }
+  } else {
+    // For future dates, calculate days only
+    const days = Math.floor((endDay - startDay) / (1000 * 60 * 60 * 24)) + 1;
+    return `${days}d : 0h : 0m`;
+  }
+};
+
 const AddSprintsModal = ({
   formData,
   setFormData,
@@ -24,19 +69,6 @@ const AddSprintsModal = ({
 
   const handleSelectChange = (name, value) => {
     setFormData({ ...formData, [name]: value });
-  };
-
-  const calculateDuration = () => {
-    if (!formData.startDate || !formData.endDate) return "";
-    const start = new Date(formData.startDate);
-    const end = new Date(formData.endDate);
-    if (end < start) return "";
-    const ms = end - start;
-    const days = Math.floor(ms / (1000 * 60 * 60 * 24)) + 1;
-    const totalMinutes = Math.floor(ms / (1000 * 60));
-    const hours = Math.floor((totalMinutes % (60 * 24)) / 60);
-    const minutes = totalMinutes % 60;
-    return `${days}d:${hours}h:${minutes}m`;
   };
 
   return (
@@ -118,7 +150,7 @@ const AddSprintsModal = ({
           <label className="block">Duration</label>
           <input
             type="text"
-            value={calculateDuration()}
+            value={calculateDuration(formData.startDate, formData.endDate)}
             className="w-full bg-gray-200 border outline-none border-gray-300 p-2 text-[12px]"
             readOnly
           />
@@ -182,16 +214,6 @@ const Sprints = ({ closeModal }) => {
       priority: data.priority,
     },
   });
-
-  const calculateDuration = (startDate, endDate) => {
-    if (!startDate || !endDate) return "";
-    const start = new Date(startDate);
-    const end = new Date(endDate);
-    if (end < start) return "";
-    const ms = end - start;
-    const days = Math.floor(ms / (1000 * 60 * 60 * 24)) + 1;
-    return `${days}d`;
-  };
 
   const handleAddSprints = async (e) => {
     e.preventDefault();

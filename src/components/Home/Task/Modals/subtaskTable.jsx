@@ -6,7 +6,7 @@ import {
   Fragment,
   useCallback,
 } from "react";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import {
   useReactTable,
@@ -268,6 +268,7 @@ const calculateDuration = (startDateStr, endDateStr) => {
 
 const SubtaskTable = ({ projectId }) => {
   const token = localStorage.getItem("token");
+  const navigate = useNavigate();
   const { mid = "", tid: parentId } = useParams();
   const dispatch = useDispatch();
 
@@ -449,13 +450,14 @@ const SubtaskTable = ({ projectId }) => {
           foundTask.sub_tasks_managements &&
           Array.isArray(foundTask.sub_tasks_managements)
         ) {
+          console.log(foundTask.sub_tasks_managements);
           const processedSubtasks = foundTask.sub_tasks_managements.map(
             (sub) => ({
               id: sub.id,
               taskTitle: sub.title || "Unnamed Subtask",
               status: sub.status || "open",
-              responsiblePerson: sub.responsible_person?.name || "Unassigned",
-              responsiblePersonId: sub.responsible_person?.id || null,
+              responsiblePerson: sub.responsible_person_name || "Unassigned",
+              responsiblePersonId: sub.responsible_person_id || null,
               startDate: sub.started_at
                 ? new Date(sub.started_at).toLocaleDateString("en-CA")
                 : null,
@@ -667,15 +669,19 @@ const SubtaskTable = ({ projectId }) => {
   }, [isAddingNewSubtask, handleCancelNewSubtask]);
 
   const userOptionsForSelectBox = useMemo(
-    () => [
-      ...(Array.isArray(projectTeamMembers)
+    () =>
+      Array.isArray(projectTeamMembers) && projectTeamMembers.length > 0
         ? projectTeamMembers.map((u) => ({
           value: u.user_id,
-          label: u?.user?.name,
+          label: u?.user?.name || "Unknown User",
         }))
-        : []),
-    ],
-    [projectTeamMembers]
+        : Array.isArray(users)
+          ? users.map((u) => ({
+            value: u.id,
+            label: `${u.firstname} ${u.lastname}`,
+          }))
+          : [],
+    [projectTeamMembers, users]
   );
 
   const tagNamesForDropdown = useMemo(() => {
@@ -689,7 +695,7 @@ const SubtaskTable = ({ projectId }) => {
         header: "ID",
         size: 80,
         cell: ({ getValue }) => (
-          <span className="text-xs text-gray-500 px-1">
+          <span className="text-xs text-gray-500 px-1 cursor-pointer hover:underline" onClick={() => navigate(`/tasks/${getValue()}`)}>
             {getValue().toString().slice(-5)}
           </span>
         ),

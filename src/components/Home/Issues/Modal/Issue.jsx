@@ -9,8 +9,8 @@ import {
 } from "../../../../redux/slices/IssueSlice";
 import { fetchMilestone } from "../../../../redux/slices/milestoneSlice";
 import { fetchProjects } from "../../../../redux/slices/projectSlice";
-import { fetchTasks } from "../../../../redux/slices/taskSlice";
 import toast from "react-hot-toast";
+import { fetchKanbanTasks } from "../../../../redux/slices/taskSlice";
 
 const globalPriorityOptions = [
   { value: 2, label: "Low" },
@@ -149,11 +149,11 @@ const Issues = ({ closeModal }) => {
   );
 
   const {
-    fetchTasks: tasks,
+    fetchKanbanTasks: tasks,
     loading: loadingTasks,
     error: tasksFetchError,
   } = useSelector(
-    (state) => state.fetchTasks || { tasks: [], loading: false, error: null }
+    (state) => state.fetchKanbanTasks || { fetchKanbanTasks: [], loading: false, error: null }
   );
 
   const [projectOptions, setProjectOptions] = useState([]);
@@ -192,7 +192,7 @@ const Issues = ({ closeModal }) => {
       !milestoneFetchError
     ) {
       if (newIssuesMilestoneId)
-        dispatch(fetchTasks({ id: newIssuesMilestoneId, token }));
+        dispatch(fetchKanbanTasks({ id: newIssuesMilestoneId, token }));
       setNewIssuesTaskId("");
       setTaskOptions([]);
       // Clear subtask options and selection when milestone changes
@@ -208,7 +208,7 @@ const Issues = ({ closeModal }) => {
   ]);
 
   useEffect(() => {
-    dispatch(fetchTasks({ id: "", token }));
+    dispatch(fetchKanbanTasks({ id: "", token }));
   }, [dispatch]);
 
   useEffect(() => {

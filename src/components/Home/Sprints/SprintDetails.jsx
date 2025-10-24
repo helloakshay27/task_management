@@ -1,41 +1,8 @@
-import React, { useState, useEffect, useRef } from "react";
-import { ChevronDown, ChevronDownCircle } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import { ChevronDownCircle } from "lucide-react";
 import { useParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchSpirintById } from "../../../redux/slices/spirintSlice";
-
-const sprintData = {
-  id: 1,
-  title: "Sprint 1 - Feature Development",
-  description: "",
-  created_by: { name: "John Doe" },
-  created_at: "2025-06-01T10:00:00Z",
-  start_date: "2025-06-01",
-  end_date: "2025-06-14",
-  status: "In Progress",
-  priority: "High",
-  team_members: [
-    { id: 1, name: "Alice Smith" },
-    { id: 2, name: "Bob Johnson" },
-    { id: 3, name: "Carol White" },
-  ],
-  goals: [
-    { id: 1, name: "Complete dashboard UI" },
-    { id: 2, name: "Implement data API" },
-  ],
-  comments: [
-    { id: 1, user: "Alice Smith", content: "UI designs approved.", timestamp: "2025-06-02" },
-    { id: 2, user: "Bob Johnson", content: "API integration in progress.", timestamp: "2025-06-05" },
-  ],
-  attachments: [
-    { id: 1, name: "sprint_plan.pdf", url: "#" },
-    { id: 2, name: "mockup.png", url: "#" },
-  ],
-  status_logs: [
-    { id: 1, status: "Not Started", timestamp: "2025-05-30" },
-    { id: 2, status: "In Progress", timestamp: "2025-06-01" },
-  ],
-};
 
 const SprintDetails = () => {
   const [isFirstCollapsed, setIsFirstCollapsed] = useState(false);
@@ -93,7 +60,7 @@ const SprintDetails = () => {
         <div className="border-b-[3px] border-[rgba(190, 190, 190, 1)]"></div>
         <div className="flex items-center justify-between my-3 text-[12px]">
           <div className="flex items-center gap-3 text-[#323232]">
-            <span>Created By: {sprintData.created_by.name}</span>
+            <span>Created By: {newSprint.created_by}</span>
             <span className="h-6 w-[1px] border border-gray-300"></span>
             <span className="flex items-center gap-3">
               Created On: {formatToDDMMYYYY_AMPM(newSprint.created_at)}

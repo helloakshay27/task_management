@@ -114,21 +114,56 @@ const Attachments = ({
     setIsFileDialogOpen(false);
   };
 
+  const handleRemoveFile = (indexToRemove) => {
+    setAttachments(prev => prev.filter((_, index) => index !== indexToRemove));
+  };
+
+  const handleChangeFiles = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsFileDialogOpen(true);
+    fileInputRef.current.click();
+  };
+
   return (
-    <div ref={containerRef} className="flex flex-col gap-3 p-5">
-      <div className="text-[14px] mt-2">
-        {attachments.length > 0 ? (
-          <span>{attachments.length}</span>
-        ) : (
-          <span
-            onClick={handleAttachFile}
-            type="button"
-            className="block mb-2 cursor-pointer text-gray-400"
+    <div ref={containerRef} className="flex flex-col gap-2 p-2">
+      {attachments.length > 0 ? (
+        <div className="flex flex-col gap-1">
+          <div className="max-h-[100px] overflow-y-auto">
+            {attachments.map((file, index) => (
+              <div key={index} className="flex items-center justify-between gap-2 text-[11px] py-1 px-2 bg-gray-50 rounded">
+                <span className="truncate flex-1" title={file.name}>
+                  {file.name}
+                </span>
+                <button
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    handleRemoveFile(index);
+                  }}
+                  className="text-red-500 hover:text-red-700 font-bold"
+                  title="Remove file"
+                >
+                  ×
+                </button>
+              </div>
+            ))}
+          </div>
+          <button
+            onClick={handleChangeFiles}
+            className="text-[11px] text-blue-600 hover:text-blue-800 underline"
           >
-            <i>Click to attach files</i>
-          </span>
-        )}
-      </div>
+            Change files
+          </button>
+        </div>
+      ) : (
+        <span
+          onClick={handleAttachFile}
+          className="block cursor-pointer text-gray-400 text-[12px]"
+        >
+          <i>Click to attach files</i>
+        </span>
+      )}
       <input
         type="file"
         multiple
@@ -1030,7 +1065,7 @@ const IssuesTable = () => {
       {
         accessorKey: "responsiblePerson",
         header: "Responsible Person",
-        size: 150,
+        size: 200,
         cell: ({ row }) => (
           <SelectBox
             table={true}
@@ -1063,7 +1098,7 @@ const IssuesTable = () => {
             onChange={(selectedOptionValue) =>
               handleUpdateIssues(
                 row.original.id,
-                "issue_type_id",
+                "issue_type",
                 selectedOptionValue
               )
             }
@@ -1146,32 +1181,32 @@ const IssuesTable = () => {
           );
         },
       },
-      {
-        id: "actions",
-        header: "Actions",
-        size: 100,
-        cell: ({ row }) => {
-          const issueId = row.original.id;
-          const issuePath = isCloudRoute ? `/cloud-issues/${issueId}` : `/issues/${issueId}`;
+      // {
+      //   id: "actions",
+      //   header: "Actions",
+      //   size: 100,
+      //   cell: ({ row }) => {
+      //     const issueId = row.original.id;
+      //     const issuePath = isCloudRoute ? `/cloud-issues/${issueId}` : `/issues/${issueId}`;
 
-          return (
-            <div className="flex gap-2 items-center">
-              <Link
-                to={issuePath}
-                className="text-blue-600 hover:text-blue-800 text-xs px-2 py-1 border border-blue-600 rounded hover:bg-blue-50"
-              >
-                View
-              </Link>
-              <Link
-                to={`${issuePath}?edit=true`}
-                className="text-green-600 hover:text-green-800 text-xs px-2 py-1 border border-green-600 rounded hover:bg-green-50"
-              >
-                Edit
-              </Link>
-            </div>
-          );
-        },
-      },
+      //     return (
+      //       <div className="flex gap-2 items-center">
+      //         <Link
+      //           to={issuePath}
+      //           className="text-blue-600 hover:text-blue-800 text-xs px-2 py-1 border border-blue-600 rounded hover:bg-blue-50"
+      //         >
+      //           View
+      //         </Link>
+      //         <Link
+      //           to={`${issuePath}?edit=true`}
+      //           className="text-green-600 hover:text-green-800 text-xs px-2 py-1 border border-green-600 rounded hover:bg-green-50"
+      //         >
+      //           Edit
+      //         </Link>
+      //       </div>
+      //     );
+      //   },
+      // },
     ],
     [handleUpdateIssues, handleUpdateComment, userOptionsForSelectBox, issueType]
   );

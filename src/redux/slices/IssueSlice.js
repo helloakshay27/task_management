@@ -93,6 +93,21 @@ export const fetchIssue = createAsyncThunk("fetchIssue", async ({ token, page = 
     }
 })
 
+export const fetchIssueById = createAsyncThunk("fetchIssueById", async ({ token, id }) => {
+    try {
+        const response = await axios.get(`${baseURL}/issues/${id}.json`, {
+            headers: {
+                Authorization: `Bearer ${token}`,
+            },
+        });
+
+        return response.data;
+    }
+    catch (error) {
+        console.log(error);
+    }
+})
+
 export const updateIssue = createAsyncThunk("updateIssue", async ({ token, id, payload }) => {
     try {
         const response = await axios.put(`${baseURL}/issues/${id}.json`,
@@ -240,6 +255,7 @@ export const updateIssueTypeSlice = createApiSlice('updateIssueType', updateIssu
 export const deleteIssueTypeSlice = createApiSlice('deleteIssueType', deleteIssueType);
 export const filterIssueSlice = createApiSlice('filterIssue', filterIssue);
 export const removeIssueAttachmentSlice = createApiSlice('removeIssueAttachment', removeIssueAttachment);
+export const fetchIssueByIdSlice = createApiSlice('fetchIssueById', fetchIssueById);
 
 export const createIssueReducer = createIssueSlice.reducer;
 export const fetchIssueReducer = fetchIssueSlice.reducer;
@@ -250,5 +266,6 @@ export const updateIssueTypeReducer = updateIssueTypeSlice.reducer;
 export const deleteIssueTypeReducer = deleteIssueTypeSlice.reducer;
 export const filterIssueReducer = filterIssueSlice.reducer;
 export const removeIssueAttachmentReducer = removeIssueAttachmentSlice.reducer;
+export const fetchIssueByIdReducer = fetchIssueByIdSlice.reducer;
 
 export const { resetIssueSuccess } = createIssueSlice.actions;

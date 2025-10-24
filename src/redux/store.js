@@ -7,7 +7,7 @@ import { changeTaskStatusReducer, createDependancyReducer, createTaskCommentRedu
 import { createOrganizationReducer, editOrganizationReducer, fetchOrganizationsReducer } from './slices/organizationSlice'
 import { createMilestoneReducer, deleteMilestoneReducer, fetchMilestoneByIdReducer, fetchMilestoneReducer } from './slices/milestoneSlice'
 import { fetchSpirintByIdReducer, fetchSpirintsReducer, postSprintReducer, putSprintReducer } from './slices/spirintSlice'
-import { createIssueReducer, fetchIssueReducer, updateIssueReducer, fetchIssueTypeReducer, filterIssueReducer, createIssueTypeReducer, updateIssueTypeReducer, deleteIssueTypeReducer, removeIssueAttachmentReducer } from './slices/IssueSlice'
+import { createIssueReducer, fetchIssueReducer, updateIssueReducer, fetchIssueTypeReducer, filterIssueReducer, createIssueTypeReducer, updateIssueTypeReducer, deleteIssueTypeReducer, removeIssueAttachmentReducer, fetchIssueByIdReducer } from './slices/IssueSlice'
 import { fetchStatusReducer, createStatusReducer, deleteStatusReducer, updateStatusReducer } from './slices/statusSlice'
 import { createMoMReducer, fetchMomDetailsReducer, fetchMoMReducer, removeMomAttachmentReducer } from './slices/momSlice'
 import { createMessageReducer, fetchChannelByIdReducer, fetchChannelsReducer, fetchConversationsReducer, fetchMessagesOfConversationReducer, startConversationReducer } from './slices/channelSlice'
@@ -71,6 +71,7 @@ export const store = configureStore({
     deleteIssueType: deleteIssueTypeReducer,
     filterIssue: filterIssueReducer,
     removeIssueAttachment: removeIssueAttachmentReducer,
+    fetchIssueById: fetchIssueByIdReducer,
 
     // fetchTasksComments: fetchTasksCommentsReducer,
     createTaskComment: createTaskCommentReducer,

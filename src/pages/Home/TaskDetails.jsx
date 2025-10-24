@@ -1017,7 +1017,7 @@ const TaskDetails = () => {
                                         <div className="text-right text-[12px] font-[500]">
                                             MileStones:
                                         </div>
-                                        <div className="text-left text-[12px]">0/1</div>
+                                        <div className="text-left text-[12px]">{task.milestone?.title}</div>
                                     </div>
                                 </div>
                                 <span className="border h-[1px] inline-block w-full my-4"></span>
@@ -1149,6 +1149,7 @@ const TaskDetails = () => {
                                     "Dependency",
                                     "Comments",
                                     "Attachments",
+                                    "Project Drive",
                                     "Activity Log",
                                     "Workflow Status Log",
                                 ].map((tabName, index) => (
@@ -1171,6 +1172,9 @@ const TaskDetails = () => {
                             {tab === "Comments" && <Comments comments={task?.comments} />}
                             {tab === "Attachments" && (
                                 <Attachments attachments={task?.attachments} id={task.id} />
+                            )}
+                            {tab === "Project Drive" && (
+                                <>Project Drive</>
                             )}
                             {tab === "Activity Log" && (
                                 <Status taskStatusLogs={task.task_status_logs} />

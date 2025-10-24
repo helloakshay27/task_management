@@ -4,7 +4,7 @@ import { useGSAP } from "@gsap/react";
 import { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { attachFile, fetchIssue, removeIssueAttachment, updateIssue } from "../../redux/slices/IssueSlice";
+import { attachFile, fetchIssue, fetchIssueById, removeIssueAttachment, updateIssue } from "../../redux/slices/IssueSlice";
 import toast from "react-hot-toast";
 
 const Attachments = ({ attachments, id }) => {
@@ -228,10 +228,18 @@ const IssueDetails = () => {
     const [issueDetails, setIssueDetails] = useState();
 
     useEffect(() => {
-        if (issues && Array.isArray(issues) && issues.length > 0) {
-            setIssueDetails(issues.find(issue => issue.id == id));
+        if (id) {
+            const getIssue = async () => {
+                try {
+                    const response = await dispatch(fetchIssueById({ token, id })).unwrap()
+                    setIssueDetails(response)
+                } catch (error) {
+                    console.log(error)
+                }
+            }
+            getIssue()
         }
-    }, [id, issues])
+    }, [id])
 
     useEffect(() => {
         if (issueDetails?.status) {
