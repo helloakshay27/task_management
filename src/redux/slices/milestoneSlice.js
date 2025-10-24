@@ -44,6 +44,20 @@ export const fetchMilestoneById = createAsyncThunk("fetchMilestoneById", async (
     }
 });
 
+export const deleteMilestone = createAsyncThunk("deleteMilestone", async ({ token, id }) => {
+    try {
+        const response = await axios.delete(`${baseURL}/milestones/${id}.json`, {
+            headers: {
+                Authorization: `Bearer ${token}`,
+            },
+        });
+        return response.data;
+    } catch (error) {
+        console.log(error);
+        return error.response.data;
+    }
+});
+
 // ✅ Enhanced API slice factory
 const createApiSlice = (name, fetchThunk, extraInitial = {}, extraReducers = {}) =>
     createSlice({
@@ -103,11 +117,13 @@ export const fetchMilestoneSlice = createApiSlice(
 // ✅ Other slices remain the same
 export const createMilestoneSlice = createApiSlice('createMilestone', createMilestone);
 export const fetchMilestoneByIdSlice = createApiSlice('fetchMilestoneById', fetchMilestoneById);
+export const deleteMilestoneSlice = createApiSlice('deleteMilestone', deleteMilestone);
 
 // ✅ Export reducers
 export const createMilestoneReducer = createMilestoneSlice.reducer;
 export const fetchMilestoneReducer = fetchMilestoneSlice.reducer;
 export const fetchMilestoneByIdReducer = fetchMilestoneByIdSlice.reducer;
+export const deleteMilestoneReducer = deleteMilestoneSlice.reducer;
 
 // ✅ Export saved milestone actions
 export const {

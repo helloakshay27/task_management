@@ -47,6 +47,7 @@ import Country from "./pages/Setup/Country.jsx";
 import Company from "./pages/Setup/Company.jsx";
 import Organizations from "./pages/Setup/Organizations.jsx";
 import { WebSocketProvider } from "./contexts/WebSocketContext.jsx";
+import MilestoneDetailsPage from "./pages/Home/MilestoneDetailsPage.jsx";
 
 const App = () => {
   const token = localStorage.getItem("token");
@@ -100,6 +101,10 @@ const App = () => {
 
                   {/* Internal Routes */}
                   <Route path="/" element={<Navigate to="/projects" />} />
+                  <Route
+                    path="projects/:id/milestones/:mid"
+                    element={<MilestoneDetailsPage />}
+                  />
                   <Route
                     path="projects/:id/milestones/:mid/tasks"
                     element={<Tasks setIsSidebarOpen={setIsSidebarOpen} />}

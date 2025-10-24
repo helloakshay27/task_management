@@ -20,11 +20,11 @@ const DependancyKanban = () => {
     }, [dispatch, task?.milestone_id]);
 
     useEffect(() => {
-        if (tasks.length > 0 && task?.id) {
+        if (tasks.task_managements?.length > 0 && task?.id) {
             const predecessorIds = (task?.predecessor_task || []).flat();
             const successorIds = (task?.successor_task || []).flat();
 
-            const updatedData = tasks.map(t => {
+            const updatedData = tasks.task_managements.map(t => {
                 if (t.id === task.id) {
                     return { ...t, section: "Main Task" };
                 } else if (predecessorIds.includes(t.id)) {

@@ -118,6 +118,25 @@ const GanttChart = () => {
     }, [navigate]);
 
     useEffect(() => {
+        const handleMiletstoneViewClick = (e) => {
+            const btn = e.target.closest(".gantt-milestone-link");
+            if (btn) {
+                const id = btn.getAttribute("data-id");
+                if (id) {
+                    navigate(`${id}`);
+                }
+            }
+        };
+
+        const container = ganttContainer.current;
+        container?.addEventListener("click", handleMiletstoneViewClick);
+
+        return () => {
+            container?.removeEventListener("click", handleMiletstoneViewClick);
+        };
+    }, [navigate]);
+
+    useEffect(() => {
         console.log("Gantt useEffect started, scale:", scale);
 
         // Columns
@@ -128,6 +147,12 @@ const GanttChart = () => {
                 tree: true,
                 width: 250,
                 resize: true,
+                template: function (task) {
+                    if (task.type === "milestone") {
+                        return `<span class="gantt-milestone-link" data-id="${task.navigationid}" style="cursor: pointer;">${task.text}</span>`;
+                    }
+                    return task.text;
+                },
             },
             {
                 name: "progress",
