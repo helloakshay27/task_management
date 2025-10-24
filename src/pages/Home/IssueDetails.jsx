@@ -411,7 +411,7 @@ const IssueDetails = () => {
                                     <div className="text-right text-[12px] font-[500]">
                                         Issue Type:
                                     </div>
-                                    <div className="text-left text-[12px]">{issueDetails?.issue_type}</div>
+                                    <div className="text-left text-[12px]">{issueDetails?.issue_type_name}</div>
                                 </div>
                                 <div className="w-1/2 flex items-center justify-start gap-3">
                                     <div className="text-right text-[12px] font-[500]">
