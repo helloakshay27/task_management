@@ -211,6 +211,8 @@ const TaskTable = () => {
   } = useSelector((state) => state.filterTask);
   const { fetchMilestoneById: milestone } = useSelector((state) => state.fetchMilestoneById);
   const userFetchInitiatedRef = useRef(false);
+  const isFetchingRef = useRef(false);
+  const lastFetchedPageRef = useRef(null);
   const [data, setData] = useState([]);
   const [expanded, setExpanded] = useState({});
   const [isAddingNewTask, setIsAddingNewTask] = useState(false);
@@ -274,11 +276,21 @@ const TaskTable = () => {
 
   useEffect(() => {
     const fetch = async () => {
-      if (isCreatingTask || isUpdatingTask) return;
+      if (isCreatingTask || isUpdatingTask || isFetchingRef.current) return;
+
+      const pageToFetch = pagination.pageIndex + 1;
+
+      // Don't fetch if we just fetched this page
+      if (lastFetchedPageRef.current === pageToFetch) return;
+
       try {
+        isFetchingRef.current = true;
+        lastFetchedPageRef.current = pageToFetch;
         await handleFetchTasks();
       } catch (error) {
         console.error("Error fetching tasks:", error);
+      } finally {
+        isFetchingRef.current = false;
       }
     };
     fetch();
@@ -345,7 +357,7 @@ const TaskTable = () => {
       totalPages,
       totalRecords,
       currentPage,
-      pageIndex: currentPage - 1, // Convert to 0-based for frontend
+      // Don't update pageIndex from API response - let it be controlled by user interaction only
     }));
     setLocalError(null);
   }, [
@@ -448,6 +460,9 @@ const TaskTable = () => {
       .unwrap()
       .then(() => {
         resetNewTaskForm();
+        // Reset to page 1 after creating new task
+        lastFetchedPageRef.current = null;
+        setPagination(prev => ({ ...prev, pageIndex: 0, currentPage: 1 }));
         return handleFetchTasks();
       })
       .catch((error) => {
@@ -543,6 +558,7 @@ const TaskTable = () => {
         } else {
           await dispatch(updateTask({ token, id: taskId, payload })).unwrap();
         }
+        lastFetchedPageRef.current = null; // Force refetch on next pagination change
         handleFetchTasks();
       } catch (error) {
         console.error(`Task field update failed for ${taskId} (${fieldName}):`, error);
@@ -695,44 +711,21 @@ const TaskTable = () => {
       size: 100,
       cell: ({ getValue }) => <span className="text-xs">{getValue()}</span>,
     },
-    // {
-    //   id: "actions",
-    //   header: "Actions",
-    //   size: 100,
-    //   cell: ({ row }) => {
-    //     const taskId = row.original.id;
-    //     const taskPaths = getTaskPaths(id, mid, taskId, isCloudRoute);
-    //     const detailPath = taskPaths.taskDetailSimple;
-    //     return (
-    //       <div className="flex gap-2 items-center">
-    //         <Link
-    //           to={detailPath}
-    //           className="text-blue-600 hover:text-blue-800 text-xs px-2 py-1 border border-blue-600 rounded hover:bg-blue-50"
-    //         >
-    //           View
-    //         </Link>
-    //         <Link
-    //           to={`${detailPath}?edit=true`}
-    //           className="text-green-600 hover:text-green-800 text-xs px-2 py-1 border border-green-600 rounded hover:bg-green-50"
-    //         >
-    //           Edit
-    //         </Link>
-    //       </div>
-    //     );
-    //   },
-    // },
   ];
 
   const renderPagination = () => {
     const totalPages = pagination.totalPages;
     const currentPage = pagination.pageIndex; // 0-based
-    const maxButtons = 3; // Show up to 5 page buttons (excluding ellipses)
+    const maxButtons = 3; // Show up to 3 page buttons (excluding ellipses)
 
     if (totalPages <= maxButtons) {
       return [...Array(totalPages)].map((_, i) => (
         <button
           key={i}
-          onClick={() => table.setPageIndex(i)}
+          onClick={() => {
+            lastFetchedPageRef.current = null; // Reset to allow fetch
+            table.setPageIndex(i);
+          }}
           className={`px-2 py-1 ${i === currentPage ? "bg-gray-200 font-bold" : ""}`}
         >
           {i + 1}
@@ -751,7 +744,10 @@ const TaskTable = () => {
     pages.push(
       <button
         key={0}
-        onClick={() => table.setPageIndex(0)}
+        onClick={() => {
+          lastFetchedPageRef.current = null; // Reset to allow fetch
+          table.setPageIndex(0);
+        }}
         className={`px-2 py-1 ${currentPage === 0 ? "bg-gray-200 font-bold" : ""}`}
       >
         1
@@ -768,7 +764,10 @@ const TaskTable = () => {
       pages.push(
         <button
           key={i}
-          onClick={() => table.setPageIndex(i)}
+          onClick={() => {
+            lastFetchedPageRef.current = null; // Reset to allow fetch
+            table.setPageIndex(i);
+          }}
           className={`px-2 py-1 ${i === currentPage ? "bg-gray-200 font-bold" : ""}`}
         >
           {i + 1}
@@ -786,7 +785,10 @@ const TaskTable = () => {
       pages.push(
         <button
           key={totalPages - 1}
-          onClick={() => table.setPageIndex(totalPages - 1)}
+          onClick={() => {
+            lastFetchedPageRef.current = null; // Reset to allow fetch
+            table.setPageIndex(totalPages - 1);
+          }}
           className={`px-2 py-1 ${currentPage === totalPages - 1 ? "bg-gray-200 font-bold" : ""}`}
         >
           {totalPages}
@@ -1021,7 +1023,10 @@ const TaskTable = () => {
       {data.length > 0 && !loadingTasks && (
         <div className="flex items-center justify-start gap-4 mt-4 text-[12px]">
           <button
-            onClick={() => table.previousPage()}
+            onClick={() => {
+              lastFetchedPageRef.current = null; // Reset to allow fetch
+              table.previousPage();
+            }}
             disabled={!table.getCanPreviousPage()}
             className="text-red-600 disabled:opacity-30"
           >
@@ -1029,7 +1034,10 @@ const TaskTable = () => {
           </button>
           {renderPagination()}
           <button
-            onClick={() => table.nextPage()}
+            onClick={() => {
+              lastFetchedPageRef.current = null; // Reset to allow fetch
+              table.nextPage();
+            }}
             disabled={!table.getCanNextPage()}
             className="text-red-600 disabled:opacity-30"
           >
