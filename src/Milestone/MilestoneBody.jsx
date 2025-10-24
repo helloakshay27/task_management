@@ -544,17 +544,283 @@ const GanttChart = () => {
 
         fetchMilestones();
 
-        gantt.attachEvent("onAfterTaskUpdate", function (id, task) {
-            console.log("Task updated:", task);
-            console.log("Updated duration:", task.duration);
+        // Debounce mechanism to prevent multiple API calls
+        let updateTimeout = null;
+        let isUpdating = false; // Flag to prevent concurrent updates
+
+        // Format date from Gantt (Date object) to YYYY-MM-DD
+        function formatDateToISO(date) {
+            if (!date) return null;
+            const d = new Date(date);
+            const year = d.getFullYear();
+            const month = String(d.getMonth() + 1).padStart(2, '0');
+            const day = String(d.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+
+        // Separate function to handle the actual update
+        function handleTaskUpdate(taskId, task) {
+            if (isUpdating) {
+                console.log("Update already in progress, skipping...");
+                return;
+            }
+
+            let entityType = '';
+            let entityId = '';
+
+            if (taskId.startsWith('milestone-')) {
+                entityType = 'milestone';
+                entityId = taskId.replace('milestone-', '');
+            } else if (taskId.startsWith('task-')) {
+                entityType = 'task';
+                entityId = taskId.split('-')[1];
+            } else if (taskId.startsWith('subtask-')) {
+                entityType = 'subtask';
+                entityId = taskId.replace('subtask-', '');
+            }
+
+            // Update Milestone via API
+            if (entityType === 'milestone') {
+                isUpdating = true;
+
+                const payload = {
+                    milestone: {
+                        title: task.text,
+                        start_date: formatDateToISO(task.start_date),
+                        end_date: formatDateToISO(task.end_date),
+                        duration: task.duration,
+                        project_management_id: parseInt(id), // Use project ID from URL params
+                    }
+                };
+
+                // Add owner_id if exists
+                if (task.owner) {
+                    payload.milestone.owner_id = task.owner;
+                }
+
+                // Add depends_on_id if exists
+                if (task.depends && task.depends.startsWith('milestone-')) {
+                    payload.milestone.depends_on_id = parseInt(task.depends.replace('milestone-', ''));
+                }
+
+                console.log('Sending milestone update:', payload);
+
+                axios.put(
+                    `${baseURL}/milestones/${entityId}.json`,
+                    payload,
+                    {
+                        headers: {
+                            'Content-Type': 'application/json',
+                            Authorization: `Bearer ${localStorage.getItem("token")}`,
+                        },
+                    }
+                )
+                    .then(response => {
+                        console.log('Milestone updated successfully:', response.data);
+                        toast.success('Milestone updated successfully!');
+                    })
+                    .catch(error => {
+                        console.error('Error updating milestone:', error);
+                        console.error('Error response:', error.response?.data);
+                        toast.error('Failed to update milestone. Please try again.');
+                        // Refresh the data instead of undo
+                        setTimeout(() => {
+                            fetchMilestones();
+                        }, 1000);
+                    })
+                    .finally(() => {
+                        isUpdating = false;
+                    });
+            }
+            // Update Task via API
+            else if (entityType === 'task') {
+                isUpdating = true;
+
+                const payload = {
+                    task_management: {
+                        title: task.text,
+                        started_at: formatDateToISO(task.start_date),
+                        target_date: formatDateToISO(task.end_date),
+                        status: task.status || 'open',
+                    }
+                };
+
+                axios.put(
+                    `${baseURL}/task_managements/${entityId}.json`,
+                    payload,
+                    {
+                        headers: {
+                            'Content-Type': 'application/json',
+                            Authorization: `Bearer ${localStorage.getItem("token")}`,
+                        },
+                    }
+                )
+                    .then(response => {
+                        console.log('Task updated successfully:', response.data);
+                        toast.success('Task updated successfully!');
+                    })
+                    .catch(error => {
+                        console.error('Error updating task:', error);
+                        toast.error('Failed to update task. Please try again.');
+                        setTimeout(() => {
+                            fetchMilestones();
+                        }, 1000);
+                    })
+                    .finally(() => {
+                        isUpdating = false;
+                    });
+            }
+            // Update Subtask via API
+            else if (entityType === 'subtask') {
+                isUpdating = true;
+
+                const payload = {
+                    task_management: {
+                        title: task.text,
+                        started_at: formatDateToISO(task.start_date),
+                        target_date: formatDateToISO(task.end_date),
+                        status: task.status || 'open',
+                    }
+                };
+
+                axios.put(
+                    `${baseURL}/task_managements/${entityId}.json`,
+                    payload,
+                    {
+                        headers: {
+                            'Content-Type': 'application/json',
+                            Authorization: `Bearer ${localStorage.getItem("token")}`,
+                        },
+                    }
+                )
+                    .then(response => {
+                        console.log('Subtask updated successfully:', response.data);
+                        toast.success('Subtask updated successfully!');
+                    })
+                    .catch(error => {
+                        console.error('Error updating subtask:', error);
+                        toast.error('Failed to update subtask. Please try again.');
+                        setTimeout(() => {
+                            fetchMilestones();
+                        }, 1000);
+                    })
+                    .finally(() => {
+                        isUpdating = false;
+                    });
+            }
+        }
+
+        // Attach event handler ONCE
+        const taskUpdateHandler = gantt.attachEvent("onAfterTaskUpdate", function (taskId, task) {
+            console.log("Task update event triggered for:", taskId);
+
+            // Clear existing timeout
+            if (updateTimeout) {
+                clearTimeout(updateTimeout);
+            }
+
+            // Debounce: wait 1 second before making API call (increased from 500ms)
+            updateTimeout = setTimeout(() => {
+                console.log("Processing update for task:", taskId);
+                handleTaskUpdate(taskId, task);
+            }, 1000);
         });
 
-        gantt.attachEvent("onAfterLinkAdd", function (id, links) {
-            console.log("Link updated:", links);
+        gantt.attachEvent("onAfterLinkAdd", function (id, link) {
+            console.log("Link added:", link);
+
+            // Handle dependency creation
+            const sourceId = link.source;
+            const targetId = link.target;
+
+            // If linking milestones, update the target milestone's depends_on_id
+            if (targetId.startsWith('milestone-')) {
+                const milestoneId = targetId.replace('milestone-', '');
+                const dependsOnId = sourceId.startsWith('milestone-') 
+                    ? parseInt(sourceId.replace('milestone-', '')) 
+                    : null;
+
+                if (dependsOnId) {
+                    const payload = {
+                        milestone: {
+                            depends_on_id: dependsOnId
+                        }
+                    };
+
+                    axios.put(
+                        `${baseURL}/milestones/${milestoneId}.json`,
+                        payload,
+                        {
+                            headers: {
+                                'Content-Type': 'application/json',
+                                Authorization: `Bearer ${localStorage.getItem("token")}`,
+                            },
+                        }
+                    )
+                        .then(response => {
+                            console.log('Dependency updated successfully:', response.data);
+                            toast.success('Dependency added successfully!');
+                        })
+                        .catch(error => {
+                            console.error('Error updating dependency:', error);
+                            toast.error('Failed to add dependency. Please try again.');
+                            gantt.deleteLink(id);
+                        });
+                }
+            }
         });
+
+
+        //     console.log("Link deleted:", link);
+
+        //     // Handle dependency removal
+        //     const targetId = link.target;
+
+        //     // If unlinking milestones, remove the depends_on_id
+        //     if (targetId.startsWith('milestone-')) {
+        //         const milestoneId = targetId.replace('milestone-', '');
+
+        //         const payload = {
+        //             milestone: {
+        //                 depends_on_id: null
+        //             }
+        //         };
+
+        //         axios.put(
+        //             `${baseURL}/milestones/${milestoneId}.json`,
+        //             payload,
+        //             {
+        //                 headers: {
+        //                     'Content-Type': 'application/json',
+        //                     Authorization: `Bearer ${localStorage.getItem("token")}`,
+        //                 },
+        //             }
+        //         )
+        //             .then(response => {
+        //                 console.log('Dependency removed successfully:', response.data);
+        //                 toast.success('Dependency removed successfully!');
+        //             })
+        //             .catch(error => {
+        //                 console.error('Error removing dependency:', error);
+        //                 toast.error('Failed to remove dependency.');
+        //             });
+        //     }
+        // });
 
         return () => {
             console.log("Cleaning up gantt");
+            
+            // Detach event handlers
+            if (taskUpdateHandler) {
+             // gantt.attachEvent("onAfterLinkDelete", function (id, link) {           gantt.detachEvent(taskUpdateHandler);
+            }
+            
+            // Clear timeout
+            if (updateTimeout) {
+                clearTimeout(updateTimeout);
+            }
+            
+            // Clear gantt
             if (gantt && gantt.clearAll) {
                 gantt.clearAll();
             }
