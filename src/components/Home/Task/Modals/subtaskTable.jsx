@@ -27,10 +27,10 @@ import {
 } from "@heroicons/react/20/solid";
 import SelectBox from "../../../SelectBox";
 import {
-  fetchTasks,
   createSubTask,
   updateTask,
   changeTaskStatus,
+  fetchKanbanTasks,
 } from "../../../../redux/slices/taskSlice";
 import { fetchUsers } from "../../../../redux/slices/userSlice";
 import { fetchTags } from "../../../../redux/slices/tagsSlice";
@@ -272,10 +272,10 @@ const SubtaskTable = ({ projectId }) => {
   const dispatch = useDispatch();
 
   const {
-    fetchTasks: allTasksFromStore,
+    fetchKanbanTasks: allTasksFromStore,
     loading: loadingAllTasks,
     error: allTasksError,
-  } = useSelector((state) => state.fetchTasks);
+  } = useSelector((state) => state.fetchKanbanTasks);
 
   const {
     fetchUsers: users,
@@ -361,7 +361,7 @@ const SubtaskTable = ({ projectId }) => {
         } else {
           await dispatch(updateTask({ token, id: taskId, payload })).unwrap();
         }
-        await dispatch(fetchTasks({ token, id: mid })).unwrap();
+        await dispatch(fetchKanbanTasks({ token, id: mid })).unwrap();
       } catch (error) {
         console.error(
           `Task field update failed for ${taskId} (${fieldName}):`,
@@ -371,7 +371,7 @@ const SubtaskTable = ({ projectId }) => {
           `Update failed: ${error?.response?.data?.errors || error?.message || "Server error"
           }`
         );
-        dispatch(fetchTasks({ token, id: mid }));
+        dispatch(fetchKanbanTasks({ token, id: mid }));
       } finally {
         setIsUpdatingTask(false);
       }
@@ -388,7 +388,7 @@ const SubtaskTable = ({ projectId }) => {
       !allTasksError &&
       !allTasksFetchInitiatedRef.current
     ) {
-      dispatch(fetchTasks({ token, id: mid }));
+      dispatch(fetchKanbanTasks({ token, id: mid }));
       allTasksFetchInitiatedRef.current = true;
     } else if (allTasksFromStore || allTasksError) {
       allTasksFetchInitiatedRef.current = true;
@@ -584,7 +584,7 @@ const SubtaskTable = ({ projectId }) => {
       await dispatch(
         createSubTask({ token, payload: subtaskPayload })
       ).unwrap();
-      await dispatch(fetchTasks({ token, id: mid }));
+      await dispatch(fetchKanbanTasks({ token, id: mid }));
       setIsAddingNewSubtask(false);
       resetNewSubtaskForm();
     } catch (error) {
