@@ -52,6 +52,51 @@ const GanttChart = () => {
     const [scale, setScale] = React.useState("week");
     const navigate = useNavigate();
 
+    // Helper function to calculate milestone progress
+    const calculateMilestoneProgress = (milestoneId, tasksData) => {
+        // Get all tasks (including subtasks) that belong to this milestone
+        const milestoneTasks = tasksData.filter(task =>
+            task.parent === milestoneId && task.type === "task"
+        );
+
+        if (milestoneTasks.length === 0) {
+            return { total: 0, completed: 0, percentage: 0 };
+        }
+
+        let totalTasks = 0;
+        let completedTasks = 0;
+
+        // Count tasks and their subtasks
+        milestoneTasks.forEach(task => {
+            // Get all subtasks for this task
+            const subTasks = tasksData.filter(st =>
+                st.parent === task.id && st.type === "sub_task"
+            );
+
+            if (subTasks.length > 0) {
+                // If task has subtasks, count subtasks
+                totalTasks += subTasks.length;
+                completedTasks += subTasks.filter(st =>
+                    st.status && st.status.toLowerCase() === "completed"
+                ).length;
+            } else {
+                // If no subtasks, count the task itself
+                totalTasks += 1;
+                if (task.status && task.status.toLowerCase() === "completed") {
+                    completedTasks += 1;
+                }
+            }
+        });
+
+        const percentage = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
+
+        return {
+            total: totalTasks,
+            completed: completedTasks,
+            percentage: Math.round(percentage * 100) / 100 // Round to 2 decimal places
+        };
+    };
+
     useEffect(() => {
         const handleGanttButtonClick = (e) => {
             const btn = e.target.closest(".gantt-open-task");
@@ -59,7 +104,7 @@ const GanttChart = () => {
                 const id = btn.getAttribute("data-id");
                 if (id) {
                     console.log(id)
-                    navigate(`${id}/tasks`); // ✅ navigate without reload
+                    navigate(`${id}/tasks`);
                 }
             }
         };
@@ -86,14 +131,14 @@ const GanttChart = () => {
             },
             {
                 name: "progress",
-                label: "%",
+                label: "Progress",
                 align: "center",
-                width: 70,
+                width: 100,
                 template: function (task) {
-                    if (task.type !== "milestone") {
-                        return "";
+                    if (task.type === "milestone") {
+                        return `${Math.round(task.progress * 100)}%`;
                     }
-                    return Math.round(task.progress) + " %";
+                    return "";
                 },
             },
             {
@@ -103,7 +148,6 @@ const GanttChart = () => {
                 width: 100,
                 template: function (task) {
                     const status = task.status || "Open";
-                    // Format status: replace underscores with spaces and capitalize each word
                     return status.replace(/_/g, ' ').replace(/\b\w/g, char => char.toUpperCase());
                 },
             },
@@ -114,12 +158,10 @@ const GanttChart = () => {
                 width: 130,
                 resize: true,
                 template: function (task) {
-                    // Only show action button for milestones
                     if (task.type !== "milestone") {
                         return "";
                     }
 
-                    // Use Tailwind classes for flex and gap
                     return `
                         <span class="flex items-center justify-center gap-3 mt-2 text-gray-500">
                             <button 
@@ -139,15 +181,6 @@ const GanttChart = () => {
             },
         ];
 
-        // Remove date range limitations to show all data
-        // const today = new Date();
-        // const startDate = new Date(today.getFullYear(), today.getMonth(), 1);
-        // const endDate = new Date(today.getFullYear(), today.getMonth() + 3, 0);
-
-        // gantt.config.start_date = startDate;
-        // gantt.config.end_date = endDate;
-
-        // Formatter to display "23 Jan - 29 Jan"
         const weekDateFormatter = gantt.date.date_to_str("%d %M");
 
         if (scale === "week") {
@@ -211,23 +244,13 @@ const GanttChart = () => {
         gantt.config.grid_resize = true;
         gantt.config.autofit_columns = true;
 
-        // Ensure dates are parsed correctly
         gantt.config.date_format = "%d-%m-%Y";
         gantt.config.xml_date = "%d-%m-%Y";
 
-        // Enable auto-scheduling and proper display
         gantt.config.auto_scheduling = true;
         gantt.config.auto_scheduling_strict = true;
 
-        // gantt.templates.task_text = function (start, end, task) {
-        //     return `| ${}]`;
-        // };
-
-        // Add this after gantt.init() and before fetchMilestones()
-
-        // Handle delete button click in lightbox
         gantt.attachEvent("onBeforeTaskDelete", function (id, task) {
-            // Determine the type and extract the actual ID
             let entityType = '';
             let entityId = '';
 
@@ -236,7 +259,7 @@ const GanttChart = () => {
                 entityId = id.replace('milestone-', '');
             } else if (id.startsWith('task-')) {
                 entityType = 'task';
-                entityId = id.split('-')[1]; // Extract ID from "task-123" or "task-123-milestone-456"
+                entityId = id.split('-')[1];
             } else if (id.startsWith('subtask-')) {
                 entityType = 'subtask';
                 entityId = id.replace('subtask-', '');
@@ -263,7 +286,6 @@ const GanttChart = () => {
                     gantt.undo();
                 });
 
-            // Return true to allow gantt to remove the task from UI
             return true;
         });
 
@@ -276,12 +298,10 @@ const GanttChart = () => {
             return "custom-task";
         };
 
-        // Ensure milestone type is properly configured
         gantt.config.types.milestone = "milestone";
         gantt.config.types.task = "task";
         gantt.config.types.sub_task = "sub_task";
 
-        // Initialize gantt
         if (ganttContainer.current) {
             gantt.init(ganttContainer.current);
         } else {
@@ -289,7 +309,6 @@ const GanttChart = () => {
             return;
         }
 
-        // Fetch data
         const fetchMilestones = async () => {
             try {
                 const response = await axios.get(
@@ -304,7 +323,6 @@ const GanttChart = () => {
                 const rawData = response.data;
 
                 console.log("Fetched milestones:", rawData);
-                // Map milestones and their tasks to Gantt format
                 const tasksData = [];
                 const linksData = [];
 
@@ -313,7 +331,6 @@ const GanttChart = () => {
                 function formatDateDMYFromISO(dateStr) {
                     if (!dateStr) return "";
                     const date = new Date(dateStr);
-                    // dhtmlx-gantt expects dates in DD-MM-YYYY format for parsing
                     const day = String(date.getDate()).padStart(2, "0");
                     const month = String(date.getMonth() + 1).padStart(2, "0");
                     const year = date.getFullYear();
@@ -338,11 +355,12 @@ const GanttChart = () => {
                     const milestoneId = `milestone-${item.id}`;
                     const formattedStart = item.start_date
                         ? formatDateDMYFromISO(item.start_date)
-                        : formatDateDMYFromISO(new Date().toISOString()); // Default to today
+                        : formatDateDMYFromISO(new Date().toISOString());
                     const formattedEnd = item.end_date
                         ? formatDateDMYFromISO(item.end_date)
-                        : formatDateDMYFromISO(new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()); // Default to 7 days from now
+                        : formatDateDMYFromISO(new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString());
 
+                    // Placeholder for milestone - will be updated after all tasks are added
                     tasksData.push({
                         navigationid: item.id,
                         id: milestoneId,
@@ -353,6 +371,8 @@ const GanttChart = () => {
                             ? calculateDuration(formattedStart, formattedEnd)
                             : 1,
                         progress: 0.0,
+                        totalTasks: 0,
+                        completedTasks: 0,
                         status: "Open",
                         depends: item.depends_on_id
                             ? `milestone-${item.depends_on_id}`
@@ -360,7 +380,7 @@ const GanttChart = () => {
                         type: "milestone",
                         owner: item.owner_id,
                         parent: 0,
-                        open: true, // Ensure milestone is expanded
+                        open: true,
                     });
 
                     if (item.depends_on_id) {
@@ -384,11 +404,11 @@ const GanttChart = () => {
 
                             const formattedStartTask = task.started_at
                                 ? formatDateDMYFromISO(task.started_at)
-                                : formattedStart; // Use milestone start date as default
+                                : formattedStart;
 
                             const formattedEndTask = task.target_date
                                 ? formatDateDMYFromISO(task.target_date)
-                                : formattedEnd; // Use milestone end date as default
+                                : formattedEnd;
 
                             const taskDuration = formattedStartTask && formattedEndTask
                                 ? calculateDuration(formattedStartTask, formattedEndTask)
@@ -411,17 +431,16 @@ const GanttChart = () => {
                                 type: "task",
                             });
 
-                            // ✅ Handle sub_tasks_managements
                             if (Array.isArray(task.sub_tasks_managements)) {
                                 task.sub_tasks_managements.forEach((subTask) => {
                                     const subTaskId = `subtask-${subTask.id}`;
                                     const formattedStartSubTask = subTask.started_at
                                         ? formatDateDMYFromISO(subTask.started_at)
-                                        : formattedStartTask; // Use task start date as default
+                                        : formattedStartTask;
 
                                     const formattedEndSubTask = subTask.target_date
                                         ? formatDateDMYFromISO(subTask.target_date)
-                                        : formattedEndTask; // Use task end date as default
+                                        : formattedEndTask;
 
                                     const subTaskDuration = formattedStartSubTask && formattedEndSubTask
                                         ? calculateDuration(formattedStartSubTask, formattedEndSubTask)
@@ -440,7 +459,7 @@ const GanttChart = () => {
                                         owner: subTask.responsible_person
                                             ? subTask.responsible_person.name
                                             : "",
-                                        parent: uniqueTaskId, // 📌 parent is the task
+                                        parent: uniqueTaskId,
                                         type: "sub_task",
                                     });
                                 });
@@ -449,40 +468,23 @@ const GanttChart = () => {
                     }
                 });
 
+                // Calculate progress for all milestones after all tasks are added
+                tasksData.forEach(task => {
+                    if (task.type === "milestone") {
+                        const progressData = calculateMilestoneProgress(task.id, tasksData);
+                        task.progress = progressData.percentage / 100;
+                        task.totalTasks = progressData.total;
+                        task.completedTasks = progressData.completed;
+
+                        console.log(`Milestone ${task.text}: ${progressData.completed}/${progressData.total} = ${progressData.percentage}%`);
+                    }
+                });
+
                 console.log("Parsed tasks data:", tasksData);
                 console.log("Links data:", linksData);
 
-                const tasks = {
-                    data: tasksData,
-                    links: linksData,
-                };
-
-                // Debug: Check if we have valid data
-                if (tasksData.length === 0) {
-                    console.warn("No tasks data found! Creating sample data for testing...");
-                    // Add a sample milestone to test if gantt is working
-                    const today = new Date();
-                    const tomorrow = new Date(today);
-                    tomorrow.setDate(today.getDate() + 1);
-
-                    // tasksData.push({
-                    //     id: "sample-milestone",
-                    //     text: "Sample Milestone",
-                    //     start_date: formatDateDMYFromISO(today.toISOString()),
-                    //     end_date: formatDateDMYFromISO(tomorrow.toISOString()),
-                    //     duration: 1,
-                    //     progress: 0.0,
-                    //     status: "Open",
-                    //     type: "milestone",
-                    //     parent: 0,
-                    //     open: true,
-                    // });
-                }
-
-                // Clear and parse new data
                 gantt.clearAll();
 
-                // Add validation before parsing
                 const validTasks = tasksData.filter(task => {
                     if (!task.id || !task.text) {
                         console.warn("Invalid task found:", task);
@@ -499,10 +501,8 @@ const GanttChart = () => {
                         links: linksData,
                     });
 
-                    // Force refresh and fit to screen
                     gantt.render();
 
-                    // Auto-fit timeline to show all tasks
                     setTimeout(() => {
                         gantt.render();
                     }, 100);
@@ -522,37 +522,10 @@ const GanttChart = () => {
         gantt.attachEvent("onAfterTaskUpdate", function (id, task) {
             console.log("Task updated:", task);
             console.log("Updated duration:", task.duration);
-
-            //   axios.put(`https://reqres.in/api/tasks/${id}`, {
-            //     task_id: id,
-            //     text: task.text,
-            //     duration: task.duration,
-            //     start_date: task.start_date,
-            //     progress: task.progress,
-            //   })
-            //   .then(response => {
-            //     console.log('Mock API PUT response:', response.data);
-            //   })
-            //   .catch(error => {
-            //     console.error('Error sending mock API PUT request:', error);
-            //   });
         });
 
         gantt.attachEvent("onAfterLinkAdd", function (id, links) {
             console.log("Link updated:", links);
-
-            // axios.put(`https://reqres.in/api/links/${id}`, {
-            //     link_id: id,
-            //     source: links.source,
-            //     target: links.target,
-            //     type: links.type
-            // })
-            //     .then(response => {
-            //         console.log('Mock API PUT response for link:', response.data);
-            //     })
-            //     .catch(error => {
-            //         console.error('Error sending mock API PUT request for link:', error);
-            //     });
         });
 
         return () => {
@@ -561,7 +534,7 @@ const GanttChart = () => {
                 gantt.clearAll();
             }
         };
-    }, [scale]);
+    }, [scale, id]);
 
     return (
         <div style={{ overflowX: "auto", width: "100%" }}>
