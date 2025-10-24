@@ -17,7 +17,7 @@ import { debounce } from "lodash";
 import { sprintTitle } from "../../../data/Data";
 import Boards from "../Boards";
 import TaskCard from "../Task/TaskCard";
-import { changeTaskStatus, fetchTasks } from "../../../redux/slices/taskSlice";
+import { changeTaskStatus, fetchKanbanTasks } from "../../../redux/slices/taskSlice";
 import { useDrop } from "react-dnd";
 import {
   fetchSpirintById,
@@ -35,7 +35,7 @@ const SprintBoardSection = ({ selectedProject }) => {
   const [arrowLinks, setArrowLinks] = useState([]);
   const [taskData, setTaskData] = useState([]); // Non-sprint board tasks
   const [sprintBoardTasks, setSprintBoardTasks] = useState([]); // Persistent sprint board tasks
-  const taskState = useSelector((state) => state.fetchTasks.fetchTasks);
+  const taskState = useSelector((state) => state.fetchKanbanTasks.fetchKanbanTasks);
   const sprintState = useSelector(
     (state) => state.fetchSpirints?.fetchSpirints || []
   );
@@ -54,13 +54,13 @@ const SprintBoardSection = ({ selectedProject }) => {
   }, [dispatch, id]);
 
   useEffect(() => {
-    dispatch(fetchTasks({ token }));
+    dispatch(fetchKanbanTasks({ token, id: "" }));
     dispatch(fetchSpirints({ token }));
   }, [dispatch]);
 
   // Initialize taskData and sprintBoardTasks when fetchProjects changes
   useDeepCompareEffect(() => {
-    const newTasks = fetchProjects?.fetchTasksOfProject || [];
+    const newTasks = taskState || [];
     // Filter out tasks already in sprintBoardTasks to avoid duplicates
     const nonSprintTasks = newTasks.filter(
       (task) => !sprintBoardTasks.some((sprintTask) => sprintTask.id === task.id)
@@ -168,7 +168,7 @@ const SprintBoardSection = ({ selectedProject }) => {
           ).unwrap();
         } catch (error) {
           console.error(`Task update failed for ${taskId}:`, error);
-          dispatch(fetchTasks({ token }));
+          dispatch(fetchKanbanTasks({ token, id: "" }));
         }
       },
       300

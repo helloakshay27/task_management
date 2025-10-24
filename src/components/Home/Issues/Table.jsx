@@ -25,7 +25,7 @@ import {
 } from "../../../redux/slices/IssueSlice";
 import { fetchProjects } from "../../../redux/slices/projectSlice";
 import { fetchMilestone } from "../../../redux/slices/milestoneSlice";
-import { editTaskComment, fetchTasks } from "../../../redux/slices/taskSlice";
+import { editTaskComment, fetchKanbanTasks } from "../../../redux/slices/taskSlice";
 import toast from "react-hot-toast";
 
 const NewIssuesTextField = ({
@@ -204,12 +204,12 @@ const IssuesTable = () => {
   );
 
   const {
-    // fetchTasks: tasks,
+    // fetchKanbanTasks: tasks,
     loading: loadingTasks,
     error: tasksFetchError,
   } = useSelector(
     (state) =>
-      state.fetchTasks || { fetchTasks: [], loading: false, error: null }
+      state.fetchKanbanTasks || { fetchKanbanTasks: [], loading: false, error: null }
   );
 
   const { fetchIssueType: issueType, loading: loadingIssueType, error: issueTypeFetchError, } = useSelector((state) => state.fetchIssueType);
@@ -349,11 +349,11 @@ const IssuesTable = () => {
       if (!loadingTasks && !tasksFetchError) {
         try {
           if (newIssuesMilestoneId) {
-            const response = await dispatch(fetchTasks({ id: newIssuesMilestoneId, token })).unwrap();
+            const response = await dispatch(fetchKanbanTasks({ id: newIssuesMilestoneId, token })).unwrap();
             setTasks(response)
           } else if (!newIssuesProjectId && !newIssuesMilestoneId) {
             // Fetch all tasks when no project or milestone is selected
-            const response = await dispatch(fetchTasks({ id: "", token })).unwrap();
+            const response = await dispatch(fetchKanbanTasks({ id: "", token })).unwrap();
             setTasks(response)
           }
 
