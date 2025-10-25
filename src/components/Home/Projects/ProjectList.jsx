@@ -199,7 +199,7 @@ const globalStatusOptions = [
 
 const globalPriorityOptionsForNew = ["Low", "Medium", "High", "Urgent"];
 
-const ProjectList = () => {
+const ProjectList = ({ searchQuery }) => {
     const token = localStorage.getItem("token");
     const fixedRowsPerPage = 10;
     const dispatch = useDispatch();
@@ -397,9 +397,25 @@ const ProjectList = () => {
         dispatch(fetchProjects({ token }));
     }, [dispatch]);
 
+    // Updated useEffect to handle search filtering
     useEffect(() => {
-        setData(transformedData);
-    }, [transformedData]);
+        if (!searchQuery || searchQuery.trim() === "") {
+            setData(transformedData);
+        } else {
+            const lowerQuery = searchQuery.toLowerCase().trim();
+            const filtered = transformedData.filter((project) => {
+                return (
+                    project.id?.toLowerCase().includes(lowerQuery) ||
+                    project.title?.toLowerCase().includes(lowerQuery) ||
+                    project.status?.toLowerCase().includes(lowerQuery) ||
+                    project.type?.toLowerCase().includes(lowerQuery) ||
+                    project.manager?.toLowerCase().includes(lowerQuery) ||
+                    project.priority?.toLowerCase().includes(lowerQuery)
+                );
+            });
+            setData(filtered);
+        }
+    }, [transformedData, searchQuery]);
 
     const handleStatusChange = useCallback(
         async ({ id: rowId, name, payload: newValue }) => {
@@ -866,7 +882,7 @@ const ProjectList = () => {
                                         className="no-data-message text-center py-10 text-gray-500"
                                     >
                                         No projects found.{" "}
-                                        {isFiltered ? "Try adjusting filters." : ""}
+                                        {isFiltered || searchQuery ? "Try adjusting filters or search." : ""}
                                     </td>
                                 </tr>
                             ) : (

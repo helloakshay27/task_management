@@ -868,6 +868,12 @@ const TaskDetails = () => {
         setIsSecondCollapsed(!isSecondCollapsed);
     };
 
+    useEffect(() => {
+        if (tab === "Subtasks" && task?.parent_id) {
+            setTab("Dependency");
+        }
+    }, [tab, task?.parent_id, setTab]);
+
     return (
         <>
             <div className="m-4">
@@ -1152,22 +1158,25 @@ const TaskDetails = () => {
                                     "Project Drive",
                                     "Activity Log",
                                     "Workflow Status Log",
-                                ].map((tabName, index) => (
-                                    <div
-                                        key={index}
-                                        id={index + 1}
-                                        className={`text-[14px] font-[400] ${tab === tabName ? "selected" : "cursor-pointer"
-                                            }`}
-                                        onClick={() => setTab(tabName)}
-                                    >
-                                        {tabName}
-                                    </div>
-                                ))}
+                                ]
+                                    // 🧠 Remove "Subtasks" if task.parent_id exists
+                                    .filter(tabName => !(tabName === "Subtasks" && task?.parent_id))
+                                    .map((tabName, index) => (
+                                        <div
+                                            key={index}
+                                            id={index + 1}
+                                            className={`text-[14px] font-[400] ${tab === tabName ? "selected" : "cursor-pointer"
+                                                }`}
+                                            onClick={() => setTab(tabName)}
+                                        >
+                                            {tabName}
+                                        </div>
+                                    ))}
                             </div>
                         </div>
                         <div className="border-b-[3px] border-[rgba(190, 190, 190, 1)]"></div>
                         <div>
-                            {tab === "Subtasks" && <SubtaskTable projectId={task.project_management_id} />}
+                            {tab === "Subtasks" && !task?.parent_id && <SubtaskTable projectId={task.project_management_id} />}
                             {tab === "Dependency" && <DependancyKanban id={tid} />}
                             {tab === "Comments" && <Comments comments={task?.comments} />}
                             {tab === "Attachments" && (

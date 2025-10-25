@@ -4,6 +4,7 @@ import {
     Filter,
     List,
     Plus,
+    Search,
 } from "lucide-react";
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import AddTaskModal from "./Task/AddTaskModal";
@@ -48,6 +49,8 @@ const TaskActions = ({
     setFilters,
     filters,
     context,
+    searchQuery,
+    setSearchQuery
 }) => {
     const { id, mid } = useParams();
     const [isTypeOpen, setIsTypeOpen] = useState(false);
@@ -86,11 +89,11 @@ const TaskActions = ({
             if (savedSprintStatus) {
                 // Convert saved status back to display format
                 const statusLabel = savedSprintStatus.replace("_", " ");
-                const capitalizedStatus = statusLabel.split(' ').map(word => 
+                const capitalizedStatus = statusLabel.split(' ').map(word =>
                     word.charAt(0).toUpperCase() + word.slice(1)
                 ).join(' ');
                 setSelectedStatus(capitalizedStatus);
-                
+
                 // Apply the filter
                 const filters = { "q[status_eq]": savedSprintStatus };
                 dispatch(fetchSpirints({ token, filters })).unwrap().catch(console.error);
@@ -127,7 +130,7 @@ const TaskActions = ({
             if (checked) {
                 await dispatch(fetchMyTasks({ token })).unwrap();
             } else {
-                await dispatch(fetchTasks({ token, id: "" })).unwrap();
+                await dispatch(fetchTasks({ token, id: "", page: 1 })).unwrap();
             }
         } catch (error) {
             console.error("Failed to fetch tasks:", error);
@@ -341,7 +344,17 @@ const TaskActions = ({
 
     return (
         <>
-            <div className="flex items-center justify-end mx-6 mt-4 mb-3 text-sm">
+            <div className="flex items-center justify-between mx-6 mt-4 mb-3 text-sm">
+                <div className="relative">
+                    {
+                        addType === "Project" && selectedType === "List" && (
+                            <>
+                                <input value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} type="text" className="border border-gray-300 ps-10 pe-2 py-2 w-[400px] focus:outline-none" placeholder="Search by project title or project id..." />
+                                <Search className="absolute left-2 top-2 text-gray-400" size={20} color="#C72030" />
+                            </>
+                        )
+                    }
+                </div>
                 <div className="flex items-center gap-3 divide-x divide-gray-400">
                     {addType !== "Issues" &&
                         addType !== "Project" &&

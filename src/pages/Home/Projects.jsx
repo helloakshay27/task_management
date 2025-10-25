@@ -1,23 +1,23 @@
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
-import { projects, tabs } from "../../data/Data";
+import { tabs } from "../../data/Data";
 import TaskActions from "../../components/Home/TaskActions";
 import ProjectList from "../../components/Home/Projects/ProjectList";
 import BoardsSection from "../../components/Home/BoardsSection";
 import { useNavigate } from "react-router-dom";
-import IssuesTable from "../../components/Home/Issues/Table";
 import ProjectTemplates from "../Setup/ProjectTemplates";
+
 const Projects = ({ setIsSidebarOpen }) => {
     const [activeTab, setActiveTab] = useState(tabs[0].id);
     const [activeTabLabel, setActiveTabLabel] = useState(tabs[0].id);
     const [selectedType, setSelectedType] = useState(
         "List");
     const [filters, setFilters] = useState({});
+    const [searchQuery, setSearchQuery] = useState("")
 
     const tabRefs = useRef({});
     const underlineRef = useRef(null);
-    const navigate = useNavigate();
 
     useGSAP(() => {
         if (tabRefs.current[activeTab] && underlineRef.current) {
@@ -66,12 +66,14 @@ const Projects = ({ setIsSidebarOpen }) => {
                 setFilters={setFilters}
                 filters={filters}
                 context={"Projects"}
+                searchQuery={searchQuery}
+                setSearchQuery={setSearchQuery}
             />
 
             {activeTab === tabs[0].id && (
                 <>
                     {selectedType === "List" ? (
-                        <ProjectList />
+                        <ProjectList searchQuery={searchQuery} />
                     ) : (
                         <BoardsSection section={"Projects"} />
                     )}
