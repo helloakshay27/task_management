@@ -60,7 +60,7 @@ const SprintDetails = () => {
         <div className="border-b-[3px] border-[rgba(190, 190, 190, 1)]"></div>
         <div className="flex items-center justify-between my-3 text-[12px]">
           <div className="flex items-center gap-3 text-[#323232]">
-            <span>Created By: {newSprint.created_by}</span>
+            <span>Created By: {newSprint.sprint_created_by_name}</span>
             <span className="h-6 w-[1px] border border-gray-300"></span>
             <span className="flex items-center gap-3">
               Created On: {formatToDDMMYYYY_AMPM(newSprint.created_at)}
