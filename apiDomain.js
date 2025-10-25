@@ -19,7 +19,7 @@ switch (hostname) {
     baseURL = "https://live-tasks.gophygital.work";
     break;
   case "localhost":
-    baseURL = "https://live-tasks.lockated.com";
+    baseURL = "https://uat-tasks.lockated.com";
     break;
   default:
     baseURL = "https://live-tasks.lockated.com";

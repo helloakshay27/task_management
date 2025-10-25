@@ -6,10 +6,13 @@ import { changeTaskStatus } from "../../../redux/slices/taskSlice";
 import { useDispatch } from "react-redux";
 
 export const getInitials = (name = "") => {
-    const parts = name.trim().split(" ");
-    if (parts.length === 0) return "";
+    // Filter out empty strings after splitting
+    const parts = name?.trim().split(" ").filter(part => part.length > 0);
+
+    if (!parts || parts.length === 0) return "";
     if (parts.length === 1) return parts[0][0]?.toUpperCase() || "";
-    return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+
+    return (parts[0][0] + parts[parts.length - 1][0])?.toUpperCase();
 };
 
 const TaskCard = ({ task, toggleSubCard, handleLink, iconColor = "#323232", count }) => {
@@ -236,7 +239,7 @@ const TaskCard = ({ task, toggleSubCard, handleLink, iconColor = "#323232", coun
                         </span>
                     </span>
                     <span className="h-5 w-5 flex items-center justify-center bg-green-600 text-white rounded-full text-[7px] font-light">
-                        {getInitials(task.responsible_person_name)}
+                        {getInitials(task?.responsible_person_name)}
                     </span>
                 </div>
             </div>
