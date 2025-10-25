@@ -37,7 +37,7 @@ const TaskFilter = ({ isModalOpen, setIsModalOpen }) => {
                     creatorSearch: "",
                 };
         } catch (error) {
-            console.error("Error parsing projectFilters from localStorage:", error);
+            console.error("Error parsing taskFilters from localStorage:", error);
             return {
                 selectedStatuses: [],
                 selectedResponsible: [],
@@ -50,25 +50,27 @@ const TaskFilter = ({ isModalOpen, setIsModalOpen }) => {
         }
     };
 
+    const initialFilters = getInitialFilters();
+
     // Selected options
-    const [selectedStatuses, setSelectedStatuses] = useState(getInitialFilters().selectedStatuses);
-    const [selectedResponsible, setSelectedResponsible] = useState(getInitialFilters().selectedResponsible);
-    const [selectedCreators, setSelectedCreators] = useState(getInitialFilters().selectedCreators);
-    const [dates, setDates] = useState({ "Start Date": "", "End Date": "" });
+    const [selectedStatuses, setSelectedStatuses] = useState(initialFilters.selectedStatuses);
+    const [selectedResponsible, setSelectedResponsible] = useState(initialFilters.selectedResponsible);
+    const [selectedCreators, setSelectedCreators] = useState(initialFilters.selectedCreators);
+    const [dates, setDates] = useState(initialFilters.dates);
     const [responsiblePersonOptions, setResponsiblePersonOptions] = useState([]);
     const [createdByOptions, setCreatedByOptions] = useState([]);
     const [statusOptions, setStatusOptions] = useState([]);
 
     // Search inputs inside dropdowns
-    const [statusSearch, setStatusSearch] = useState("");
-    const [ResponsiblePersonSearch, setResponsiblePersonSearch] = useState("");
-    const [creatorSearch, setCreatorSearch] = useState("");
+    const [statusSearch, setStatusSearch] = useState(initialFilters.statusSearch);
+    const [ResponsiblePersonSearch, setResponsiblePersonSearch] = useState(initialFilters.ResponsiblePersonSearch);
+    const [creatorSearch, setCreatorSearch] = useState(initialFilters.creatorSearch);
     const [dropdowns, setDropdowns] = useState({
         status: false,
         ResponsiblePerson: false,
         startDate: false,
         endDate: false,
-        creator: false,
+        createdBy: false,
     });
     const dispatch = useDispatch();
 
@@ -79,53 +81,27 @@ const TaskFilter = ({ isModalOpen, setIsModalOpen }) => {
     } = useSelector((state) => state.fetchTasks);
 
     const {
+        tasks: filteredTasks,
+    } = useSelector((state) => state.filterTask);
+
+    const {
         fetchUsers: users,
         loading,
         error,
     } = useSelector(state => state.fetchUsers)
 
-    // const {
-    //     loading:filterLoading,
-    //     error:filterError,
-    // }=useSelector(state=>state.filterTask)
-
     useEffect(() => {
-        if (tasksFromStore?.length > 0) {
-            const uniqueMap = new Map();
+        // Use filtered tasks if available, otherwise use all tasks
+        const tasks = filteredTasks?.length > 0 ? filteredTasks : tasksFromStore;
 
-            tasksFromStore.forEach((task) => {
-                const color = colorOptions.find((option) => option.value === task.status);
-                if (color && !uniqueMap.has(color.value)) {
-                    uniqueMap.set(color.value, {
-                        label: color.label,
-                        color: color.color,
-                        value: color.value
-                    });
-                }
-            });
-
-            setStatusOptions(Array.from(uniqueMap.values()));
-        }
-
-        if (tasksFromStore?.length > 0) {
-            const uniqueMap = new Map();
-
-            tasksFromStore.forEach((task) => {
-                if (task.responsible_person && !uniqueMap.has(task.responsible_person.id)) {
-                    uniqueMap.set(task.responsible_person.id, {
-                        label: task.responsible_person.name,
-                        value: task.responsible_person.id
-                    });
-                }
-            });
-
-            setResponsiblePersonOptions(Array.from(uniqueMap.values()));
-        }
+        // Always show all available status options from colorOptions
+        setStatusOptions(colorOptions);
 
         if (users?.length > 0) {
             setCreatedByOptions(users.map(user => ({ label: user.firstname + " " + user.lastname, value: user.id })));
+            setResponsiblePersonOptions(users.map(user => ({ label: user.firstname + " " + user.lastname, value: user.id })));
         }
-    }, [tasksFromStore, users])
+    }, [tasksFromStore, filteredTasks, users])
 
     // Save filter state to localStorage whenever it changes
     useEffect(() => {
@@ -138,8 +114,7 @@ const TaskFilter = ({ isModalOpen, setIsModalOpen }) => {
             ResponsiblePersonSearch,
             creatorSearch,
         };
-        if (selectedStatuses?.length > 0 || selectedResponsible?.length > 0 || selectedCreators?.length > 0 || dates["Start Date"] || dates["End Date"] || statusSearch || ResponsiblePersonSearch || creatorSearch) {
-
+        if (selectedStatuses?.length > 0 || selectedResponsible?.length > 0 || selectedCreators?.length > 0 || dates.startDate || dates.endDate || statusSearch || ResponsiblePersonSearch || creatorSearch) {
             localStorage.setItem("taskFilters", JSON.stringify(filters));
         }
     }, [
@@ -153,30 +128,27 @@ const TaskFilter = ({ isModalOpen, setIsModalOpen }) => {
     ]);
 
 
-    const handleApplyFilter = (overideFilters) => {
+    const handleApplyFilter = (overrideFilters) => {
         console.log(dates);
         try {
             const newFilter = {
                 "q[status_in][]": selectedStatuses?.length > 0 ? selectedStatuses : [],
                 "q[created_by_id_eq]": selectedCreators?.length > 0 ? selectedCreators : [],
-                "q[start_date_eq]": dates["Start Date"],
-                "q[end_date_eq]": dates["End Date"],
+                "q[start_date_eq]": dates.startDate,
+                "q[end_date_eq]": dates.endDate,
                 "q[responsible_person_id_in][]": selectedResponsible?.length > 0 ? selectedResponsible : [],
                 "q[milestone_id_eq]": mid
             }
             if (newFilter) {
                 const queryString = qs.stringify(newFilter, { arrayFormat: 'repeat' });
 
-                dispatch(filterTask({ token, filter: overideFilters ? overideFilters : queryString }));
+                dispatch(filterTask({ token, filter: overrideFilters ? overrideFilters : queryString }));
                 setIsModalOpen(false);
             }
         } catch (e) {
             console.log(e);
         }
     }
-
-
-
 
     const toggleDropdown = (key) => {
         setDropdowns((prev) => {
@@ -187,7 +159,9 @@ const TaskFilter = ({ isModalOpen, setIsModalOpen }) => {
             return {
                 status: false,
                 ResponsiblePerson: false,
-                creator: false,
+                createdBy: false,
+                startDate: false,
+                endDate: false,
                 [key]: true,
             };
         });
@@ -265,7 +239,7 @@ const TaskFilter = ({ isModalOpen, setIsModalOpen }) => {
         setSelectedStatuses([]);
         setSelectedResponsible([]);
         setSelectedCreators([]);
-        setDates({ "Start date": "", "End date": "" });
+        setDates({ startDate: "", endDate: "" });
         setStatusSearch("");
         setResponsiblePersonSearch("");
         setCreatorSearch("");
@@ -273,9 +247,7 @@ const TaskFilter = ({ isModalOpen, setIsModalOpen }) => {
         handleApplyFilter({
             "q[milestone_id_eq]": mid
         });
-        // dispatch(fetchTasks({ token }));
     };
-
 
     return (
         <div className="fixed inset-0 z-50 flex items-start justify-end bg-black bg-opacity-50">
@@ -330,7 +302,7 @@ const TaskFilter = ({ isModalOpen, setIsModalOpen }) => {
                         )}
                     </div>
 
-                    {/* Project Type */}
+                    {/* Responsible Person */}
                     <div className="p-6 py-3">
                         <div
                             className="flex items-center justify-between cursor-pointer"
@@ -349,7 +321,7 @@ const TaskFilter = ({ isModalOpen, setIsModalOpen }) => {
                                     <Search className="absolute left-3 top-2.5 text-red-400" size={16} />
                                     <input
                                         type="text"
-                                        placeholder="Filter project type..."
+                                        placeholder="Filter responsible person..."
                                         className="w-full pl-8 pr-4 py-2 text-sm border focus:outline-none"
                                         value={ResponsiblePersonSearch}
                                         onChange={(e) => setResponsiblePersonSearch(e.target.value)}
@@ -360,38 +332,9 @@ const TaskFilter = ({ isModalOpen, setIsModalOpen }) => {
                         )}
                     </div>
 
-                    {/* Project Manager */}
-                    {/* <div className="p-6 py-3">
-                        <div
-                            className="flex items-center justify-between cursor-pointer"
-                            onClick={() => toggleDropdown("projectManager")}
-                        >
-                            <span className="font-medium text-sm select-none">Project Manager</span>
-                            {dropdowns.projectManager ? (
-                                <ChevronDown className="text-gray-400" />
-                            ) : (
-                                <ChevronRight className="text-gray-400" />
-                            )}
-                        </div>
-                        {dropdowns.projectManager && (
-                            <div className="mt-4 border">
-                                <div className="relative border-b">
-                                    <Search className="absolute left-3 top-2.5 text-red-400" size={16} />
-                                    <input
-                                        type="text"
-                                        placeholder="Filter project manager..."
-                                        className="w-full pl-8 pr-4 py-2 text-sm border focus:outline-none"
-                                        value={managerSearch}
-                                        onChange={(e) => setManagerSearch(e.target.value)}
-                                    />
-                                </div>
-                                {renderCheckboxList(projectManagerOptions, selectedManagers, setSelectedManagers, managerSearch)}
-                            </div>
-                        )}
-                    </div> */}
-
+                    {/* Start Date and End Date */}
                     {["startDate", "endDate"].map((key) => {
-                        const label = (key === "startDate") ? "Start Date" : "End Date";
+                        const label = key === "startDate" ? "Start Date" : "End Date";
                         return (
                             <div key={key} className="p-6 py-3">
                                 <div
@@ -401,8 +344,6 @@ const TaskFilter = ({ isModalOpen, setIsModalOpen }) => {
                                     <span className="font-medium text-sm select-none">
                                         {label}
                                     </span>
-
-
                                     {dropdowns[key] ? (
                                         <ChevronDown className="text-gray-400" />
                                     ) : (
@@ -414,11 +355,11 @@ const TaskFilter = ({ isModalOpen, setIsModalOpen }) => {
                                     <div className="mt-4 px-1">
                                         <input
                                             type="date"
-                                            value={dates[label]}
+                                            value={dates[key]}
                                             onChange={(e) =>
                                                 setDates((prev) => ({
                                                     ...prev,
-                                                    [label]: e.target.value,
+                                                    [key]: e.target.value,
                                                 }))
                                             }
                                             className="w-full p-2 border rounded text-sm"
@@ -430,6 +371,7 @@ const TaskFilter = ({ isModalOpen, setIsModalOpen }) => {
                         );
                     })}
 
+                    {/* Created By */}
                     <div className="p-6 py-3">
                         <div
                             className="flex items-center justify-between cursor-pointer"
@@ -460,6 +402,7 @@ const TaskFilter = ({ isModalOpen, setIsModalOpen }) => {
                     </div>
                 </div>
 
+                {/* Action Buttons */}
                 <div className="flex justify-center items-center gap-4 px-6 py-3 border-t">
                     <button
                         className="bg-[#C62828] text-white rounded px-10 py-2 text-sm font-semibold hover:bg-[#b71c1c]"
@@ -474,7 +417,6 @@ const TaskFilter = ({ isModalOpen, setIsModalOpen }) => {
                         Reset
                     </button>
                 </div>
-
             </div>
         </div>
     );
