@@ -40,7 +40,7 @@ const AddTaskModal = ({ title, isEdit, isModalOpen, setIsModalOpen }) => {
 
                 <hr className="border border-[#E95420] my-4" />
 
-                <Tasks isEdit={isEdit} />
+                <Tasks isEdit={isEdit} onCloseModal={closeModal} />
             </div>
         </div>
     );

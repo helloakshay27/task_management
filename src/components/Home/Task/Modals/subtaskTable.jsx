@@ -258,41 +258,46 @@ const calculateDuration = (startDateStr, endDateStr) => {
   const start = new Date(startDateStr);
   const end = new Date(endDateStr);
 
-  if (end < start) return "Invalid: End date before start date";
-
   const now = new Date();
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   const startDay = new Date(start.getFullYear(), start.getMonth(), start.getDate());
   const endDay = new Date(end.getFullYear(), end.getMonth(), end.getDate());
 
-  // If start date is today, calculate from current time
+  // If start date is today
   if (startDay.getTime() === today.getTime()) {
-    // Calculate full days between today and end date
-    const daysDiff = Math.floor((endDay - today) / (1000 * 60 * 60 * 24));
+    // If end date is also today
+    if (endDay.getTime() === today.getTime()) {
+      // Calculate from now to end of today (11:59:59 PM)
+      const endOfToday = new Date(today);
+      endOfToday.setHours(23, 59, 59, 999);
 
-    // Calculate remaining hours and minutes from now to end of today (midnight)
-    const endOfToday = new Date(today);
-    endOfToday.setHours(23, 59, 59, 999);
-
-    const msToday = endOfToday - now;
-    const totalMinutes = Math.floor(msToday / (1000 * 60));
-    const hours = Math.floor(totalMinutes / 60);
-    const minutes = totalMinutes % 60;
-
-    if (daysDiff > 0) {
-      return `${daysDiff}d : ${hours}h : ${minutes}m`;
-    } else {
-      // Same day - calculate to actual end time
-      const msToEnd = end - now;
+      const msToEnd = endOfToday - now;
       const totalMins = Math.floor(msToEnd / (1000 * 60));
       const hrs = Math.floor(totalMins / 60);
       const mins = totalMins % 60;
-      return `${hrs}h : ${mins}m`;
+      return `0d : ${hrs}h : ${mins}m`;
+    } else {
+      // End date is in the future
+      if (endDay < startDay) return "Invalid: End date before start date";
+
+      const daysDiff = Math.floor((endDay - today) / (1000 * 60 * 60 * 24));
+
+      // Calculate remaining hours and minutes from now to end of today (midnight)
+      const endOfToday = new Date(today);
+      endOfToday.setHours(23, 59, 59, 999);
+
+      const msToday = endOfToday - now;
+      const totalMinutes = Math.floor(msToday / (1000 * 60));
+      const hours = Math.floor(totalMinutes / 60);
+      const minutes = totalMinutes % 60;
+
+      return `${daysDiff}d : ${hours}h : ${minutes}m`;
     }
   } else {
     // For future dates, calculate days only
-    const ms = end - start;
-    const days = Math.floor(ms / (1000 * 60 * 60 * 24)) + 1;
+    if (endDay < startDay) return "Invalid: End date before start date";
+
+    const days = Math.floor((endDay - startDay) / (1000 * 60 * 60 * 24)) + 1;
     return `${days}d : 0h : 0m`;
   }
 };

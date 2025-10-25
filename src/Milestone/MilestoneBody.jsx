@@ -102,7 +102,7 @@ const GanttChart = () => {
                     if (itemType === "milestone") {
                         navigate(`${itemId}/tasks`);
                     } else if (itemType === "task" || itemType === "sub_task") {
-                        navigate(`/tasks/${itemId}`);
+                        navigate(`${itemId}/tasks/${itemId}`);
                     }
                 }
             }
