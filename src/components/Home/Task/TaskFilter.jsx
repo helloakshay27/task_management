@@ -333,7 +333,7 @@ const TaskFilter = ({ isModalOpen, setIsModalOpen }) => {
                     </div>
 
                     {/* Start Date and End Date */}
-                    {["startDate", "endDate"].map((key) => {
+                    {/* {["startDate", "endDate"].map((key) => {
                         const label = key === "startDate" ? "Start Date" : "End Date";
                         return (
                             <div key={key} className="p-6 py-3">
@@ -369,7 +369,7 @@ const TaskFilter = ({ isModalOpen, setIsModalOpen }) => {
                                 )}
                             </div>
                         );
-                    })}
+                    })} */}
 
                     {/* Created By */}
                     <div className="p-6 py-3">
