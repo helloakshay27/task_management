@@ -92,9 +92,9 @@ export const fetchTasks = createAsyncThunk('fetchTasks', async ({ token, id, pag
     }
 });
 
-export const fetchMyTasks = createAsyncThunk('fetchMyTasks', async ({ token }) => {
+export const fetchMyTasks = createAsyncThunk('fetchMyTasks', async ({ token, page }) => {
     try {
-        const response = await axios.get(`${baseURL}/task_managements/my_tasks.json`, {
+        const response = await axios.get(`${baseURL}/task_managements/my_tasks.json?page=${page}`, {
             headers: {
                 Authorization: `Bearer ${token}`,
             }

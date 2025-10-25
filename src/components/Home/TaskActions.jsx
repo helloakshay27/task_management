@@ -128,7 +128,7 @@ const TaskActions = ({
         localStorage.setItem("myTasks", checked.toString());
         try {
             if (checked) {
-                await dispatch(fetchMyTasks({ token })).unwrap();
+                await dispatch(fetchMyTasks({ token, page: 1 })).unwrap();
             } else {
                 await dispatch(fetchTasks({ token, id: "", page: 1 })).unwrap();
             }
