@@ -90,6 +90,26 @@ const NewIssuesDateEditor = ({
   );
 };
 
+// Separate component for comment cell to handle state properly
+const CommentCell = ({ initialValue, issueId, commentId, onUpdate }) => {
+  const [editField, setEditField] = useState(initialValue || "");
+
+  // Sync with prop changes
+  useEffect(() => {
+    setEditField(initialValue || "");
+  }, [initialValue]);
+
+  return (
+    <NewIssuesTextField
+      value={editField}
+      onChange={(e) => setEditField(e.target.value)}
+      onEnterPress={() => onUpdate(issueId, commentId, editField)}
+      placeholder="Comments"
+      validator={false}
+    />
+  );
+};
+
 const Attachments = ({
   attachments,
   setAttachments,
@@ -239,7 +259,6 @@ const IssuesTable = () => {
   );
 
   const {
-    // fetchKanbanTasks: tasks,
     loading: loadingTasks,
     error: tasksFetchError,
   } = useSelector(
@@ -287,8 +306,8 @@ const IssuesTable = () => {
   const [tasks, setTasks] = useState([])
 
   const [pagination, setPagination] = useState({
-    pageIndex: current_page - 1, // Convert to 0-based index for TanStack Table
-    pageSize: 10, // Matches per_page in API call
+    pageIndex: current_page - 1,
+    pageSize: 10,
   });
 
   const newIssuesTitleInputRef = useRef(null);
@@ -315,13 +334,6 @@ const IssuesTable = () => {
 
   console.log(issueType)
 
-  // Set issue type options
-  // useEffect(() => {
-  //   if (!loadingIssueType && issueType?.length > 0 && !issueTypeFetchError) {
-  //     setIssueTypeOptions(issueType.map((i) => i.name));
-  //   }
-  // }, [issueType, loadingIssueType, issueTypeFetchError]);
-
   // Fetch issues
   useEffect(() => {
     if (
@@ -335,7 +347,7 @@ const IssuesTable = () => {
       dispatch(
         fetchIssue({
           token,
-          page: pagination.pageIndex + 1, // Convert to 1-based index for API
+          page: pagination.pageIndex + 1,
           per_page: pagination.pageSize,
         })
       );
@@ -354,30 +366,9 @@ const IssuesTable = () => {
   useEffect(() => {
     setPagination((prev) => ({
       ...prev,
-      pageIndex: current_page - 1, // Convert to 0-based index
+      pageIndex: current_page - 1,
     }));
   }, [current_page]);
-
-  // Fetch tasks
-  // useEffect(() => {
-  //   if (!loadingTasks && !tasksFetchError) {
-  //     if (newIssuesMilestoneId) {
-  //       dispatch(fetchTasks({ id: newIssuesMilestoneId, token }));
-  //     } else if (!newIssuesProjectId && !newIssuesMilestoneId) {
-  //       // Fetch all tasks when no project or milestone is selected
-  //       dispatch(fetchTasks({ id: "", token }));
-  //     }
-  //     setNewIssuesTaskId(null);
-  //     setTaskOptions([]);
-  //     setNewIssuesSubtaskId(null);
-  //     setSubtaskOptions([]);
-  //   }
-  // }, [
-  //   dispatch,
-  //   newIssuesMilestoneId,
-  //   newIssuesProjectId,
-  //   token,
-  // ]);
 
   useEffect(() => {
     const loadTasks = async () => {
@@ -387,12 +378,10 @@ const IssuesTable = () => {
             const response = await dispatch(fetchKanbanTasks({ id: newIssuesMilestoneId, token })).unwrap();
             setTasks(response)
           } else if (!newIssuesProjectId && !newIssuesMilestoneId) {
-            // Fetch all tasks when no project or milestone is selected
             const response = await dispatch(fetchKanbanTasks({ id: "", token })).unwrap();
             setTasks(response)
           }
 
-          // Reset selections
           setNewIssuesTaskId(null);
           setTaskOptions([]);
           setNewIssuesSubtaskId(null);
@@ -413,7 +402,6 @@ const IssuesTable = () => {
     newIssuesProjectId,
     token,
   ]);
-
 
   // Set task options
   useEffect(() => {
@@ -518,11 +506,11 @@ const IssuesTable = () => {
 
   // Set project options
   useEffect(() => {
-    if (loadingProjects) return; // wait for loading to finish
+    if (loadingProjects) return;
 
     if (projectsFetchError) {
       console.error("Failed to fetch projects:", projectsFetchError);
-      setProjectOptions([]); // reset or show fallback
+      setProjectOptions([]);
       return;
     }
 
@@ -541,10 +529,10 @@ const IssuesTable = () => {
         setProjectOptions(options);
       } catch (err) {
         console.error("Error while mapping project options:", err);
-        setProjectOptions([]); // fallback to empty
+        setProjectOptions([]);
       }
     } else {
-      setProjectOptions([]); // no projects case
+      setProjectOptions([]);
     }
   }, [projects, loadingProjects, projectsFetchError]);
 
@@ -670,7 +658,6 @@ const IssuesTable = () => {
     );
     formData.append("issue[milestone_id]", newIssuesMilestoneId || "");
     formData.append("issue[task_management_id]", newIssuesSubtaskId ? newIssuesSubtaskId : newIssuesTaskId || "");
-    // formData.append("issue[sub_task_management_id]", newIssuesSubtaskId || "");
     formData.append("issue[start_date]", newIssuesStartDate || "");
     formData.append("issue[end_date]", newIssuesEndDate || "");
     formData.append("issue[priority]", newIssuesPriority);
@@ -799,11 +786,11 @@ const IssuesTable = () => {
           ).unwrap();
         }
       } catch (error) {
-        console.error("Failed to update issue:", error);
+        console.error("Failed to update comment:", error);
         const errorMessage =
           error?.response?.data?.message ||
           error?.message ||
-          "Failed to update issue.";
+          "Failed to update comment.";
         setLocalError(errorMessage);
         dispatch(
           fetchIssue({
@@ -816,8 +803,51 @@ const IssuesTable = () => {
         setIsUpdatingIssue(false);
       }
     },
-    [dispatch, token, pagination.pageIndex, pagination.pageSize]
+    [dispatch, token, pagination.pageIndex, pagination.pageSize, isUpdatingIssue]
   );
+
+  // Clear filters on unload
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      localStorage.removeItem("IssueFilters");
+    };
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+    };
+  }, []);
+
+  // Handle click outside new issue form
+  useEffect(() => {
+    const handleClickOutsideNewIssuesRow = (event) => {
+      if (
+        !isAddingNewIssues ||
+        isSavingIssues ||
+        isUpdatingIssue ||
+        !newIssueFormRowRef.current ||
+        isFileDialogOpen ||
+        newIssueFormRowRef.current.contains(event.target) ||
+        (newIssueAttachmentContainerRef.current &&
+          newIssueAttachmentContainerRef.current.contains(event.target))
+      ) {
+        return;
+      }
+      handleSaveNewIssues();
+    };
+
+    if (isAddingNewIssues) {
+      document.addEventListener("mousedown", handleClickOutsideNewIssuesRow);
+    }
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutsideNewIssuesRow);
+    };
+  }, [
+    isAddingNewIssues,
+    isSavingIssues,
+    isUpdatingIssue,
+    isFileDialogOpen,
+    handleSaveNewIssues,
+  ]);
 
   const handleUpdateComment = useCallback(
     async (issueId, commentId, newComment) => {
@@ -915,49 +945,6 @@ const IssuesTable = () => {
     },
     [dispatch, token, pagination.pageIndex, pagination.pageSize]
   );
-
-  // Clear filters on unload
-  useEffect(() => {
-    const handleBeforeUnload = () => {
-      localStorage.removeItem("IssueFilters");
-    };
-    window.addEventListener("beforeunload", handleBeforeUnload);
-    return () => {
-      window.removeEventListener("beforeunload", handleBeforeUnload);
-    };
-  }, []);
-
-  // Handle click outside new issue form
-  useEffect(() => {
-    const handleClickOutsideNewIssuesRow = (event) => {
-      if (
-        !isAddingNewIssues ||
-        isSavingIssues ||
-        isUpdatingIssue ||
-        !newIssueFormRowRef.current ||
-        isFileDialogOpen ||
-        newIssueFormRowRef.current.contains(event.target) ||
-        (newIssueAttachmentContainerRef.current &&
-          newIssueAttachmentContainerRef.current.contains(event.target))
-      ) {
-        return;
-      }
-      handleSaveNewIssues();
-    };
-
-    if (isAddingNewIssues) {
-      document.addEventListener("mousedown", handleClickOutsideNewIssuesRow);
-    }
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutsideNewIssuesRow);
-    };
-  }, [
-    isAddingNewIssues,
-    isSavingIssues,
-    isUpdatingIssue,
-    isFileDialogOpen,
-    handleSaveNewIssues,
-  ]);
 
   // Handle escape key
   useEffect(() => {
@@ -1162,53 +1149,18 @@ const IssuesTable = () => {
         accessorKey: "comments",
         header: "Comments",
         size: 360,
-        cell: ({ row, getValue }) => {
-          const [editField, setEditField] = useState(getValue() || "");
-          return (
-            <NewIssuesTextField
-              value={editField}
-              onChange={(e) => setEditField(e.target.value)}
-              onEnterPress={() =>
-                handleUpdateComment(
-                  row.original.id,
-                  row.original.commentId,
-                  editField
-                )
-              }
-              placeholder="Comments"
-              validator={false}
-            />
-          );
-        },
+        cell: ({ row }) => (
+          <CommentCell
+            key={`comment-${row.original.id}-${row.original.comments}`}
+            initialValue={row.original.comments}
+            issueId={row.original.id}
+            commentId={row.original.commentId}
+            onUpdate={handleUpdateComment}
+          />
+        ),
       },
-      // {
-      //   id: "actions",
-      //   header: "Actions",
-      //   size: 100,
-      //   cell: ({ row }) => {
-      //     const issueId = row.original.id;
-      //     const issuePath = isCloudRoute ? `/cloud-issues/${issueId}` : `/issues/${issueId}`;
-
-      //     return (
-      //       <div className="flex gap-2 items-center">
-      //         <Link
-      //           to={issuePath}
-      //           className="text-blue-600 hover:text-blue-800 text-xs px-2 py-1 border border-blue-600 rounded hover:bg-blue-50"
-      //         >
-      //           View
-      //         </Link>
-      //         <Link
-      //           to={`${issuePath}?edit=true`}
-      //           className="text-green-600 hover:text-green-800 text-xs px-2 py-1 border border-green-600 rounded hover:bg-green-50"
-      //         >
-      //           Edit
-      //         </Link>
-      //       </div>
-      //     );
-      //   },
-      // },
     ],
-    [handleUpdateIssues, handleUpdateComment, userOptionsForSelectBox, issueType]
+    [handleUpdateIssues, handleUpdateComment, userOptionsForSelectBox, issueType, isCloudRoute]
   );
 
   const table = useReactTable({
@@ -1218,11 +1170,10 @@ const IssuesTable = () => {
     onPaginationChange: (updater) => {
       setPagination((prev) => {
         const newState = typeof updater === "function" ? updater(prev) : updater;
-        // Dispatch fetchIssue with new page
         dispatch(
           fetchIssue({
             token,
-            page: newState.pageIndex + 1, // Convert to 1-based index
+            page: newState.pageIndex + 1,
             per_page: newState.pageSize,
           })
         );
@@ -1230,8 +1181,8 @@ const IssuesTable = () => {
       });
     },
     getCoreRowModel: getCoreRowModel(),
-    pageCount: filterSuccess ? filterPagination.total_pages : total_pages, // Use filter pagination if filters are applied
-    manualPagination: true, // Enable manual pagination
+    pageCount: filterSuccess ? filterPagination.total_pages : total_pages,
+    manualPagination: true,
   });
 
   let pageContent;
@@ -1427,11 +1378,6 @@ const IssuesTable = () => {
                       />
                     </td>
                     <td className="border p-1 align-middle">
-                      {/* <StatusBadge
-                        status={newIssuesType}
-                        statusOptions={globalTypesOptions}
-                        onStatusChange={setNewIssuesType}
-                      /> */}
                       <SelectBox
                         options={
                           issueType.map(type => (

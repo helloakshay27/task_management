@@ -9,13 +9,13 @@ import { useEffect, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import gsap from "gsap";
-import SubtaskTable from "../../components/Home/Task/Modals/subtaskTable";
 import AddTaskModal from "../../components/Home/Task/AddTaskModal";
-import toast, { Toaster } from "react-hot-toast";
-import { deleteTask } from "../../redux/slices/taskSlice";
+import { Toaster } from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 import { fetchStatus } from "../../redux/slices/statusSlice";
 import { deleteMilestone, fetchMilestoneById } from "../../redux/slices/milestoneSlice";
+import MilestoneDependancyTable from "../../components/MilestoneDependancyTable";
+import EditMilestoneModal from "../../components/EditMilestoneModal";
 
 const mapStatusToDisplay = (rawStatus) => {
     const statusMap = {
@@ -104,7 +104,7 @@ const MilestoneDetailsPage = () => {
     const [milestone, setMilestone] = useState({})
     const [isFirstCollapsed, setIsFirstCollapsed] = useState(false);
     const [isSecondCollapsed, setIsSecondCollapsed] = useState(false);
-    const [tab, setTab] = useState("Subtasks");
+    const [tab, setTab] = useState("Dependancy");
     const [openDropdown, setOpenDropdown] = useState(false);
     const [selectedOption, setSelectedOption] = useState("Active");
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -146,9 +146,9 @@ const MilestoneDetailsPage = () => {
         };
     }, []);
 
-    const handleDeleteTask = (id) => {
+    const handleDeleteMilestone = async (id) => {
         try {
-            dispatch(deleteMilestone({ token, id }));
+            await dispatch(deleteMilestone({ token, id })).unwrap();
             navigate(-1);
         } catch (err) {
             console.log(err);
@@ -300,7 +300,7 @@ const MilestoneDetailsPage = () => {
                             <span
                                 className="cursor-pointer flex items-center gap-1"
                                 onClick={() => {
-                                    handleDeleteTask(milestone.id);
+                                    handleDeleteMilestone(milestone.id);
                                 }}
                             >
                                 <Trash2 className="mx-1" size={15} /> Delete Milestone
@@ -323,49 +323,53 @@ const MilestoneDetailsPage = () => {
                         </div>
                         <div className="mt-3" ref={secondContentRef}>
                             <div className="flex flex-col">
-                                <div className="flex items-center ml-36">
-                                    <div className="w-1/2 flex items-center justify-start gap-3">
-                                        <div className="text-right text-[12px] font-[500]">
-                                            Responsible Person:
-                                        </div>
-                                        <div className="text-left text-[12px]">
-                                            {task.responsible_person?.name}
-                                        </div>
+                                <div className="w-1/2 flex items-center justify-start gap-3 ml-36">
+                                    <div className="text-right text-[12px] font-[500]">
+                                        Responsible Person:
                                     </div>
-                                    <div className="w-1/2 flex items-center justify-start gap-3">
-                                        <div className="text-right text-[12px] font-[500]">
-                                            Duration:
-                                        </div>
-                                        <CountdownTimer targetDate={milestone.end_date} />
+                                    <div className="text-left text-[12px]">
+                                        {task.responsible_person?.name}
                                     </div>
                                 </div>
+
                                 <span className="border h-[1px] inline-block w-full my-4"></span>
-                                <div className="flex items-center ml-36">
-                                    <div className="w-1/2 flex items-center justify-start gap-3">
-                                        <div className="text-right text-[12px] font-[500]">
-                                            Start Date:
-                                        </div>
-                                        <div className="text-left text-[12px]">
-                                            {milestone?.start_date?.split("T")[0]}
-                                        </div>
+
+                                <div className="w-1/2 flex items-center justify-start gap-3 ml-36">
+                                    <div className="text-right text-[12px] font-[500]">
+                                        Duration:
                                     </div>
-                                    <div className="w-1/2 flex items-center justify-start gap-3">
-                                        <div className="text-right text-[12px] font-[500]">
-                                            End Date:
-                                        </div>
-                                        <div className="text-left text-[12px]">
-                                            {milestone?.end_date?.split("T")[0]}
-                                        </div>
+                                    <CountdownTimer targetDate={milestone.end_date} />
+                                </div>
+
+                                <span className="border h-[1px] inline-block w-full my-4"></span>
+
+                                <div className="w-1/2 flex items-center justify-start gap-3 ml-36">
+                                    <div className="text-right text-[12px] font-[500]">
+                                        Start Date:
+                                    </div>
+                                    <div className="text-left text-[12px]">
+                                        {milestone?.start_date?.split("T")[0]}
+                                    </div>
+                                </div>
+
+                                <span className="border h-[1px] inline-block w-full my-4"></span>
+
+                                <div className="w-1/2 flex items-center justify-start gap-3 ml-36">
+                                    <div className="text-right text-[12px] font-[500]">
+                                        End Date:
+                                    </div>
+                                    <div className="text-left text-[12px]">
+                                        {milestone?.end_date?.split("T")[0]}
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                    {/* <div>
+                    <div>
                         <div className="flex items-center justify-between my-3">
                             <div className="flex items-center gap-10">
                                 {[
-                                    "Subtasks",
+                                    "Dependancy",
                                 ].map((tabName, index) => (
                                     <div
                                         key={index}
@@ -381,17 +385,17 @@ const MilestoneDetailsPage = () => {
                         </div>
                         <div className="border-b-[3px] border-[rgba(190, 190, 190, 1)]"></div>
                         <div>
-                            {tab === "Subtasks" && <SubtaskTable projectId={task.project_management_id} />}
+                            {tab === "Dependancy" && <MilestoneDependancyTable />}
                         </div>
-                    </div> */}
+                    </div>
                 </div>
             </div>
             {isEditModalOpen && (
-                <AddTaskModal
+                <EditMilestoneModal
                     isModalOpen={isEditModalOpen}
                     setIsModalOpen={setIsEditModalOpen}
-                    title={"Edit Task"}
-                    isEdit={true}
+                    milestoneId={milestone.id}
+                    projectId={milestone.project_management_id}
                 />
             )}
         </>

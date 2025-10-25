@@ -5,7 +5,7 @@ import { createTagReducer, deleteTagReducer, fetchActiveTagsReducer, fetchTagsRe
 import { createRoleReducer, deleteRoleReducer, editRoleReducer, fetchActiveRolesReducer, fetchRolesReducer } from './slices/roleSlice'
 import { changeTaskStatusReducer, createDependancyReducer, createTaskCommentReducer, fetchMyTasksReducer, createTaskReducer, editTaskCommentReducer, editTaskReducer, fetchTasksOfProjectReducer, fetchTasksReducer, filterTaskReducer, taskDetailsReducer, updateDependancyReducer, deleteTaskCommentReducer, fetchTasksOfMilestoneReducer, removeTaskAttachmentReducer, fetchKanbanTasksReducer } from './slices/taskSlice'
 import { createOrganizationReducer, editOrganizationReducer, fetchOrganizationsReducer } from './slices/organizationSlice'
-import { createMilestoneReducer, deleteMilestoneReducer, fetchMilestoneByIdReducer, fetchMilestoneReducer } from './slices/milestoneSlice'
+import { createMilestoneReducer, deleteMilestoneReducer, fetchMilestoneByIdReducer, fetchMilestoneReducer, updateMilestoneReducer } from './slices/milestoneSlice'
 import { fetchSpirintByIdReducer, fetchSpirintsReducer, postSprintReducer, putSprintReducer } from './slices/spirintSlice'
 import { createIssueReducer, fetchIssueReducer, updateIssueReducer, fetchIssueTypeReducer, filterIssueReducer, createIssueTypeReducer, updateIssueTypeReducer, deleteIssueTypeReducer, removeIssueAttachmentReducer, fetchIssueByIdReducer } from './slices/IssueSlice'
 import { fetchStatusReducer, createStatusReducer, deleteStatusReducer, updateStatusReducer } from './slices/statusSlice'
@@ -84,6 +84,7 @@ export const store = configureStore({
     fetchMilestone: fetchMilestoneReducer,
     fetchMilestoneById: fetchMilestoneByIdReducer,
     deleteMilestone: deleteMilestoneReducer,
+    updateMilestone: updateMilestoneReducer,
 
     //region
     createRegion: createRegionReducer,

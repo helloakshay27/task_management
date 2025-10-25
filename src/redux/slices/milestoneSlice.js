@@ -44,6 +44,20 @@ export const fetchMilestoneById = createAsyncThunk("fetchMilestoneById", async (
     }
 });
 
+export const updateMilestone = createAsyncThunk("updateMilestone", async ({ token, id, payload }) => {
+    try {
+        const response = await axios.put(`${baseURL}/milestones/${id}.json`, payload, {
+            headers: {
+                Authorization: `Bearer ${token}`,
+            },
+        });
+        return response.data;
+    } catch (error) {
+        console.log(error);
+        return error.response.data;
+    }
+});
+
 export const deleteMilestone = createAsyncThunk("deleteMilestone", async ({ token, id }) => {
     try {
         const response = await axios.delete(`${baseURL}/milestones/${id}.json`, {
@@ -118,12 +132,14 @@ export const fetchMilestoneSlice = createApiSlice(
 export const createMilestoneSlice = createApiSlice('createMilestone', createMilestone);
 export const fetchMilestoneByIdSlice = createApiSlice('fetchMilestoneById', fetchMilestoneById);
 export const deleteMilestoneSlice = createApiSlice('deleteMilestone', deleteMilestone);
+export const updateMilestoneSlice = createApiSlice('updateMilestone', updateMilestone);
 
 // ✅ Export reducers
 export const createMilestoneReducer = createMilestoneSlice.reducer;
 export const fetchMilestoneReducer = fetchMilestoneSlice.reducer;
 export const fetchMilestoneByIdReducer = fetchMilestoneByIdSlice.reducer;
 export const deleteMilestoneReducer = deleteMilestoneSlice.reducer;
+export const updateMilestoneReducer = updateMilestoneSlice.reducer;
 
 // ✅ Export saved milestone actions
 export const {
