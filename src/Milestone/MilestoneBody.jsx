@@ -58,6 +58,14 @@ const GanttChart = () => {
         const children = tasksData.filter(task => task.parent === entityId && task.type === childType);
 
         if (children.length === 0) {
+            // If no children, check the entity's own status (for tasks without subtasks)
+            if (entityType === "task") {
+                const taskItself = tasksData.find(t => t.id === entityId);
+                if (taskItself && taskItself.status?.toLowerCase() === "completed") {
+                    return { total: 1, completed: 1, percentage: 100 };
+                }
+                return { total: 1, completed: 0, percentage: 0 };
+            }
             return { total: 0, completed: 0, percentage: 0 };
         }
 
