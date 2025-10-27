@@ -240,7 +240,7 @@ const GanttChart = () => {
                 align: "center",
                 width: 100,
                 template: function (task) {
-                    const status = task.status || "Open";
+                    const status = task.status;
                     return status.replace(/_/g, ' ').replace(/\b\w/g, char => char.toUpperCase());
                 },
             },
@@ -435,7 +435,7 @@ const GanttChart = () => {
                         progress: 0.0,
                         totalTasks: 0,
                         completedTasks: 0,
-                        status: "Open",
+                        status: item.status,
                         depends: item.depends_on_id
                             ? `milestone-${item.depends_on_id}`
                             : null,

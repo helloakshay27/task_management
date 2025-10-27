@@ -80,7 +80,7 @@ const SetupSidebar = ({ isSidebarOpen, setIsSidebarOpen }) => {
                                     <NavLink
                                         to="/setup/roles"
                                         className={({ isActive }) =>
-                                            `${isActive ? "text-red font-bold" : "text-gray-700"}`
+                                            `${isActive ? "text-[#c72030]" : "text-gray-700"}`
                                         }
                                     >
                                         Roles
@@ -90,7 +90,7 @@ const SetupSidebar = ({ isSidebarOpen, setIsSidebarOpen }) => {
                                     <NavLink
                                         to="/setup/matrix"
                                         className={({ isActive }) =>
-                                            `${isActive ? "text-red font-bold" : "text-gray-700"}`
+                                            `${isActive ? "text-[#c72030]" : "text-gray-700"}`
                                         }
                                     >
                                         Escalation Matrix
@@ -100,7 +100,7 @@ const SetupSidebar = ({ isSidebarOpen, setIsSidebarOpen }) => {
                                     <NavLink
                                         to="/setup/internal-users"
                                         className={({ isActive }) =>
-                                            `${isActive ? "text-red font-bold" : "text-gray-700"}`
+                                            `${isActive ? "text-[#c72030]" : "text-gray-700"}`
                                         }
                                     >
                                         Internal Users
@@ -110,7 +110,7 @@ const SetupSidebar = ({ isSidebarOpen, setIsSidebarOpen }) => {
                                     <NavLink
                                         to="/setup/external-users"
                                         className={({ isActive }) =>
-                                            `${isActive ? "text-red font-bold" : "text-gray-700"}`
+                                            `${isActive ? "text-[#c72030]" : "text-gray-700"}`
                                         }
                                     >
                                         External Users
@@ -120,7 +120,7 @@ const SetupSidebar = ({ isSidebarOpen, setIsSidebarOpen }) => {
                                     <NavLink
                                         to="/setup/project-teams"
                                         className={({ isActive }) =>
-                                            `${isActive ? "text-red font-bold" : "text-gray-700"}`
+                                            `${isActive ? "text-[#c72030]" : "text-gray-700"}`
                                         }
                                     >
                                         Project Teams
@@ -144,7 +144,7 @@ const SetupSidebar = ({ isSidebarOpen, setIsSidebarOpen }) => {
                                     <NavLink
                                         to="/setup/organizations"
                                         className={({ isActive }) =>
-                                            `${isActive ? "text-red font-bold" : "text-gray-700"}`
+                                            `${isActive ? "text-[#c72030]" : "text-gray-700"}`
                                         }
                                     >
                                         Organizations
@@ -154,7 +154,7 @@ const SetupSidebar = ({ isSidebarOpen, setIsSidebarOpen }) => {
                                     <NavLink
                                         to="/setup/company"
                                         className={({ isActive }) =>
-                                            `${isActive ? "text-red font-bold" : "text-gray-700"}`
+                                            `${isActive ? "text-[#c72030]" : "text-gray-700"}`
                                         }
                                     >
                                         Company
@@ -164,7 +164,7 @@ const SetupSidebar = ({ isSidebarOpen, setIsSidebarOpen }) => {
                                     <NavLink
                                         to="/setup/country"
                                         className={({ isActive }) =>
-                                            `${isActive ? "text-red font-bold" : "text-gray-700"}`
+                                            `${isActive ? "text-[#c72030]" : "text-gray-700"}`
                                         }
                                     >
                                         Country
@@ -174,7 +174,7 @@ const SetupSidebar = ({ isSidebarOpen, setIsSidebarOpen }) => {
                                     <NavLink
                                         to="/setup/region"
                                         className={({ isActive }) =>
-                                            `${isActive ? "text-red font-bold" : "text-gray-700"}`
+                                            `${isActive ? "text-[#c72030]" : "text-gray-700"}`
                                         }
                                     >
                                         Region
@@ -184,7 +184,7 @@ const SetupSidebar = ({ isSidebarOpen, setIsSidebarOpen }) => {
                                     <NavLink
                                         to="/setup/zone"
                                         className={({ isActive }) =>
-                                            `${isActive ? "text-red font-bold" : "text-gray-700"}`
+                                            `${isActive ? "text-[#c72030]" : "text-gray-700"}`
                                         }
                                     >
                                         Zone
@@ -194,7 +194,7 @@ const SetupSidebar = ({ isSidebarOpen, setIsSidebarOpen }) => {
                                     <NavLink
                                         to="/setup/types"
                                         className={({ isActive }) =>
-                                            `${isActive ? "text-red font-bold" : "text-gray-700"}`
+                                            `${isActive ? "text-[#c72030]" : "text-gray-700"}`
                                         }
                                     >
                                         Types
@@ -204,7 +204,7 @@ const SetupSidebar = ({ isSidebarOpen, setIsSidebarOpen }) => {
                                     <NavLink
                                         to="/setup/tags"
                                         className={({ isActive }) =>
-                                            `${isActive ? "text-red font-bold" : "text-gray-700"}`
+                                            `${isActive ? "text-[#c72030]" : "text-gray-700"}`
                                         }
                                     >
                                         Tags
@@ -214,7 +214,7 @@ const SetupSidebar = ({ isSidebarOpen, setIsSidebarOpen }) => {
                                     <NavLink
                                         to="/setup/status"
                                         className={({ isActive }) =>
-                                            `${isActive ? "text-red font-bold" : "text-gray-700"}`
+                                            `${isActive ? "text-[#c72030]" : "text-gray-700"}`
                                         }
                                     >
                                         Status
@@ -224,7 +224,7 @@ const SetupSidebar = ({ isSidebarOpen, setIsSidebarOpen }) => {
                                     <NavLink
                                         to="/setup/project-group"
                                         className={({ isActive }) =>
-                                            `${isActive ? "text-red font-bold" : "text-gray-700"}`
+                                            `${isActive ? "text-[#c72030]" : "text-gray-700"}`
                                         }
                                     >
                                         Project Group
@@ -234,7 +234,7 @@ const SetupSidebar = ({ isSidebarOpen, setIsSidebarOpen }) => {
                                     <NavLink
                                         to="/setup/project-template"
                                         className={({ isActive }) =>
-                                            `${isActive ? "text-red font-bold" : "text-gray-700"}`
+                                            `${isActive ? "text-[#c72030]" : "text-gray-700"}`
                                         }
                                     >
                                         Project Template
@@ -258,7 +258,7 @@ const SetupSidebar = ({ isSidebarOpen, setIsSidebarOpen }) => {
                                     <NavLink
                                         to="/setup/issues/types"
                                         className={({ isActive }) =>
-                                            `${isActive ? "text-red font-bold" : "text-gray-700"}`
+                                            `${isActive ? "text-[#c72030]" : "text-gray-700"}`
                                         }
                                     >
                                         Types

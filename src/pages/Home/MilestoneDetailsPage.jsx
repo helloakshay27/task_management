@@ -25,7 +25,7 @@ const mapStatusToDisplay = (rawStatus) => {
         overdue: "Overdue",
         completed: "Completed",
     };
-    return statusMap[rawStatus?.toLowerCase()] || "Active";
+    return statusMap[rawStatus?.toLowerCase()] || "Open";
 };
 
 const mapDisplayToApiStatus = (displayStatus) => {
@@ -39,15 +39,24 @@ const mapDisplayToApiStatus = (displayStatus) => {
     return reverseStatusMap[displayStatus] || "open";
 };
 
-const calculateDuration = (end) => {
+const calculateDuration = (start, end) => {
     const now = new Date();
+    const startDate = new Date(start);
     const endDate = new Date(end);
 
+    // Set end date to end of the day
     endDate.setHours(23, 59, 59, 999);
 
+    // Check if task hasn't started yet
+    if (now < startDate) {
+        return "Not started";
+    }
+
+    // Check if task has already ended
     const diffMs = endDate - now;
     if (diffMs <= 0) return "0s";
 
+    // Calculate time differences
     const seconds = Math.floor(diffMs / 1000);
     const minutes = Math.floor(seconds / 60);
     const hours = Math.floor(minutes / 60);
@@ -57,16 +66,16 @@ const calculateDuration = (end) => {
     const remainingMinutes = minutes % 60;
     const remainingSeconds = seconds % 60;
 
-    return `${days > 0 ? days + "d " : ""}${remainingHours > 0 ? remainingHours + "h " : ""
-        }${remainingMinutes > 0 ? remainingMinutes + "m " : ""}${remainingSeconds}s`;
+    return `${days > 0 ? days + "d " : ""}${remainingHours > 0 ? remainingHours + "h " : ""}${remainingMinutes > 0 ? remainingMinutes + "m " : ""
+        }${remainingSeconds}s`;
 };
 
-const CountdownTimer = ({ targetDate }) => {
-    const [countdown, setCountdown] = useState(calculateDuration(targetDate));
+const CountdownTimer = ({ startDate, targetDate }) => {
+    const [countdown, setCountdown] = useState(calculateDuration(startDate, targetDate));
 
     useEffect(() => {
         const interval = setInterval(() => {
-            setCountdown(calculateDuration(targetDate));
+            setCountdown(calculateDuration(startDate, targetDate));
         }, 1000);
 
         return () => clearInterval(interval);
@@ -232,7 +241,7 @@ const MilestoneDetailsPage = () => {
                     <div className="border-b-[3px] border-[rgba(190, 190, 190, 1)]"></div>
                     <div className="flex items-center justify-between my-3 text-[12px]">
                         <div className="flex items-center gap-3 text-[#323232]">
-                            <span>Created By: {task.created_by?.name}</span>
+                            <span>Created By: {milestone.created_by_name}</span>
                             <span className="h-6 w-[1px] border border-gray-300"></span>
                             <span className="flex items-center gap-3">
                                 Created On: {formatToDDMMYYYY_AMPM(milestone.created_at)}
@@ -336,7 +345,7 @@ const MilestoneDetailsPage = () => {
                                     <div className="text-right text-[12px] font-[500]">
                                         Duration:
                                     </div>
-                                    <CountdownTimer targetDate={milestone.end_date} />
+                                    <CountdownTimer startDate={milestone.start_date} targetDate={milestone.end_date} />
                                 </div>
 
                                 <span className="border h-[1px] inline-block w-full my-4"></span>

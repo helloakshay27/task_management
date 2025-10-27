@@ -265,6 +265,7 @@ const Milestones = ({ closeModal }) => {
   const createMilestonePayload = (data) => ({
     milestone: {
       title: data.title,
+      status: "Open",
       owner_id: data.ownerId,
       start_date: data.startDate,
       end_date: data.endDate,

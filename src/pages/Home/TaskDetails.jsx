@@ -779,9 +779,9 @@ const TaskDetails = () => {
         };
     }, []);
 
-    const handleDeleteTask = (id) => {
+    const handleDeleteTask = () => {
         try {
-            dispatch(deleteTask({ token, id }));
+            dispatch(deleteTask({ token, id: tid }));
             navigate(-1);
         } catch (err) {
             console.log(err);
