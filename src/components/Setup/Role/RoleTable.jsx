@@ -8,10 +8,12 @@ import RoleModal from './Modal';
 import { useDispatch, useSelector } from 'react-redux';
 import { deleteRole, editRole, fetchRoles } from '../../../redux/slices/roleSlice';
 import toast from 'react-hot-toast';
+import { DeleteConfirmationModal } from '../../DeleteConfirmationModal';
 
 const ActionIcons = ({ row, onEdit }) => {
   const token = localStorage.getItem('token');
   const [isActive, setIsActive] = useState(row.original.active);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const dispatch = useDispatch();
 
   // ✅ Sync isActive with updated row.original.active
@@ -78,27 +80,40 @@ const ActionIcons = ({ row, onEdit }) => {
     }
   };
 
+  const handleDelete = () => {
+    handleDeleteClick(row.original.id);
+    setIsDeleteModalOpen(false);
+  };
+
   return (
-    <div className="action-icons flex justify-between gap-5">
-      <Switch
-        color={isActive ? 'success' : 'danger'}
-        checked={isActive}
-        onChange={handleToggle}
-      />
-      <div>
-        <EditOutlinedIcon
-          sx={{ fontSize: '20px' }}
-          className="cursor-pointer"
-          onClick={() => onEdit(row.original)}
+    <>
+      <div className="action-icons flex justify-between gap-5">
+        <Switch
+          color={isActive ? 'success' : 'danger'}
+          checked={isActive}
+          onChange={handleToggle}
         />
-        <button
-          onClick={() => handleDeleteClick(row.original.id)}
-          title="Delete"
-        >
-          <DeleteOutlineOutlinedIcon sx={{ fontSize: '20px' }} />
-        </button>
+        <div>
+          <EditOutlinedIcon
+            sx={{ fontSize: '20px' }}
+            className="cursor-pointer"
+            onClick={() => onEdit(row.original)}
+          />
+          <button
+            onClick={() => setIsDeleteModalOpen(true)}
+            title="Delete"
+          >
+            <DeleteOutlineOutlinedIcon sx={{ fontSize: '20px' }} />
+          </button>
+        </div>
       </div>
-    </div>
+
+      <DeleteConfirmationModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        onConfirm={handleDelete}
+      />
+    </>
   );
 };
 

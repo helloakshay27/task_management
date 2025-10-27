@@ -9,17 +9,17 @@ import { useEffect, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import gsap from "gsap";
-import AddTaskModal from "../../components/Home/Task/AddTaskModal";
 import { Toaster } from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 import { fetchStatus } from "../../redux/slices/statusSlice";
-import { deleteMilestone, fetchMilestoneById } from "../../redux/slices/milestoneSlice";
+import { deleteMilestone, fetchMilestoneById, updateMilestone } from "../../redux/slices/milestoneSlice";
 import MilestoneDependancyTable from "../../components/MilestoneDependancyTable";
 import EditMilestoneModal from "../../components/EditMilestoneModal";
+import { DeleteConfirmationModal } from "../../components/DeleteConfirmationModal";
 
 const mapStatusToDisplay = (rawStatus) => {
     const statusMap = {
-        open: "Active",
+        open: "Open",
         in_progress: "In Progress",
         on_hold: "On Hold",
         overdue: "Overdue",
@@ -30,7 +30,7 @@ const mapStatusToDisplay = (rawStatus) => {
 
 const mapDisplayToApiStatus = (displayStatus) => {
     const reverseStatusMap = {
-        Active: "open",
+        Open: "open",
         "In Progress": "in_progress",
         "On Hold": "on_hold",
         Overdue: "overdue",
@@ -98,16 +98,15 @@ const MilestoneDetailsPage = () => {
 
     const { mid } = useParams();
     const { taskDetails: task } = useSelector((state) => state.taskDetails);
-    const { success } = useSelector((state) => state.changeTaskStatus);
-    const { success: editSuccess } = useSelector((state) => state.editTask);
 
     const [milestone, setMilestone] = useState({})
     const [isFirstCollapsed, setIsFirstCollapsed] = useState(false);
     const [isSecondCollapsed, setIsSecondCollapsed] = useState(false);
     const [tab, setTab] = useState("Dependancy");
     const [openDropdown, setOpenDropdown] = useState(false);
-    const [selectedOption, setSelectedOption] = useState("Active");
+    const [selectedOption, setSelectedOption] = useState("Open");
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
     const firstContentRef = useRef(null);
     const secondContentRef = useRef(null);
@@ -118,6 +117,7 @@ const MilestoneDetailsPage = () => {
             try {
                 const resonse = await dispatch(fetchMilestoneById({ token, id: mid })).unwrap();
                 setMilestone(resonse)
+                setSelectedOption(mapStatusToDisplay(resonse.status))
             } catch (error) {
                 console.log(error)
             }
@@ -146,17 +146,19 @@ const MilestoneDetailsPage = () => {
         };
     }, []);
 
-    const handleDeleteMilestone = async (id) => {
+    const handleDeleteMilestone = async () => {
         try {
-            await dispatch(deleteMilestone({ token, id })).unwrap();
+            await dispatch(deleteMilestone({ token, id: milestone.id })).unwrap();
+            setIsDeleteModalOpen(false);
             navigate(-1);
         } catch (err) {
             console.log(err);
+            setIsDeleteModalOpen(false);
         }
     };
 
     const dropdownOptions = [
-        "Active",
+        "Open",
         "In Progress",
         "On Hold",
         "Overdue",
@@ -166,20 +168,14 @@ const MilestoneDetailsPage = () => {
     const handleOptionSelect = (option) => {
         setSelectedOption(option);
         setOpenDropdown(false);
-        // dispatch(
-        //     changeTaskStatus({
-        //         token,
-        //         id: tid,
-        //         payload: { status: mapDisplayToApiStatus(option) },
-        //     })
-        // );
+        dispatch(
+            updateMilestone({
+                token,
+                id: mid,
+                payload: { status: mapDisplayToApiStatus(option) },
+            })
+        );
     };
-
-    useEffect(() => {
-        if (success || editSuccess) {
-            // dispatch(taskDetails({ token, id: tid }));
-        }
-    }, [success, editSuccess]);
 
     useGSAP(() => {
         gsap.set(firstContentRef.current, { height: "auto" });
@@ -242,7 +238,7 @@ const MilestoneDetailsPage = () => {
                                 Created On: {formatToDDMMYYYY_AMPM(milestone.created_at)}
                             </span>
                             <span className="h-6 w-[1px] border border-gray-300"></span>
-                            <span className="flex relative items-center gap-2 cursor-pointer px-2 py-1 w-[150px] rounded-md text-sm text-white bg-[#C85E68]">
+                            <span className="flex relative items-center gap-2 cursor-pointer px-2 py-1 w-[150px] rounded-md text-sm text-[#c72030]">
                                 <div className="relative w-full" ref={dropdownRef}>
                                     <div
                                         className="flex items-center justify-between gap-1 cursor-pointer px-2 py-1"
@@ -258,35 +254,39 @@ const MilestoneDetailsPage = () => {
                                         <span className="text-[13px]">{selectedOption}</span>
                                         <ChevronDown
                                             size={15}
-                                            className={`${openDropdown ? "rotate-180" : ""
+                                            className={`${(milestone.task_managements?.length === 0 && openDropdown) ? "rotate-180" : ""
                                                 } transition-transform`}
                                         />
                                     </div>
-                                    <ul
-                                        className={`dropdown-menu absolute right-0 mt-2 bg-white border border-gray-200 rounded-md shadow-lg overflow-hidden ${openDropdown ? "block" : "hidden"
-                                            }`}
-                                        role="menu"
-                                        style={{
-                                            minWidth: "150px",
-                                            maxHeight: "400px",
-                                            overflowY: "auto",
-                                            zIndex: 1000,
-                                        }}
-                                    >
-                                        {dropdownOptions.map((option, idx) => (
-                                            <li key={idx} role="menuitem">
-                                                <button
-                                                    className={`dropdown-item w-full text-left px-4 py-2 text-[13px] text-gray-700 hover:bg-gray-100 ${selectedOption === option
-                                                        ? "bg-gray-100 font-semibold"
-                                                        : ""
-                                                        }`}
-                                                    onClick={() => handleOptionSelect(option)}
-                                                >
-                                                    {option}
-                                                </button>
-                                            </li>
-                                        ))}
-                                    </ul>
+                                    {
+                                        milestone.task_managements?.length === 0 && (
+                                            <ul
+                                                className={`dropdown-menu absolute right-0 mt-2 bg-white border border-gray-200 rounded-md shadow-lg overflow-hidden ${openDropdown ? "block" : "hidden"
+                                                    }`}
+                                                role="menu"
+                                                style={{
+                                                    minWidth: "150px",
+                                                    maxHeight: "400px",
+                                                    overflowY: "auto",
+                                                    zIndex: 1000,
+                                                }}
+                                            >
+                                                {dropdownOptions.map((option, idx) => (
+                                                    <li key={idx} role="menuitem">
+                                                        <button
+                                                            className={`dropdown-item w-full text-left px-4 py-2 text-[13px] text-gray-700 hover:bg-gray-100 ${selectedOption === option
+                                                                ? "bg-gray-100 font-semibold"
+                                                                : ""
+                                                                }`}
+                                                            onClick={() => handleOptionSelect(option)}
+                                                        >
+                                                            {option}
+                                                        </button>
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                        )
+                                    }
                                 </div>
                             </span>
                             <span className="h-6 w-[1px] border border-gray-300"></span>
@@ -299,9 +299,7 @@ const MilestoneDetailsPage = () => {
                             <span className="h-6 w-[1px] border border-gray-300"></span>
                             <span
                                 className="cursor-pointer flex items-center gap-1"
-                                onClick={() => {
-                                    handleDeleteMilestone(milestone.id);
-                                }}
+                                onClick={() => setIsDeleteModalOpen(true)}
                             >
                                 <Trash2 className="mx-1" size={15} /> Delete Milestone
                             </span>
@@ -328,7 +326,7 @@ const MilestoneDetailsPage = () => {
                                         Responsible Person:
                                     </div>
                                     <div className="text-left text-[12px]">
-                                        {task.responsible_person?.name}
+                                        {milestone.owner_name}
                                     </div>
                                 </div>
 
@@ -398,6 +396,11 @@ const MilestoneDetailsPage = () => {
                     projectId={milestone.project_management_id}
                 />
             )}
+            <DeleteConfirmationModal
+                isOpen={isDeleteModalOpen}
+                onClose={() => setIsDeleteModalOpen(false)}
+                onConfirm={handleDeleteMilestone}
+            />
         </>
     );
 };

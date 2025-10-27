@@ -35,6 +35,7 @@ import "./Table.css";
 import Loader from "../../Loader";
 import SelectBox from "../../SelectBox";
 import { toast } from "react-hot-toast";
+import { DeleteConfirmationModal } from "../../DeleteConfirmationModal";
 
 const NewProjectTextField = ({
     value,
@@ -98,13 +99,19 @@ const ActionIcons = ({ row }) => {
     const navigate = useNavigate();
     const dispatch = useDispatch();
     const isCloudRoute = useIsCloudRoute();
-    const [deleting, setDeleting] = useState(false); // Local state for delete button
+    const [deleting, setDeleting] = useState(false);
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
 
     const projectPaths = getProjectPaths(row.original.actualId, isCloudRoute);
 
-    const handleDelete = async (id) => {
-        const formatId = id.split('-')[1];
+    const handleDeleteClick = () => {
+        setShowDeleteModal(true);
+    };
+
+    const handleConfirmDelete = async () => {
+        const formatId = row.original.id.split('-')[1];
         setDeleting(true);
+        setShowDeleteModal(false);
 
         try {
             const response = await dispatch(
@@ -112,12 +119,11 @@ const ActionIcons = ({ row }) => {
             ).unwrap();
 
             if (response?.error === "You are not authorized to delete this project") {
-                toast.dismiss()
+                toast.dismiss();
                 toast.error("You cannot delete this project — unauthorized access.", {
                     icon: "🚫",
                 });
             } else {
-                // Proceed only if no authorization issue
                 await dispatch(fetchProjects({ token: localStorage.getItem('token') })).unwrap();
                 toast.dismiss();
                 toast.success("Project deleted successfully", {
@@ -129,12 +135,10 @@ const ActionIcons = ({ row }) => {
             }
         } catch (err) {
             console.error("Delete error:", err);
-
             const message =
                 err?.error === "You are not authorized to delete this project"
                     ? "You cannot delete this project."
                     : "Failed to delete project. Please try again.";
-
             toast.dismiss();
             toast.error(message);
         } finally {
@@ -142,29 +146,41 @@ const ActionIcons = ({ row }) => {
         }
     };
 
+    const handleCancelDelete = () => {
+        setShowDeleteModal(false);
+    };
+
     return (
-        <div className="action-icons flex justify-around items-center">
-            <button
-                onClick={() => navigate(projectPaths.project)}
-                title="View Details"
-            >
-                <OpenInFullIcon sx={{ fontSize: "1.2em" }} />
-            </button>
-            <button
-                onClick={() => navigate(projectPaths.milestones)}
-                title="View Tasks"
-            >
-                <LoginTwoToneIcon sx={{ fontSize: "1.2em" }} />
-            </button>
-            <button
-                onClick={() => handleDelete(row.original.id)}
-                title="Delete"
-                disabled={deleting} // Disable button when deleting
-                className={deleting ? "opacity-50 cursor-not-allowed" : ""}
-            >
-                <DeleteOutlineOutlinedIcon sx={{ fontSize: "1.2em" }} />
-            </button>
-        </div>
+        <>
+            <div className="action-icons flex justify-around items-center">
+                <button
+                    onClick={() => navigate(projectPaths.project)}
+                    title="View Details"
+                >
+                    <OpenInFullIcon sx={{ fontSize: "1.2em" }} />
+                </button>
+                <button
+                    onClick={() => navigate(projectPaths.milestones)}
+                    title="View Tasks"
+                >
+                    <LoginTwoToneIcon sx={{ fontSize: "1.2em" }} />
+                </button>
+                <button
+                    onClick={handleDeleteClick}
+                    title="Delete"
+                    disabled={deleting}
+                    className={deleting ? "opacity-50 cursor-not-allowed" : ""}
+                >
+                    <DeleteOutlineOutlinedIcon sx={{ fontSize: "1.2em" }} />
+                </button>
+            </div>
+
+            <DeleteConfirmationModal
+                isOpen={showDeleteModal}
+                onClose={handleCancelDelete}
+                onConfirm={handleConfirmDelete}
+            />
+        </>
     );
 };
 

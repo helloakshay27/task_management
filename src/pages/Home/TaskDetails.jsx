@@ -30,6 +30,7 @@ import { fetchUsers } from "../../redux/slices/userSlice";
 import { MentionsInput, Mention } from "react-mentions";
 import { fetchStatus } from "../../redux/slices/statusSlice";
 import { fetchActiveTags } from "../../redux/slices/tagsSlice";
+import { DeleteConfirmationModal } from "../../components/DeleteConfirmationModal";
 
 const mapStatusToDisplay = (rawStatus) => {
     const statusMap = {
@@ -746,6 +747,7 @@ const TaskDetails = () => {
     const [selectedWorkflowOption, setSelectedWorkflowOption] = useState("Open");
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [bgBTN, setBgBTN] = useState();
+    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
     const firstContentRef = useRef(null);
     const secondContentRef = useRef(null);
@@ -949,9 +951,10 @@ const TaskDetails = () => {
                             <span className="h-6 w-[1px] border border-gray-300"></span>
                             <span
                                 className="cursor-pointer flex items-center gap-1"
-                                onClick={() => {
-                                    handleDeleteTask(task.id);
-                                }}
+                                // onClick={() => {
+                                //     handleDeleteTask(task.id);
+                                // }}
+                                onClick={() => setIsDeleteModalOpen(true)}
                             >
                                 <Trash2 className="mx-1" size={15} /> Delete Task
                             </span>
@@ -1203,6 +1206,12 @@ const TaskDetails = () => {
                     isEdit={true}
                 />
             )}
+
+            <DeleteConfirmationModal
+                isOpen={isDeleteModalOpen}
+                onClose={() => setIsDeleteModalOpen(false)}
+                onConfirm={handleDeleteTask}
+            />
         </>
     );
 };

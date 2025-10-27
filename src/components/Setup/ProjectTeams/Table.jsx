@@ -315,6 +315,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { deleteProjectTeam, fetchProjectTeams } from '../../../redux/slices/projectSlice';
 import TeamModal from './Modal';
 import toast from 'react-hot-toast';
+import { DeleteConfirmationModal } from '../../DeleteConfirmationModal';
 
 const TeamsTable = () => {
   const token = localStorage.getItem('token');
@@ -332,6 +333,7 @@ const TeamsTable = () => {
   });
 
   const ActionIcons = ({ row, open }) => {
+    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const handleDeleteClick = async (id) => {
       try {
         await dispatch(deleteProjectTeam({ token, id })).unwrap();
@@ -355,17 +357,28 @@ const TeamsTable = () => {
     };
 
     return (
-      <div className="action-icons flex justify-between gap-5">
-        <button onClick={() => open(row.original.id)}>
-          <EditOutlinedIcon sx={{ fontSize: "20px" }} />
-        </button>
-        <button
-          onClick={() => handleDeleteClick(row.original.id)}
-          title="Delete"
-        >
-          <DeleteOutlineOutlinedIcon sx={{ fontSize: "20px" }} />
-        </button>
-      </div>
+      <>
+        <div className="action-icons flex justify-between gap-5">
+          <button onClick={() => open(row.original.id)}>
+            <EditOutlinedIcon sx={{ fontSize: "20px" }} />
+          </button>
+          <button
+            onClick={() => setIsDeleteModalOpen(true)}
+            title="Delete"
+          >
+            <DeleteOutlineOutlinedIcon sx={{ fontSize: "20px" }} />
+          </button>
+        </div>
+
+        <DeleteConfirmationModal
+          isOpen={isDeleteModalOpen}
+          onClose={() => setIsDeleteModalOpen(false)}
+          onConfirm={() => {
+            handleDeleteClick(row.original.id);
+            setIsDeleteModalOpen(false);
+          }}
+        />
+      </>
     );
   };
 

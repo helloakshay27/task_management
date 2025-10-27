@@ -100,11 +100,6 @@ tbody tr:hover {
   opacity: 0.7;
 }
 
-.actions-cell-content {
-  /* For the Actions cell */
-  text-align: center; /* Center the action icons */
-}
-
 .actions-cell-content > div {
   /* Ensure the inner div also takes up space for centering */
   display: flex;

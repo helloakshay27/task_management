@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { ChevronDownCircle } from "lucide-react";
+import { ChevronDown, ChevronDownCircle } from "lucide-react";
 import { useParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchSpirintById } from "../../../redux/slices/spirintSlice";
@@ -66,16 +66,18 @@ const SprintDetails = () => {
               Created On: {formatToDDMMYYYY_AMPM(newSprint.created_at)}
             </span>
             <span className="h-6 w-[1px] border border-gray-300"></span>
-            <span className="flex relative items-center gap-2 cursor-pointer px-2 py-1 w-[150px] rounded-md text-sm text-white bg-[#C85E68]">
+            <span className="flex relative items-center gap-2 cursor-pointer px-2 py-1 w-[150px] rounded-md text-sm text-[#C72030]">
               <div className="relative w-full">
                 <div
-                  className="flex items-center justify-between gap-1 px-2 py-1 rounded-md w-fit"
+                  className="flex items-center justify-between gap-3 px-2 py-1 rounded-md w-fit"
                   role="button"
                   tabIndex={0}
                 >
                   <span className="text-[13px]">
                     {newSprint.status?.charAt(0).toUpperCase() + newSprint.status?.slice(1).toLowerCase()}
                   </span>
+
+                  <ChevronDown size={18} color="#C72030" />
                 </div>
               </div>
 

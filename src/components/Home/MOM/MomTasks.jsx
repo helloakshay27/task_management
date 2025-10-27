@@ -48,7 +48,7 @@ const MomTasks = ({ tasks = [] }) => {
                     </Tooltip>
                   </td>
 
-                  <td className="px-4 !py-3 text-gray-600">
+                  <td className="!px-4 py-3 text-gray-600">
                     {task.raised_by || "N/A"}
                   </td>
 
