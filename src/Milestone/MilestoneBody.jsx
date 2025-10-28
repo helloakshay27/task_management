@@ -97,6 +97,35 @@ const GanttChart = () => {
         };
     };
 
+    // Helper function to determine milestone status based on tasks
+    const calculateMilestoneStatus = (milestoneId, tasksData) => {
+        const tasks = tasksData.filter(task => task.parent === milestoneId && task.type === "task");
+
+        if (tasks.length === 0) {
+            return "open"; // Default status if no tasks
+        }
+
+        const statuses = tasks.map(task => task.status?.toLowerCase() || "open");
+
+        // Priority 1: If any task is on_hold, milestone is on_hold
+        if (statuses.some(status => status === "on_hold" || status === "hold")) {
+            return "on_hold";
+        }
+
+        // Priority 2: If all tasks are completed, milestone is completed
+        if (statuses.every(status => status === "completed")) {
+            return "completed";
+        }
+
+        // Priority 3: If any task is in_progress, milestone is in_progress
+        if (statuses.some(status => status === "in_progress" || status === "progress")) {
+            return "in_progress";
+        }
+
+        // Default: milestone is open
+        return "open";
+    };
+
     // Combined handler for all navigation clicks
     useEffect(() => {
         const handleNavigationClick = (e) => {
@@ -535,13 +564,30 @@ const GanttChart = () => {
                 });
 
                 // Calculate progress for milestones and tasks
+                const milestonesToUpdate = [];
+
                 tasksData.forEach(task => {
                     if (task.type === "milestone") {
                         const progressData = calculateProgress(task.id, tasksData, "milestone");
                         task.progress = progressData.percentage / 100;
                         task.totalTasks = progressData.total;
                         task.completedTasks = progressData.completed;
-                        console.log(`Milestone ${task.text}: ${progressData.completed}/${progressData.total} = ${progressData.percentage}%`);
+
+                        // Calculate and update milestone status based on tasks
+                        const calculatedStatus = calculateMilestoneStatus(task.id, tasksData);
+                        const originalStatus = task.status;
+                        task.status = calculatedStatus;
+
+                        // If status changed, add to update list
+                        if (originalStatus !== calculatedStatus) {
+                            milestonesToUpdate.push({
+                                id: task.navigationid,
+                                oldStatus: originalStatus,
+                                newStatus: calculatedStatus
+                            });
+                        }
+
+                        console.log(`Milestone ${task.text}: ${progressData.completed}/${progressData.total} = ${progressData.percentage}%, Status: ${calculatedStatus}`);
                     } else if (task.type === "task") {
                         const progressData = calculateProgress(task.id, tasksData, "task");
                         task.progress = progressData.percentage / 100;
@@ -549,6 +595,34 @@ const GanttChart = () => {
                         task.completedTasks = progressData.completed;
                         console.log(`Task ${task.text}: ${progressData.completed}/${progressData.total} = ${progressData.percentage}%`);
                     }
+                });
+
+                // Update milestone statuses via API if they changed
+                milestonesToUpdate.forEach(milestone => {
+                    const payload = {
+                        milestone: {
+                            status: milestone.newStatus,
+                        }
+                    };
+
+                    console.log(`Updating milestone ${milestone.id} status from ${milestone.oldStatus} to ${milestone.newStatus}`);
+
+                    axios.put(
+                        `${baseURL}/milestones/${milestone.id}.json`,
+                        payload,
+                        {
+                            headers: {
+                                'Content-Type': 'application/json',
+                                Authorization: `Bearer ${localStorage.getItem("token")}`,
+                            },
+                        }
+                    )
+                        .then(response => {
+                            console.log(`Milestone ${milestone.id} status updated successfully:`, response.data);
+                        })
+                        .catch(error => {
+                            console.error(`Error updating milestone ${milestone.id} status:`, error);
+                        });
                 });
 
                 console.log("Parsed tasks data:", tasksData);
@@ -604,6 +678,57 @@ const GanttChart = () => {
             return `${year}-${month}-${day}`;
         }
 
+        // Function to update parent milestone status based on its tasks
+        function updateParentMilestoneStatus(milestoneId) {
+            // Get all tasks for this milestone from the gantt chart
+            const allTasks = [];
+            gantt.eachTask((task) => {
+                allTasks.push(task);
+            });
+
+            // Calculate the new status
+            const newStatus = calculateMilestoneStatus(milestoneId, allTasks);
+
+            // Get the milestone task object
+            const milestone = gantt.getTask(milestoneId);
+
+            // Only update if status has changed
+            if (milestone && milestone.status !== newStatus) {
+                console.log(`Updating milestone ${milestoneId} status from ${milestone.status} to ${newStatus}`);
+
+                // Update the milestone in gantt
+                milestone.status = newStatus;
+                gantt.updateTask(milestoneId);
+
+                // Update the milestone via API
+                const entityId = milestoneId.replace('milestone-', '');
+                const payload = {
+                    milestone: {
+                        status: newStatus,
+                    }
+                };
+
+                axios.put(
+                    `${baseURL}/milestones/${entityId}.json`,
+                    payload,
+                    {
+                        headers: {
+                            'Content-Type': 'application/json',
+                            Authorization: `Bearer ${localStorage.getItem("token")}`,
+                        },
+                    }
+                )
+                    .then(response => {
+                        console.log('Milestone status updated successfully:', response.data);
+                        toast.success(`Milestone status updated to ${newStatus}!`);
+                    })
+                    .catch(error => {
+                        console.error('Error updating milestone status:', error);
+                        toast.error('Failed to update milestone status.');
+                    });
+            }
+        }
+
         // Separate function to handle the actual update
         function handleTaskUpdate(taskId, task) {
             if (isUpdating) {
@@ -636,6 +761,7 @@ const GanttChart = () => {
                         end_date: formatDateToISO(task.end_date),
                         duration: task.duration,
                         project_management_id: parseInt(id),
+                        status: task.status,
                     }
                 };
 
@@ -701,6 +827,11 @@ const GanttChart = () => {
                     .then(response => {
                         console.log(`${entityType} updated successfully:`, response.data);
                         toast.success(`${entityType.charAt(0).toUpperCase() + entityType.slice(1)} updated successfully!`);
+
+                        // After updating a task, check and update parent milestone status
+                        if (entityType === 'task' && task.parent && task.parent.startsWith('milestone-')) {
+                            updateParentMilestoneStatus(task.parent);
+                        }
                     })
                     .catch(error => {
                         console.error(`Error updating ${entityType}:`, error);
@@ -832,7 +963,7 @@ const GanttChart = () => {
                 gantt.clearAll();
             }
         };
-    }, [scale, id]);
+    }, [scale, id, calculateMilestoneStatus]);
 
     return (
         <div style={{ overflowX: "auto", width: "100%" }}>

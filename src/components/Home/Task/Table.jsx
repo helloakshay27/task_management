@@ -1,7 +1,6 @@
 import {
   useState,
   useEffect,
-  useMemo,
   useRef,
   Fragment,
   useCallback,
@@ -35,6 +34,9 @@ import Loader from "../../Loader";
 import { useLocation } from "react-router-dom";
 import qs from "qs";
 import { fetchProjectTeamMembers } from "../../../redux/slices/projectSlice";
+import axios from "axios";
+import toast from "react-hot-toast";
+import { baseURL } from "../../../../apiDomain";
 
 const globalPriorityOptions = ["None", "Low", "Medium", "High", "Urgent"];
 const globalStatusOptions = ["open", "in_progress", "completed", "on_hold", "overdue"];
@@ -144,6 +146,34 @@ const calculateDuration = (startDateStr, endDateStr) => {
   return `${days}d : ${hours}h : ${minutes}m`;
 };
 
+// Helper function to calculate task status based on subtasks
+const calculateTaskStatus = (task) => {
+  if (!task.sub_tasks_managements || task.sub_tasks_managements.length === 0) {
+    return task.status; // No subtasks, keep current status
+  }
+
+  const subtasks = task.sub_tasks_managements;
+  const statuses = subtasks.map(st => st.status?.toLowerCase() || "open");
+
+  // Priority 1: If any subtask is on_hold, task is on_hold
+  if (statuses.some(status => status === "on_hold" || status === "hold")) {
+    return "on_hold";
+  }
+
+  // Priority 2: If all subtasks are completed, task is completed
+  if (statuses.every(status => status === "completed")) {
+    return "completed";
+  }
+
+  // Priority 3: If any subtask is in_progress, task is in_progress
+  if (statuses.some(status => status === "in_progress" || status === "progress")) {
+    return "in_progress";
+  }
+
+  // Default: task is open
+  return "open";
+};
+
 const processTaskData = (task) => {
   if (typeof task !== "object" || task === null) {
     console.warn("Invalid task data encountered in processTaskData:", task);
@@ -161,10 +191,15 @@ const processTaskData = (task) => {
   if (hasSubtasks) {
     subRows = task.sub_tasks_managements.map((subTask) => processTaskData(subTask));
   }
+
+  // Calculate task status based on subtasks
+  const calculatedStatus = hasSubtasks ? calculateTaskStatus(task) : task.status;
+
   return {
     id: task.id,
     taskTitle: task.title || task.name || "Unnamed Task",
-    status: task.status,
+    status: calculatedStatus,
+    originalStatus: task.status, // Keep original for comparison
     responsiblePerson: task.responsible_person?.name || "Unassigned",
     responsiblePersonId: task.responsible_person?.id || null,
     projectManagementId: task.project_management_id || 2,
@@ -230,15 +265,16 @@ const TaskTable = () => {
   const [isCreatingTask, setIsCreatingTask] = useState(false);
   const [isUpdatingTask, setIsUpdatingTask] = useState(false);
   const [pagination, setPagination] = useState({
-    pageIndex: 0, // 0-based for frontend
-    pageSize: 10, // Assumed page size for UI calculations
+    pageIndex: 0,
+    pageSize: 10,
     totalPages: 1,
     totalRecords: 0,
-    currentPage: 1, // 1-based for backend alignment
+    currentPage: 1,
   });
   const MIN_DISPLAY_ROWS = 10;
   const ROW_HEIGHT = 40;
   const HEADER_HEIGHT = 40;
+
   const createNewTaskDefaults = useCallback(
     () => ({
       taskTitle: "",
@@ -250,6 +286,51 @@ const TaskTable = () => {
     }),
     []
   );
+
+  // Function to update parent task status based on subtasks via API
+  const updateParentTaskStatus = useCallback(async (taskId, newStatus) => {
+    try {
+      const payload = {
+        status: newStatus,
+      };
+
+      await axios.put(
+        `${baseURL}/task_managements/${taskId}.json`,
+        { task_management: payload },
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      console.log(`Task ${taskId} status updated to ${newStatus}`);
+    } catch (error) {
+      console.error(`Error updating task ${taskId} status:`, error);
+      toast.error('Failed to update task status.');
+    }
+  }, [token]);
+
+  // Function to check and update task statuses based on subtasks
+  const checkAndUpdateTaskStatuses = useCallback(async (tasksData) => {
+    const tasksToUpdate = [];
+
+    tasksData.forEach(task => {
+      if (task.hasSubtasks && task.originalStatus !== task.status) {
+        tasksToUpdate.push({
+          id: task.id,
+          oldStatus: task.originalStatus,
+          newStatus: task.status
+        });
+      }
+    });
+
+    // Update tasks via API if their status changed
+    for (const task of tasksToUpdate) {
+      await updateParentTaskStatus(task.id, task.newStatus);
+    }
+  }, [updateParentTaskStatus]);
 
   useEffect(() => {
     const fetchMembers = async () => {
@@ -280,7 +361,6 @@ const TaskTable = () => {
 
       const pageToFetch = pagination.pageIndex + 1;
 
-      // Don't fetch if we just fetched this page
       if (lastFetchedPageRef.current === pageToFetch) return;
 
       try {
@@ -314,6 +394,7 @@ const TaskTable = () => {
     let totalRecords = 0;
     let currentPage = 1;
     const myTasks = localStorage.getItem("myTasks");
+
     if (myTasks === "false") {
       if (
         filterSuccess &&
@@ -351,13 +432,19 @@ const TaskTable = () => {
         currentPage = myTasksFromStore.pagination?.current_page || 1;
       }
     }
+
     setData(newProcessedData);
+
+    // Check and update task statuses based on subtasks
+    if (newProcessedData.length > 0) {
+      checkAndUpdateTaskStatuses(newProcessedData);
+    }
+
     setPagination((prev) => ({
       ...prev,
       totalPages,
       totalRecords,
       currentPage,
-      // Don't update pageIndex from API response - let it be controlled by user interaction only
     }));
     setLocalError(null);
   }, [
@@ -371,6 +458,7 @@ const TaskTable = () => {
     myTasksError,
     myTaskSuccess,
     filterSuccess,
+    checkAndUpdateTaskStatuses,
   ]);
 
   useEffect(() => {
@@ -460,7 +548,6 @@ const TaskTable = () => {
       .unwrap()
       .then(() => {
         resetNewTaskForm();
-        // Reset to page 1 after creating new task
         lastFetchedPageRef.current = null;
         setPagination(prev => ({ ...prev, pageIndex: 0, currentPage: 1 }));
         return handleFetchTasks();
@@ -510,7 +597,7 @@ const TaskTable = () => {
 
   const handleFetchTasks = async () => {
     const myTasks = localStorage.getItem("myTasks");
-    const page = pagination.pageIndex + 1; // Backend expects 1-based indexing
+    const page = pagination.pageIndex + 1;
     if (localStorage.getItem("taskFilters")) {
       const saved = JSON.parse(localStorage.getItem("taskFilters"));
       const newFilter = {
@@ -547,7 +634,7 @@ const TaskTable = () => {
   };
 
   const handleUpdateTaskFieldCell = useCallback(
-    async (taskId, fieldName, newValue) => {
+    async (taskId, fieldName, newValue, taskRow) => {
       if (isUpdatingTask) return;
       const payload = { [fieldName]: newValue };
       setIsUpdatingTask(true);
@@ -555,11 +642,21 @@ const TaskTable = () => {
       try {
         if (fieldName === "status") {
           await dispatch(changeTaskStatus({ token, id: taskId, payload })).unwrap();
+
+          // If this is a subtask, check and update parent task status
+          if (taskRow && taskRow.depth > 0) {
+            // This is a subtask, need to update parent task
+            const parentTaskId = taskRow.parentId;
+            if (parentTaskId) {
+              // Fetch parent task data to recalculate status
+              await handleFetchTasks();
+            }
+          }
         } else {
           await dispatch(updateTask({ token, id: taskId, payload })).unwrap();
         }
-        lastFetchedPageRef.current = null; // Force refetch on next pagination change
-        handleFetchTasks();
+        lastFetchedPageRef.current = null;
+        await handleFetchTasks();
       } catch (error) {
         console.error(`Task field update failed for ${taskId} (${fieldName}):`, error);
         setLocalError(`Update failed: ${error?.response?.data?.errors || error?.message || "Server error"}`);
@@ -567,7 +664,7 @@ const TaskTable = () => {
         setIsUpdatingTask(false);
       }
     },
-    [dispatch, isUpdatingTask, token]
+    [dispatch, isUpdatingTask, token, handleFetchTasks]
   );
 
   const mainTableColumns = [
@@ -622,7 +719,7 @@ const TaskTable = () => {
           <EditableTextField
             value={editTitle}
             onUpdate={(title) => setEditTitle(title)}
-            onEnterPress={() => handleUpdateTaskFieldCell(row.original.id, "title", editTitle)}
+            onEnterPress={() => handleUpdateTaskFieldCell(row.original.id, "title", editTitle, row)}
           />
         );
       },
@@ -635,7 +732,7 @@ const TaskTable = () => {
         <StatusBadge
           status={getValue()}
           statusOptions={globalStatusOptions}
-          onStatusChange={(newStatus) => handleUpdateTaskFieldCell(row.original.id, "status", newStatus)}
+          onStatusChange={(newStatus) => handleUpdateTaskFieldCell(row.original.id, "status", newStatus, row)}
         />
       ),
     },
@@ -650,7 +747,7 @@ const TaskTable = () => {
             label: user?.user?.name || `${user.firstname} ${user.lastname}`,
           }))}
           value={getValue()}
-          onChange={(newValue) => handleUpdateTaskFieldCell(row.original.id, "responsible_person_id", newValue)}
+          onChange={(newValue) => handleUpdateTaskFieldCell(row.original.id, "responsible_person_id", newValue, row)}
           table={true}
           className="w-full"
         />
@@ -663,7 +760,7 @@ const TaskTable = () => {
       cell: ({ getValue, row }) => (
         <DateEditor
           value={getValue()}
-          onUpdate={(date) => handleUpdateTaskFieldCell(row.original.id, "expected_start_date", date)}
+          onUpdate={(date) => handleUpdateTaskFieldCell(row.original.id, "expected_start_date", date, row)}
           className="text-[12px]"
         />
       ),
@@ -675,7 +772,7 @@ const TaskTable = () => {
       cell: ({ getValue, row }) => (
         <DateEditor
           value={getValue()}
-          onUpdate={(date) => handleUpdateTaskFieldCell(row.original.id, "target_date", date)}
+          onUpdate={(date) => handleUpdateTaskFieldCell(row.original.id, "target_date", date, row)}
           className="text-[12px]"
           min={row.original.startDate}
         />
@@ -695,7 +792,7 @@ const TaskTable = () => {
         <StatusBadge
           status={getValue()}
           statusOptions={globalPriorityOptions}
-          onStatusChange={(newPriority) => handleUpdateTaskFieldCell(row.original.id, "priority", newPriority)}
+          onStatusChange={(newPriority) => handleUpdateTaskFieldCell(row.original.id, "priority", newPriority, row)}
         />
       ),
     },
@@ -715,15 +812,15 @@ const TaskTable = () => {
 
   const renderPagination = () => {
     const totalPages = pagination.totalPages;
-    const currentPage = pagination.pageIndex; // 0-based
-    const maxButtons = 3; // Show up to 3 page buttons (excluding ellipses)
+    const currentPage = pagination.pageIndex;
+    const maxButtons = 3;
 
     if (totalPages <= maxButtons) {
       return [...Array(totalPages)].map((_, i) => (
         <button
           key={i}
           onClick={() => {
-            lastFetchedPageRef.current = null; // Reset to allow fetch
+            lastFetchedPageRef.current = null;
             table.setPageIndex(i);
           }}
           className={`px-2 py-1 ${i === currentPage ? "bg-gray-200 font-bold" : ""}`}
@@ -736,16 +833,13 @@ const TaskTable = () => {
     const pages = [];
     const startPage = Math.max(0, currentPage - Math.floor(maxButtons / 2));
     const endPage = Math.min(totalPages - 1, startPage + maxButtons - 1);
-
-    // Adjust startPage if endPage reaches totalPages
     const adjustedStartPage = endPage === totalPages - 1 ? Math.max(0, totalPages - maxButtons) : startPage;
 
-    // Always show first page
     pages.push(
       <button
         key={0}
         onClick={() => {
-          lastFetchedPageRef.current = null; // Reset to allow fetch
+          lastFetchedPageRef.current = null;
           table.setPageIndex(0);
         }}
         className={`px-2 py-1 ${currentPage === 0 ? "bg-gray-200 font-bold" : ""}`}
@@ -754,18 +848,16 @@ const TaskTable = () => {
       </button>
     );
 
-    // Add ellipsis if there's a gap between first page and start of range
     if (adjustedStartPage > 1) {
       pages.push(<span key="start-ellipsis" className="px-1">...</span>);
     }
 
-    // Add pages in the middle range
     for (let i = Math.max(1, adjustedStartPage); i < Math.min(totalPages - 1, adjustedStartPage + maxButtons); i++) {
       pages.push(
         <button
           key={i}
           onClick={() => {
-            lastFetchedPageRef.current = null; // Reset to allow fetch
+            lastFetchedPageRef.current = null;
             table.setPageIndex(i);
           }}
           className={`px-2 py-1 ${i === currentPage ? "bg-gray-200 font-bold" : ""}`}
@@ -775,18 +867,16 @@ const TaskTable = () => {
       );
     }
 
-    // Add ellipsis if there's a gap between end of range and last page
     if (adjustedStartPage + maxButtons < totalPages - 1) {
       pages.push(<span key="end-ellipsis" className="px-1">...</span>);
     }
 
-    // Always show last page
     if (totalPages > 1) {
       pages.push(
         <button
           key={totalPages - 1}
           onClick={() => {
-            lastFetchedPageRef.current = null; // Reset to allow fetch
+            lastFetchedPageRef.current = null;
             table.setPageIndex(totalPages - 1);
           }}
           className={`px-2 py-1 ${currentPage === totalPages - 1 ? "bg-gray-200 font-bold" : ""}`}
@@ -1024,7 +1114,7 @@ const TaskTable = () => {
         <div className="flex items-center justify-start gap-4 mt-4 text-[12px]">
           <button
             onClick={() => {
-              lastFetchedPageRef.current = null; // Reset to allow fetch
+              lastFetchedPageRef.current = null;
               table.previousPage();
             }}
             disabled={!table.getCanPreviousPage()}
@@ -1035,7 +1125,7 @@ const TaskTable = () => {
           {renderPagination()}
           <button
             onClick={() => {
-              lastFetchedPageRef.current = null; // Reset to allow fetch
+              lastFetchedPageRef.current = null;
               table.nextPage();
             }}
             disabled={!table.getCanNextPage()}

@@ -31,63 +31,82 @@ import { MentionsInput, Mention } from "react-mentions";
 import { fetchStatus } from "../../redux/slices/statusSlice";
 import { fetchActiveTags } from "../../redux/slices/tagsSlice";
 import { DeleteConfirmationModal } from "../../components/DeleteConfirmationModal";
+import axios from "axios";
+import { baseURL } from "../../../apiDomain";
 
 const mapStatusToDisplay = (rawStatus) => {
     const statusMap = {
-        open: "Active",
+        open: "Open",
         in_progress: "In Progress",
         on_hold: "On Hold",
         overdue: "Overdue",
         completed: "Completed",
     };
-    return statusMap[rawStatus?.toLowerCase()] || "Active";
+    return statusMap[rawStatus?.toLowerCase()] || "Open";
 };
 
 const mapDisplayToApiStatus = (displayStatus) => {
     const reverseStatusMap = {
-        Active: "open",
+        Open: "open",
         "In Progress": "in_progress",
         "On Hold": "on_hold",
         Overdue: "overdue",
         Completed: "completed",
     };
-    return reverseStatusMap[displayStatus] || "open"; // Default to "open" if unknown
+    return reverseStatusMap[displayStatus] || "open";
+};
+
+// Helper function to calculate task status based on subtasks
+const calculateTaskStatus = (subtasks) => {
+    if (!subtasks || subtasks.length === 0) {
+        return null; // No subtasks, don't change status
+    }
+
+    const statuses = subtasks.map(st => st.status?.toLowerCase() || "open");
+
+    // Priority 1: If any subtask is on_hold, task is on_hold
+    if (statuses.some(status => status === "on_hold" || status === "hold")) {
+        return "on_hold";
+    }
+
+    // Priority 2: If all subtasks are completed, task is completed
+    if (statuses.every(status => status === "completed")) {
+        return "completed";
+    }
+
+    // Priority 3: If any subtask is in_progress, task is in_progress
+    if (statuses.some(status => status === "in_progress" || status === "progress")) {
+        return "in_progress";
+    }
+
+    // Default: task is open
+    return "open";
 };
 
 const calculateDuration = (end) => {
     const now = new Date();
     const endDate = new Date(end);
-
-    // Set target to the end of the day (11:59:59 PM)
     endDate.setHours(23, 59, 59, 999);
-
     const diffMs = endDate - now;
     if (diffMs <= 0) return "0s";
-
     const seconds = Math.floor(diffMs / 1000);
     const minutes = Math.floor(seconds / 60);
     const hours = Math.floor(minutes / 60);
     const days = Math.floor(hours / 24);
-
     const remainingHours = hours % 24;
     const remainingMinutes = minutes % 60;
     const remainingSeconds = seconds % 60;
-
-    return `${days > 0 ? days + "d " : ""}${remainingHours > 0 ? remainingHours + "h " : ""
-        }${remainingMinutes > 0 ? remainingMinutes + "m " : ""}${remainingSeconds}s`;
+    return `${days > 0 ? days + "d " : ""}${remainingHours > 0 ? remainingHours + "h " : ""}${remainingMinutes > 0 ? remainingMinutes + "m " : ""}${remainingSeconds}s`;
 };
 
 const CountdownTimer = ({ targetDate }) => {
     const [countdown, setCountdown] = useState(calculateDuration(targetDate));
-
     useEffect(() => {
         const interval = setInterval(() => {
             setCountdown(calculateDuration(targetDate));
         }, 1000);
-
         return () => clearInterval(interval);
     }, [targetDate]);
-
     return (
         <div className="text-left text-[#029464] text-[12px]">{countdown}</div>
     );
@@ -108,7 +127,6 @@ function formatToDDMMYYYY_AMPM(dateString) {
 }
 
 const Status = ({ taskStatusLogs }) => {
-    // Format timestamp to "DD MMM YYYY HH:MM AM/PM"
     const formatTimestamp = (dateString) => {
         const date = new Date(dateString);
         const day = String(date.getDate()).padStart(2, "0");
@@ -122,7 +140,6 @@ const Status = ({ taskStatusLogs }) => {
         return `${day} ${month} ${year} ${hours}:${minutes} ${ampm}`;
     };
 
-    // Map status to action verb
     const getActionFromStatus = (status) => {
         switch (status) {
             case "open":
@@ -210,7 +227,6 @@ const WorkflowStatus = ({ taskStatusLogs }) => {
         return `${day} ${month} ${year} ${hours}:${minutes} ${ampm}`;
     };
 
-    // Dynamically generate an action from any status string
     const getActionFromStatus = (status) => {
         if (!status) return "updated the task";
         return `marked as ${status}`;
@@ -277,13 +293,10 @@ const WorkflowStatus = ({ taskStatusLogs }) => {
 const Comments = ({ comments }) => {
     const token = localStorage.getItem("token");
     const { tid } = useParams();
-
     const [comment, setComment] = useState("");
     const [editingCommentId, setEditingCommentId] = useState(null);
     const [editedCommentText, setEditedCommentText] = useState("");
-
     const textareaRef = useRef(null);
-
     const dispatch = useDispatch();
     const { loading, success } = useSelector((state) => state.createTaskComment);
     const { loading: editLoading, success: editSuccess } = useSelector(
@@ -318,12 +331,10 @@ const Comments = ({ comments }) => {
 
     const handleAddComment = (e) => {
         if (e) e.preventDefault();
-
         if (!comment?.trim()) {
             toast.error("Comment cannot be empty", { duration: 1000 });
             return;
         }
-
         const payload = {
             comment: {
                 body: comment,
@@ -333,7 +344,6 @@ const Comments = ({ comments }) => {
                 active: true,
             },
         };
-
         dispatch(createTaskComment({ token, payload }));
     };
 
@@ -347,7 +357,6 @@ const Comments = ({ comments }) => {
             toast.error("Comment cannot be empty");
             return;
         }
-
         const formData = new FormData();
         formData.append("comment[body]", editedCommentText);
         dispatch(
@@ -409,7 +418,7 @@ const Comments = ({ comments }) => {
                 cursor: "pointer",
             },
             itemFocused: {
-                backgroundColor: "#01569E", // ✅ Highlighted color
+                backgroundColor: "#01569E",
                 color: "white",
                 fontWeight: "bold",
             },
@@ -418,7 +427,6 @@ const Comments = ({ comments }) => {
 
     return (
         <div className="text-[14px] flex flex-col gap-2">
-            {/* New Comment Input */}
             <div className="flex justify-start m-2 gap-5">
                 <div className="bg-[#01569E] h-[36px] w-[36px] rounded-full text-white text-center p-1.5">
                     <span>CB</span>
@@ -503,7 +511,6 @@ const Comments = ({ comments }) => {
                 </button>
             </div>
 
-            {/* Comments List */}
             {comments.map((cmt) => {
                 const isEditing = editingCommentId === cmt.id;
                 return (
@@ -586,10 +593,8 @@ const Attachments = ({ attachments, id }) => {
     const fileInputRef = useRef(null);
     const dispatch = useDispatch();
     const token = localStorage.getItem("token");
-
     const [files, setFiles] = useState(attachments);
 
-    // ✅ Sync props to local state
     useEffect(() => {
         setFiles(attachments);
     }, [attachments]);
@@ -602,7 +607,6 @@ const Attachments = ({ attachments, id }) => {
         const selectedFiles = Array.from(event.target.files);
         if (!selectedFiles.length) return;
 
-        // ✅ Validate file sizes (10MB max per file)
         const oversizedFiles = selectedFiles.filter((file) => file.size > 10 * 1024 * 1024);
         if (oversizedFiles.length > 0) {
             const fileNames = oversizedFiles.map((file) => file.name).join(", ");
@@ -617,7 +621,7 @@ const Attachments = ({ attachments, id }) => {
 
         try {
             await dispatch(attachFiles({ token, id, payload: formData })).unwrap();
-            await dispatch(taskDetails({ token, id })).unwrap(); // ✅ ensure attachments update in parent too
+            await dispatch(taskDetails({ token, id })).unwrap();
         } catch (error) {
             console.error("File upload failed:", error);
             toast.error("Failed to upload file.");
@@ -629,7 +633,7 @@ const Attachments = ({ attachments, id }) => {
             await dispatch(removeTaskAttachment({ token, id, image_id: fileId })).unwrap();
             toast.dismiss();
             toast.success("File removed successfully.");
-            await dispatch(taskDetails({ token, id })).unwrap(); // ✅ keep redux + UI in sync
+            await dispatch(taskDetails({ token, id })).unwrap();
         } catch (error) {
             console.error("File deletion failed:", error);
             toast.error("Failed to delete file.");
@@ -731,7 +735,6 @@ const TaskDetails = () => {
     const token = localStorage.getItem("token");
     const dispatch = useDispatch();
     const navigate = useNavigate();
-
     const { tid } = useParams();
     const { taskDetails: task } = useSelector((state) => state.taskDetails);
     const { fetchStatus: statuses } = useSelector((state) => state.fetchStatus);
@@ -743,7 +746,7 @@ const TaskDetails = () => {
     const [tab, setTab] = useState("Subtasks");
     const [openDropdown, setOpenDropdown] = useState(false);
     const [openWorkflowDropdown, setOpenWorkflowDropdown] = useState(false);
-    const [selectedOption, setSelectedOption] = useState("Active");
+    const [selectedOption, setSelectedOption] = useState("Open");
     const [selectedWorkflowOption, setSelectedWorkflowOption] = useState("Open");
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [bgBTN, setBgBTN] = useState();
@@ -754,18 +757,61 @@ const TaskDetails = () => {
     const dropdownRef = useRef(null);
     const workflowDropdownRef = useRef(null);
 
+    // Function to update task status based on subtasks
+    const checkAndUpdateTaskStatus = async (task) => {
+        if (!task || !task.sub_tasks_managements || task.sub_tasks_managements.length === 0) {
+            return; // No subtasks, nothing to update
+        }
+
+        const calculatedStatus = calculateTaskStatus(task.sub_tasks_managements);
+        const currentStatus = task.status;
+
+        // Only update if status has changed
+        if (calculatedStatus && calculatedStatus !== currentStatus) {
+            console.log(`Updating task ${task.id} status from ${currentStatus} to ${calculatedStatus}`);
+
+            try {
+                await axios.put(
+                    `${baseURL}/task_managements/${task.id}.json`,
+                    {
+                        task_management: {
+                            status: calculatedStatus
+                        }
+                    },
+                    {
+                        headers: {
+                            'Content-Type': 'application/json',
+                            Authorization: `Bearer ${token}`,
+                        },
+                    }
+                );
+
+                // Refresh task details to show updated status
+                dispatch(taskDetails({ token, id: tid }));
+            } catch (error) {
+                console.error('Error updating task status:', error);
+                toast.error('Failed to update task status.');
+            }
+        }
+    };
+
     useEffect(() => {
         if (task?.status) setSelectedOption(mapStatusToDisplay(task.status));
         if (task?.project_status?.status) {
             setSelectedWorkflowOption(task.project_status.status);
             setBgBTN(task.project_status.color_code);
         }
+
+        // Check and update task status based on subtasks whenever task data changes
+        if (task) {
+            checkAndUpdateTaskStatus(task);
+        }
     }, [task]);
 
     useEffect(() => {
         dispatch(taskDetails({ token, id: tid }));
         dispatch(fetchStatus({ token }));
-    }, [dispatch]);
+    }, [dispatch, tid, token]);
 
     useEffect(() => {
         const handleClickOutside = (event) => {
@@ -789,7 +835,7 @@ const TaskDetails = () => {
     };
 
     const dropdownOptions = [
-        "Active",
+        "Open",
         "In Progress",
         "On Hold",
         "Overdue",
@@ -825,7 +871,7 @@ const TaskDetails = () => {
         if (success || editSuccess) {
             dispatch(taskDetails({ token, id: tid }));
         }
-    }, [success, editSuccess]);
+    }, [success, editSuccess, dispatch, tid, token]);
 
     useGSAP(() => {
         gsap.set(firstContentRef.current, { height: "auto" });
@@ -874,7 +920,7 @@ const TaskDetails = () => {
         if (tab === "Subtasks" && task?.parent_id) {
             setTab("Dependency");
         }
-    }, [tab, task?.parent_id, setTab]);
+    }, [tab, task?.parent_id]);
 
     return (
         <>
@@ -951,9 +997,6 @@ const TaskDetails = () => {
                             <span className="h-6 w-[1px] border border-gray-300"></span>
                             <span
                                 className="cursor-pointer flex items-center gap-1"
-                                // onClick={() => {
-                                //     handleDeleteTask(task.id);
-                                // }}
                                 onClick={() => setIsDeleteModalOpen(true)}
                             >
                                 <Trash2 className="mx-1" size={15} /> Delete Task
@@ -1162,7 +1205,6 @@ const TaskDetails = () => {
                                     "Activity Log",
                                     "Workflow Status Log",
                                 ]
-                                    // 🧠 Remove "Subtasks" if task.parent_id exists
                                     .filter(tabName => !(tabName === "Subtasks" && task?.parent_id))
                                     .map((tabName, index) => (
                                         <div
