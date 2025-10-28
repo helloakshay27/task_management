@@ -10,9 +10,10 @@ import {
   getPaginationRowModel,
 } from '@tanstack/react-table';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchProjectGroup, createProjectGroup, updateProjectGroup, deleteProjectGroup } from '../../../redux/slices/projectSlice';
+import { fetchProjectGroup, updateProjectGroup, deleteProjectGroup } from '../../../redux/slices/projectSlice';
 import Modal from './Modal';
 import toast from 'react-hot-toast';
+import { DeleteConfirmationModal } from '../../DeleteConfirmationModal'
 
 const GroupTable = () => {
   const token = localStorage.getItem('token')
@@ -57,6 +58,7 @@ const GroupTable = () => {
 
 
   const ActionIcons = ({ row }) => {
+    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
     const handleEditClick = (row) => {
       console.log("hi");
@@ -116,24 +118,35 @@ const GroupTable = () => {
       }
     };
     return (
-      <div className=" flex justify-start items-start gap-5 ml-2">
-        <Switch
-          color={`${row.original.active ? 'success' : 'danger'}`}
+      <>
+        <div className=" flex justify-start items-start gap-5 ml-2">
+          <Switch
+            color={`${row.original.active ? 'success' : 'danger'}`}
 
-          checked={row.original.active}
-          onChange={() => handleToggle(row)} // toggle the row state
-        />
+            checked={row.original.active}
+            onChange={() => handleToggle(row)} // toggle the row state
+          />
 
-        <EditOutlinedIcon
-          sx={{ fontSize: '20px', cursor: 'pointer' }}
-          onClick={() => handleEditClick(row)}
+          <EditOutlinedIcon
+            sx={{ fontSize: '20px', cursor: 'pointer' }}
+            onClick={() => handleEditClick(row)}
+          />
+          <button
+            title="Delete"
+          >
+            <DeleteOutlineOutlinedIcon sx={{ fontSize: '20px' }} onClick={() => setIsDeleteModalOpen(true)} />
+          </button>
+        </div>
+
+        <DeleteConfirmationModal
+          isOpen={isDeleteModalOpen}
+          onClose={() => setIsDeleteModalOpen(false)}
+          onConfirm={() => {
+            handleDeleteClick(row.original.id);
+            setIsDeleteModalOpen(false);
+          }}
         />
-        <button
-          title="Delete"
-        >
-          <DeleteOutlineOutlinedIcon sx={{ fontSize: '20px' }} onClick={() => handleDeleteClick(row.original.id)} />
-        </button>
-      </div>
+      </>
     )
   };
 

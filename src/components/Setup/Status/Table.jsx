@@ -15,6 +15,7 @@ import {
   flexRender,
 } from "@tanstack/react-table";
 import toast from "react-hot-toast";
+import { DeleteConfirmationModal } from '../../DeleteConfirmationModal';
 
 const StatusTable = ({ setOpenModal, setIsEdit, setExistingData }) => {
   const token = localStorage.getItem("token");
@@ -40,6 +41,8 @@ const StatusTable = ({ setOpenModal, setIsEdit, setExistingData }) => {
   }, [dispatch, token]);
 
   const ActionIcons = ({ row }) => {
+    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+
     const handleEditClick = () => {
       setIsEdit(true);
       setExistingData(row.original);
@@ -62,15 +65,26 @@ const StatusTable = ({ setOpenModal, setIsEdit, setExistingData }) => {
     };
 
     return (
-      <div className="action-icons flex justify-between gap-5">
-        <EditOutlinedIcon
-          onClick={handleEditClick}
-          sx={{ fontSize: "20px", cursor: "pointer" }}
+      <>
+        <div className="action-icons flex justify-between gap-5">
+          <EditOutlinedIcon
+            onClick={handleEditClick}
+            sx={{ fontSize: "20px", cursor: "pointer" }}
+          />
+          <button onClick={() => setIsDeleteModalOpen(true)} title="Delete">
+            <DeleteOutlineOutlinedIcon sx={{ fontSize: "20px" }} />
+          </button>
+        </div>
+
+        <DeleteConfirmationModal
+          isOpen={isDeleteModalOpen}
+          onClose={() => setIsDeleteModalOpen(false)}
+          onConfirm={() => {
+            handleDeleteClick(row.original.id);
+            setIsDeleteModalOpen(false);
+          }}
         />
-        <button onClick={() => handleDeleteClick(row.original.id)} title="Delete">
-          <DeleteOutlineOutlinedIcon sx={{ fontSize: "20px" }} />
-        </button>
-      </div>
+      </>
     );
   };
 

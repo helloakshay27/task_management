@@ -7,10 +7,13 @@ import Modal from './Modal';
 import CustomTable from '../CustomTable';
 import { fetchTags, updateTag, deleteTag } from '../../../redux/slices/tagsSlice';
 import toast from 'react-hot-toast';
+import { DeleteConfirmationModal } from '../../DeleteConfirmationModal';
 
 const ActionIcons = ({ row, onEdit }) => {
   const token = localStorage.getItem('token');
   const dispatch = useDispatch();
+
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
   const handleDeleteClick = async () => {
     try {
@@ -22,6 +25,7 @@ const ActionIcons = ({ row, onEdit }) => {
           secondary: 'white',
         },
       });
+      setIsDeleteModalOpen(false);
       dispatch(fetchTags({ token }));
     } catch (error) {
       console.error('Failed to delete:', error);
@@ -35,16 +39,24 @@ const ActionIcons = ({ row, onEdit }) => {
   };
 
   return (
-    <div className="action-icons flex justify-between gap-5">
-      <EditOutlinedIcon
-        sx={{ fontSize: '20px' }}
-        className="cursor-pointer"
-        onClick={() => onEdit(row.original)}
+    <>
+      <div className="action-icons flex justify-between gap-5">
+        <EditOutlinedIcon
+          sx={{ fontSize: '20px' }}
+          className="cursor-pointer"
+          onClick={() => onEdit(row.original)}
+        />
+        <button title="Delete">
+          <DeleteOutlineOutlinedIcon sx={{ fontSize: '20px' }} onClick={() => setIsDeleteModalOpen(true)} />
+        </button>
+      </div>
+
+      <DeleteConfirmationModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        onConfirm={handleDeleteClick}
       />
-      <button title="Delete">
-        <DeleteOutlineOutlinedIcon sx={{ fontSize: '20px' }} onClick={handleDeleteClick} />
-      </button>
-    </div>
+    </>
   );
 };
 

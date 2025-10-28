@@ -14,6 +14,7 @@ import { deleteIssueType, fetchIssueType, updateIssueType } from '../../../redux
 import Modal from './Modal';
 import toast from 'react-hot-toast';
 import { Type } from 'lucide-react';
+import { DeleteConfirmationModal } from '../../DeleteConfirmationModal';
 const TypesTable = () => {
   const token = localStorage.getItem('token');
   const [openModal, setOpenModal] = useState(false);
@@ -73,21 +74,34 @@ const TypesTable = () => {
     }
   };
 
-  const ActionIcons = ({ row }) => (
-    <div className="action-icons flex justify-between gap-5">
-      <div>
-        <EditOutlinedIcon
-          sx={{ fontSize: '20px', cursor: 'pointer' }}
-          onClick={() => handleEditClick(row)}
+  const ActionIcons = ({ row }) => {
+    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+    return (
+      <>
+        <div className="action-icons flex justify-between gap-5">
+          <div>
+            <EditOutlinedIcon
+              sx={{ fontSize: '20px', cursor: 'pointer' }}
+              onClick={() => handleEditClick(row)}
+            />
+            <button
+              title="Delete"
+            >
+              <DeleteOutlineOutlinedIcon sx={{ fontSize: '20px' }} onClick={() => setIsDeleteModalOpen(true)} />
+            </button>
+          </div>
+        </div>
+        <DeleteConfirmationModal
+          isOpen={isDeleteModalOpen}
+          onClose={() => setIsDeleteModalOpen(false)}
+          onConfirm={() => {
+            handleDeleteClick(row.original.id);
+            setIsDeleteModalOpen(false);
+          }}
         />
-        <button
-          title="Delete"
-        >
-          <DeleteOutlineOutlinedIcon sx={{ fontSize: '20px' }} onClick={() => handleDeleteClick(row.original.id)} />
-        </button>
-      </div>
-    </div>
-  );
+      </>
+    )
+  };
 
   function formatToDDMMYYYY(dateString) {
     const date = new Date(dateString);

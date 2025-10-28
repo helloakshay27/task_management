@@ -18,6 +18,7 @@ import {
 } from "../../../redux/slices/zoneSlice";
 import AddZoneModel from "./Model";
 import toast from "react-hot-toast";
+import { DeleteConfirmationModal } from '../../DeleteConfirmationModal';
 
 const ZoneTable = ({ openModal, setOpenModal, editMode, setEditMode }) => {
   const token = localStorage.getItem("token");
@@ -107,18 +108,31 @@ const ZoneTable = ({ openModal, setOpenModal, editMode, setEditMode }) => {
     [dispatch, token]
   );
 
-  const ActionIcons = ({ row }) => (
-    <div className="action-icons flex justify-between gap-5">
-      <EditOutlinedIcon
-        sx={{ fontSize: "20px", cursor: "pointer" }}
-        onClick={() => handleEditClick(row)}
-      />
-      <DeleteOutlineOutlinedIcon
-        sx={{ fontSize: "20px", cursor: "pointer" }}
-        onClick={() => handleDeleteClick(row.original.id)}
-      />
-    </div>
-  );
+  const ActionIcons = ({ row }) => {
+    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+    return (
+      <>
+        <div className="action-icons flex justify-between gap-5">
+          <EditOutlinedIcon
+            sx={{ fontSize: "20px", cursor: "pointer" }}
+            onClick={() => handleEditClick(row)}
+          />
+          <DeleteOutlineOutlinedIcon
+            sx={{ fontSize: "20px", cursor: "pointer" }}
+            onClick={() => setIsDeleteModalOpen(true)}
+          />
+        </div>
+        <DeleteConfirmationModal
+          isOpen={isDeleteModalOpen}
+          onClose={() => setIsDeleteModalOpen(false)}
+          onConfirm={() => {
+            handleDeleteClick(row.original.id)
+            setIsDeleteModalOpen(false);
+          }}
+        />
+      </>
+    )
+  };
 
   const regionMap = useMemo(() => {
     const map = {};
