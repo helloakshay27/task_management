@@ -32,6 +32,7 @@ const STATUS_OPTIONS_MAP = {
 };
 
 const TYPE_OPTIONS = [
+    { key: "Gantt", icon: <ChartNoAxesGantt size={20} className="text-[#C72030]" />, label: "Gantt" },
     { key: "Kanban", icon: <ChartNoAxesColumn size={18} className="rotate-180 text-[#C72030]" />, label: "Kanban" },
     { key: "List", icon: <List size={20} className="text-[#C72030]" />, label: "List" },
 ];
@@ -258,7 +259,7 @@ const TaskActions = ({
                 </button>
                 {isTypeOpen && (
                     <ul className="absolute left-0 mt-2 w-[150px] bg-white border border-gray-300 shadow-xl rounded-md z-10">
-                        {TYPE_OPTIONS.map(({ key, icon, label }) => (
+                        {TYPE_OPTIONS.filter(({ key }) => addType === "Milestone" || key !== "Gantt").map(({ key, icon, label }) => (
                             <li key={key}>
                                 <button
                                     className="w-full text-left px-4 py-2 text-[13px] hover:bg-gray-100 flex items-center gap-2"
@@ -376,7 +377,7 @@ const TaskActions = ({
                         )}
                     {addType !== "Issues" &&
                         addType !== "Sprint-Gantt" &&
-                        !["Milestone", "templates", "archived"].includes(addType) &&
+                        !["templates", "archived"].includes(addType) &&
                         renderTypeDropdown()}
                     {addType !== "Issues" &&
                         !["Milestone", "Project", "Task", "active_projects", "templates", "archived"].includes(addType) &&

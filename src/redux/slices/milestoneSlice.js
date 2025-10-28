@@ -99,6 +99,9 @@ const createApiSlice = (name, fetchThunk, extraInitial = {}, extraReducers = {})
         },
         reducers: {
             ...extraReducers,
+            resetMilestoneSuccess: (state) => {
+                state.success = false;
+            },
         },
         extraReducers: (builder) => {
             builder
@@ -163,3 +166,7 @@ export const {
     setSavedMilestones,
     clearSavedMilestones,
 } = fetchMilestoneSlice.actions;
+
+export const {
+    resetMilestoneSuccess,
+} = createMilestoneSlice.actions;

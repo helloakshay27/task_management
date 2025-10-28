@@ -1,15 +1,24 @@
-import React from 'react';
+import { useState } from 'react';
 import MilestoneHeader from './MilestoneHeader';
 import MilestoneBody from './MilestoneBody';
-import DateMilestone from './weekProgressPicker';
+import MilestoneKanban from '../components/MilestoneKanban';
+import MilestoneList from '../components/MilestoneList';
 
 const MileStoneMain = () => {
+    const [selectedType, setSelectedType] = useState(
+        "Gantt");
     return (
         <div>
-            <MilestoneHeader />
-            <MilestoneBody />
-            {/* <DateMilestone/> */}
-            {/* <NodeConnection /> */}
+            <MilestoneHeader selectedType={selectedType} setSelectedType={setSelectedType} />
+            {
+                selectedType === "Gantt" ? (
+                    <MilestoneBody />
+                ) : selectedType === "List" ? (
+                    <MilestoneList />
+                ) : (
+                    <MilestoneKanban />
+                )
+            }
         </div>
     );
 };

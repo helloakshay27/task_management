@@ -93,7 +93,7 @@ const ProjectCard = ({ project }) => {
                 </div>
                 <div className="flex items-center gap-2">
                     <Briefcase className="text-[#C72030] flex-shrink-0" size={14} />
-                    <span className="text-[10px] truncate">{project.resource_type}</span>
+                    <span className="text-[10px] truncate">{project.project_type_name}</span>
                 </div>
                 <div className="flex items-start gap-2">
                     <User2 className="text-[#C72030] flex-shrink-0" size={14} />

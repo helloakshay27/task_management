@@ -12,7 +12,7 @@ const Boards = ({ color, add, title, count = 0, children, className, onDrop }) =
     const btnRef = useRef(null);
 
     const [, dropRef] = useDrop(() => ({
-        accept: ["TASK", "SUBTASK", "PROJECT"], // Accept drag items of these types
+        accept: ["TASK", "SUBTASK", "PROJECT", "MILESTONE"], // Accept drag items of these types
         drop: (item) => {
             if (onDrop) {
                 // Safely extract type, id, and fromTaskId from item

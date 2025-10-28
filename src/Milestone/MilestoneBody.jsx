@@ -102,7 +102,7 @@ const GanttChart = () => {
         const tasks = tasksData.filter(task => task.parent === milestoneId && task.type === "task");
 
         if (tasks.length === 0) {
-            return "open"; // Default status if no tasks
+            return tasksData.find(task => task.type === "milestone" && task.id === milestoneId)?.status; // Default status if no tasks
         }
 
         const statuses = tasks.map(task => task.status?.toLowerCase() || "open");
@@ -270,7 +270,7 @@ const GanttChart = () => {
                 width: 100,
                 template: function (task) {
                     const status = task.status;
-                    return status.replace(/_/g, ' ').replace(/\b\w/g, char => char.toUpperCase());
+                    return status?.replace(/_/g, ' ').replace(/\b\w/g, char => char.toUpperCase());
                 },
             },
             {
