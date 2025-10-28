@@ -30,7 +30,7 @@ export const generateMomPDF = async (momData) => {
     doc.setFont('helvetica', 'bold');
     doc.text('goPhygital.work', pageWidth - 60, 20);
   }
-  
+
   yPosition += 15;
 
   // Title - Dynamic from JSON
@@ -39,24 +39,24 @@ export const generateMomPDF = async (momData) => {
   doc.setFont('helvetica', 'bold');
   const title = momData.title || 'Minutes of Meeting';
   doc.text(title, pageWidth / 2, yPosition, { align: 'center' });
-  
+
   yPosition += 15;
 
   // Header Information
   doc.setFontSize(10);
   doc.setFont('helvetica', 'normal');
-  
+
   // Two-column layout with better spacing
   const leftColumn = margin;
   const rightColumn = pageWidth / 2 + 5;
   const labelWidth = 48;
-  
+
   // Row 1: Community and Date
   doc.setFont('helvetica', 'bold');
   doc.text('Community', leftColumn, yPosition);
   doc.setFont('helvetica', 'normal');
   doc.text(`: ${momData.resource_type || 'N/A'}`, leftColumn + labelWidth, yPosition);
-  
+
   doc.setFont('helvetica', 'bold');
   doc.text('Date', rightColumn, yPosition);
   doc.setFont('helvetica', 'normal');
@@ -66,7 +66,7 @@ export const generateMomPDF = async (momData) => {
     year: 'numeric'
   }) : 'N/A';
   doc.text(`: ${meetingDate}`, rightColumn + labelWidth, yPosition);
-  
+
   yPosition += 7;
 
   // Row 2: Meeting Type and Meeting Mode (if available)
@@ -75,12 +75,12 @@ export const generateMomPDF = async (momData) => {
     doc.text('Meeting Type', leftColumn, yPosition);
     doc.setFont('helvetica', 'normal');
     doc.text(`: ${momData.meeting_type ? momData.meeting_type.charAt(0).toUpperCase() + momData.meeting_type.slice(1) : 'N/A'}`, leftColumn + labelWidth, yPosition);
-    
+
     doc.setFont('helvetica', 'bold');
     doc.text('Meeting Mode', rightColumn, yPosition);
     doc.setFont('helvetica', 'normal');
     doc.text(`: ${momData.meeting_mode ? momData.meeting_mode.charAt(0).toUpperCase() + momData.meeting_mode.slice(1) : 'N/A'}`, rightColumn + labelWidth, yPosition);
-    
+
     yPosition += 7;
   }
 
@@ -89,7 +89,7 @@ export const generateMomPDF = async (momData) => {
   doc.text('Minutes Prepared By', leftColumn, yPosition);
   doc.setFont('helvetica', 'normal');
   doc.text(`: ${momData.responsible_person?.name || 'N/A'}`, leftColumn + labelWidth, yPosition);
-  
+
   yPosition += 12;
 
   // List of Attendees Header
@@ -168,7 +168,7 @@ export const generateMomPDF = async (momData) => {
       3: { cellWidth: 25, halign: 'center' },
       4: { cellWidth: 20, halign: 'center' }
     },
-    didParseCell: function(data) {
+    didParseCell: function (data) {
       // Color code status column
       if (data.column.index === 4 && data.section === 'body') {
         const status = data.cell.raw.toLowerCase();
@@ -243,7 +243,7 @@ export const generateDetailedMomPDF = async (momData) => {
     doc.setFont('helvetica', 'bold');
     doc.text('goPhygital.work', pageWidth - 60, 20);
   }
-  
+
   yPosition += 15;
 
   // Title - Dynamic from JSON
@@ -252,23 +252,23 @@ export const generateDetailedMomPDF = async (momData) => {
   doc.setFont('helvetica', 'bold');
   const title = momData.title || 'Minutes of Meeting';
   doc.text(title, pageWidth / 2, yPosition, { align: 'center' });
-  
+
   yPosition += 15;
 
   // Header Information
   doc.setFontSize(10);
   doc.setFont('helvetica', 'normal');
-  
+
   const leftColumn = margin;
   const rightColumn = pageWidth / 2 + 10;
   const labelWidth = 48;
-  
+
   // Community and Date
   doc.setFont('helvetica', 'bold');
   doc.text('Community', leftColumn, yPosition);
   doc.setFont('helvetica', 'normal');
   doc.text(`: ${momData.resource_type || 'N/A'}`, leftColumn + labelWidth, yPosition);
-  
+
   doc.setFont('helvetica', 'bold');
   doc.text('Date', rightColumn, yPosition);
   doc.setFont('helvetica', 'normal');
@@ -278,7 +278,7 @@ export const generateDetailedMomPDF = async (momData) => {
     year: 'numeric'
   }) : 'N/A';
   doc.text(`: ${meetingDate}`, rightColumn + labelWidth, yPosition);
-  
+
   yPosition += 7;
 
   // Meeting Type and Meeting Mode (if available)
@@ -287,12 +287,12 @@ export const generateDetailedMomPDF = async (momData) => {
     doc.text('Meeting Type', leftColumn, yPosition);
     doc.setFont('helvetica', 'normal');
     doc.text(`: ${momData.meeting_type ? momData.meeting_type.charAt(0).toUpperCase() + momData.meeting_type.slice(1) : 'N/A'}`, leftColumn + labelWidth, yPosition);
-    
+
     doc.setFont('helvetica', 'bold');
     doc.text('Meeting Mode', rightColumn, yPosition);
     doc.setFont('helvetica', 'normal');
     doc.text(`: ${momData.meeting_mode ? momData.meeting_mode.charAt(0).toUpperCase() + momData.meeting_mode.slice(1) : 'N/A'}`, rightColumn + labelWidth, yPosition);
-    
+
     yPosition += 7;
   }
 
@@ -301,7 +301,7 @@ export const generateDetailedMomPDF = async (momData) => {
   doc.text('Minutes Prepared By', leftColumn, yPosition);
   doc.setFont('helvetica', 'normal');
   doc.text(`: ${momData.responsible_person?.name || 'N/A'}`, leftColumn + labelWidth, yPosition);
-  
+
   yPosition += 12;
 
   // List of Attendees
@@ -350,7 +350,12 @@ export const generateDetailedMomPDF = async (momData) => {
     task.description || '',
     task.responsible_person_name || '',
     task.target_date ? new Date(task.target_date).toLocaleDateString('en-GB') : '',
-    'Closed'
+    task.status
+      ? task.status
+        .split('_')
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(' ')
+      : ''
   ]) || [];
 
   autoTable(doc, {
@@ -375,7 +380,7 @@ export const generateDetailedMomPDF = async (momData) => {
       3: { cellWidth: 25, halign: 'center' },
       4: { cellWidth: 20, halign: 'center' }
     },
-    didParseCell: function(data) {
+    didParseCell: function (data) {
       // Color code status column
       if (data.column.index === 4 && data.section === 'body') {
         const status = data.cell.raw.toLowerCase();
