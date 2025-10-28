@@ -133,13 +133,14 @@ const GanttChart = () => {
             if (btn) {
                 const itemId = btn.getAttribute("data-id");
                 const itemType = btn.getAttribute("data-type");
+                const milestoneId = btn.getAttribute("data-milestone-id");
 
                 if (itemId && itemType) {
                     console.log(`Navigating to ${itemType}:`, itemId);
                     if (itemType === "milestone") {
                         navigate(`${itemId}/tasks`);
                     } else if (itemType === "task" || itemType === "sub_task") {
-                        navigate(`${itemId}/tasks/${itemId}`);
+                        navigate(`${milestoneId}/tasks/${itemId}`);
                     }
                 }
             }
@@ -283,12 +284,27 @@ const GanttChart = () => {
                     const navType = task.type === "milestone" ? "milestone" : task.type;
                     const titleText = task.type === "milestone" ? "View Tasks" : "View Details";
 
+                    // Get milestone ID for tasks and subtasks
+                    let milestoneId = "";
+                    if (task.type === "task" || task.type === "sub_task") {
+                        // Find the parent milestone
+                        let parentId = task.parent;
+                        while (parentId && !parentId.toString().startsWith('milestone-')) {
+                            const parentTask = gantt.getTask(parentId);
+                            parentId = parentTask ? parentTask.parent : null;
+                        }
+                        if (parentId && parentId.toString().startsWith('milestone-')) {
+                            milestoneId = parentId.toString().replace('milestone-', '');
+                        }
+                    }
+
                     return `
                         <span class="flex items-center justify-center gap-3 mt-2 text-gray-500">
                             <button 
                                 class="gantt-open-task" 
                                 data-id="${task.navigationid}" 
                                 data-type="${navType}"
+                                data-milestone-id="${milestoneId}"
                                 title="${titleText}"
                                 style="background: none; border: none; cursor: pointer;"
                             >
