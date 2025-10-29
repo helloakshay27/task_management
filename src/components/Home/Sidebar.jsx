@@ -1,4 +1,4 @@
-import { ChevronLeft, ChevronRight, CircleCheckBig, File, FlagTriangleRight, GanttChartSquare, Home, MessageSquareText, Milestone } from "lucide-react";
+import { ChevronLeft, ChevronRight, CircleCheckBig, File, FlagTriangleRight, GanttChartSquare, Home, MessageSquareText } from "lucide-react";
 import { useRef } from "react";
 import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
@@ -17,7 +17,7 @@ const Sidebar = ({ isSidebarOpen, setIsSidebarOpen }) => {
     return (
         <div
             ref={sidebarRef}
-            className="sidebar w-[14rem] shadow-lg shadow-gray-500/50 overflow-hidden flex flex-col bg-[#D5DBDB]"
+            className="sidebar w-[14rem] shadow-gray-500/50 overflow-hidden flex flex-col bg-[#D5DBDB]"
         >
             <div className={`flex items-center ${isSidebarOpen ? "justify-end" : "justify-center"} px-5 py-6`}>
                 {
