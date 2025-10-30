@@ -5,14 +5,23 @@ export const useWebSocket = () => {
     const isConnected = useRef(false);
 
     const connect = useCallback((accessToken, wsUrl) => {
+        console.log('🎯 useWebSocket.connect called');
+        console.log('   - Token present:', !!accessToken);
+        console.log('   - WS URL:', wsUrl);
+        console.log('   - Already connected:', isConnected.current);
+
         if (!isConnected.current) {
+            console.log('🔌 Initiating new connection...');
             webSocketManager.connect(accessToken, wsUrl);
             isConnected.current = true;
+        } else {
+            console.log('ℹ️ Connection already established, skipping');
         }
     }, []);
 
     // Disconnect from WebSocket
     const disconnect = useCallback(() => {
+        console.log('🔌 useWebSocket.disconnect called');
         if (isConnected.current) {
             webSocketManager.disconnect();
             isConnected.current = false;
@@ -22,9 +31,10 @@ export const useWebSocket = () => {
     // Cleanup on unmount
     useEffect(() => {
         return () => {
-            disconnect();
+            // Optional: keep connection alive across components
+            // disconnect();
         };
-    }, [disconnect]);
+    }, []);
 
     return {
         connect,
