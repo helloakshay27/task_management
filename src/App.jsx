@@ -48,6 +48,8 @@ import Company from "./pages/Setup/Company.jsx";
 import Organizations from "./pages/Setup/Organizations.jsx";
 import { WebSocketProvider } from "./contexts/WebSocketContext.jsx";
 import MilestoneDetailsPage from "./pages/Home/MilestoneDetailsPage.jsx";
+import DMConversation from "./components/Home/Channel/DMConversation.jsx";
+import GroupConversation from "./components/Home/Channel/GroupConversation.jsx";
 
 const App = () => {
   const token = localStorage.getItem("token");
@@ -143,6 +145,28 @@ const App = () => {
                   <Route path="/new-mom" element={<MoMAdd />} />
 
                   <Route path="/channels/*" element={<Channel />} />
+                  {/* <Route path="/channels" element={<Channel />} >
+                    <Route
+                      index
+                      element={
+                        <div
+                          className={`flex justify-center items-center h-[calc(100vh-112px)] w-[calc(100vw-32rem)]`}
+                        >
+                          Select a Chat/Group to view messages
+                        </div>
+                      }
+                    />
+
+                    <Route
+                      path="/channels/messages/:id"
+                      element={<DMConversation />}
+                    />
+                    <Route
+                      path="/channels/groups/:id"
+                      element={<GroupConversation />}
+                    />
+                  </Route> */}
+
                   <Route path="/documents" element={<Documents />} />
 
                   {/* Setup Routes */}

@@ -11,8 +11,18 @@ const ChatLayout = () => {
   const token = localStorage.getItem("token");
   const path = useLocation().pathname;
 
-  const { fetchChannelById: channel } = useSelector((state) => state.fetchChannelById);
+  const [channel, setChannel] = useState({})
+
+  const { fetchChannelById: ch } = useSelector((state) => state.fetchChannelById);
   const { success } = useSelector(state => state.createMessage)
+
+  useEffect(() => {
+    if (ch) {
+      setChannel(ch)
+    }
+  }, [ch])
+
+  console.log(channel)
 
   const [activeTab, setActiveTab] = useState("chat");
   const [id, setId] = useState()

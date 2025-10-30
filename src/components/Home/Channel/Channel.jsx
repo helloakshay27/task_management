@@ -1,3 +1,4 @@
+import { Outlet } from "react-router-dom";
 import ChatLayout from "./ChatLayout";
 import SideBar from "./SideBar";
 
@@ -10,6 +11,10 @@ const Channel = () => {
       </div>
     </div>
 
+    // <div className="flex h-full">
+    //   <SideBar />
+    //   <Outlet />
+    // </div>
   );
 };
 
