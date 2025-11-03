@@ -1,16 +1,32 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchUserAvailability, fetchUsers, removeUserFromProject } from "../../../../redux/slices/userSlice";
+import {
+  fetchUserAvailability,
+  fetchUsers,
+  removeUserFromProject,
+} from "../../../../redux/slices/userSlice";
 import { fetchTags } from "../../../../redux/slices/tagsSlice";
-import WeekProgressPicker from "../../../../Milestone/weekProgressPicker";
 import MultiSelectBox from "../../../MultiSelectBox";
 import SelectBox from "../../../SelectBox";
-import { createTask, editTask, fetchTasks } from "../../../../redux/slices/taskSlice";
+import {
+  createTask,
+  editTask,
+  fetchTasks,
+} from "../../../../redux/slices/taskSlice";
 import { useParams } from "react-router-dom";
-import { fetchProjectDetails, removeTagFromProject } from "../../../../redux/slices/projectSlice";
+import {
+  fetchProjectDetails,
+  removeTagFromProject,
+} from "../../../../redux/slices/projectSlice";
 import { fetchMilestoneById } from "../../../../redux/slices/milestoneSlice";
 import toast from "react-hot-toast";
 import DeleteOutlinedIcon from "@mui/icons-material/DeleteOutlined";
+import { DurationPicker } from "@/components/DurationPicker";
+import { CalendarIcon, X } from "lucide-react";
+import gsap from "gsap";
+import { TaskDatePicker } from "@/components/TaskDatePicker";
+import TasksOfDate from "@/components/TasksOfDate";
+import { CustomDatePicker } from "@/components/CustomDatePicker";
 
 const TaskForm = ({
   formData,
@@ -32,9 +48,59 @@ const TaskForm = ({
   allUsers,
   calculateDuration,
   hasSavedTasks,
-  setIsDelete
+  setIsDelete,
+  taskDuration,
+  setTaskDuration,
 }) => {
-  const { fetchUserAvailability: userAvailability } = useSelector(state => state.fetchUserAvailability);
+  const { fetchUserAvailability: userAvailability } = useSelector(
+    (state) => state.fetchUserAvailability
+  );
+
+  console.log(users);
+
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [startDate, setStartDate] = useState(null);
+  const [endDate, setEndDate] = useState(null);
+
+  const monthNames = [
+    "Jan",
+    "Feb",
+    "Mar",
+    "Apr",
+    "May",
+    "Jun",
+    "Jul",
+    "Aug",
+    "Sep",
+    "Oct",
+    "Nov",
+    "Dec",
+  ];
+
+  const collapsibleRef = useRef(null);
+
+  // Animate when showDatePicker changes
+  useEffect(() => {
+    const el = collapsibleRef.current;
+    if (!el) return;
+
+    if (showDatePicker) {
+      gsap.to(el, {
+        height: "auto",
+        opacity: 1,
+        duration: 0.4,
+        ease: "power2.out",
+      });
+    } else {
+      gsap.to(el, {
+        height: 0,
+        opacity: 0,
+        duration: 0.3,
+        ease: "power2.in",
+      });
+    }
+  }, [showDatePicker]);
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
@@ -100,10 +166,12 @@ const TaskForm = ({
           className="absolute top-3 right-3 text-red-600 cursor-pointer"
         />
       )}
-      {project && milestone &&
+      {project &&
+        milestone &&
         !Array.isArray(project) &&
         !Array.isArray(milestone) &&
-        project.title && milestone.title && (
+        project.title &&
+        milestone.title && (
           <div className="flex items-center justify-between gap-3">
             <div className="mt-4 space-y-2 w-full">
               <label className="block ms-2">
@@ -173,7 +241,21 @@ const TaskForm = ({
             placeholder="Select Person"
             value={formData.responsiblePerson}
             onChange={(value) => {
-              setFormData({ ...formData, responsiblePerson: value });
+              setFormData({
+                ...formData,
+                responsiblePerson: value,
+                responsiblePersonName:
+                  users.find(
+                    (user) => user.user_id === value || user.id === value
+                  )?.user?.name ||
+                  users.find(
+                    (user) => user.user_id === value || user.id === value
+                  )?.firstname +
+                  " " +
+                  users.find(
+                    (user) => user.user_id === value || user.id === value
+                  )?.lastname,
+              });
               if (!isReadOnly && value) {
                 dispatch(fetchUserAvailability({ token, id: value }));
               }
@@ -191,7 +273,7 @@ const TaskForm = ({
               allUsers.find((user) => user.id === formData.responsiblePerson)
                 ?.lock_role?.display_name || ""
             }
-            className="text-[13px] border-2 border-grey-300 px-2 py-[6px] bg-gray-200 w-full"
+            className="text-[13px] border-2 border-grey-300 px-2 py-[6px] w-full"
             readOnly
           />
         </div>
@@ -199,7 +281,73 @@ const TaskForm = ({
 
       <div className="flex justify-between mt-1 gap-2 text-[12px]">
         <div className="space-y-2 w-full">
-          <label className="block ms-2">Priority <span className="text-red-600">*</span></label>
+          <label className="block">
+            Duration <span className="text-red-600">*</span>
+          </label>
+          <DurationPicker
+            value={taskDuration}
+            onChange={setTaskDuration}
+            startDate={startDate}
+            endDate={endDate}
+            resposiblePerson={formData.responsiblePersonName}
+          />
+        </div>
+      </div>
+
+      <div className="flex justify-between mt-3 gap-2 text-[12px]">
+        <div className="space-y-2 w-full">
+          <label className="block">Start Date</label>
+          <CustomDatePicker
+            value={startDate}
+            onChange={setStartDate}
+            placeholder="Select Start Date"
+          />
+        </div>
+
+        <div className="space-y-2 w-full">
+          <label className="block">
+            Target Date <span className="text-red-600">*</span>
+          </label>
+          <button
+            type="button"
+            className="w-full border outline-none border-gray-300 px-2 py-[7px] text-[13px] flex items-center gap-3 text-gray-400"
+            onClick={() => setShowDatePicker(!showDatePicker)}
+          >
+            {endDate ? (
+              <div className="text-black flex items-center justify-between w-full">
+                <CalendarIcon className="w-4 h-4" />
+                <div>
+                  Target : {endDate.date.toString().padStart(2, "0")}{" "}
+                  {monthNames[endDate.month]}
+                </div>
+                <X className="w-4 h-4" onClick={() => setEndDate(null)} />
+              </div>
+            ) : (
+              <>
+                <CalendarIcon className="w-4 h-4" /> Select Target Date
+              </>
+            )}
+          </button>
+        </div>
+      </div>
+
+      <div
+        ref={collapsibleRef}
+        className="overflow-hidden opacity-0 h-0 mt-3"
+        style={{ willChange: "height, opacity" }}
+      >
+        {!endDate ? (
+          <TaskDatePicker selectedDate={endDate} onDateSelect={setEndDate} />
+        ) : (
+          <TasksOfDate selectedDate={endDate} onClose={() => { }} />
+        )}
+      </div>
+
+      <div className="flex gap-2 text-[12px]">
+        <div className="space-y-2 w-full">
+          <label className="block">
+            Priority <span className="text-red-600">*</span>
+          </label>
           <SelectBox
             options={[
               { label: "High", value: "High" },
@@ -212,44 +360,6 @@ const TaskForm = ({
             disabled={isReadOnly}
           />
         </div>
-
-        <div className="space-y-2 w-full">
-          <label className="block ms-2">Duration</label>
-          <input
-            type="text"
-            className="w-full border outline-none border-gray-300 px-2 py-[7px] text-[13px] bg-gray-200"
-            placeholder="00d:00h:00m"
-            value={calculateDuration(
-              formData.expected_start_date,
-              formData.target_date
-            )}
-            readOnly
-          />
-        </div>
-      </div>
-
-      <div>
-        <WeekProgressPicker
-          onDateSelect={handleDateSelect}
-          selectedDate={formData.expected_start_date}
-          title="Start Date"
-          disabled={isReadOnly}
-          minDate={milestoneStartDate}
-          maxDate={milestoneEndDate}
-          availabilityData={userAvailability}
-        />
-      </div>
-
-      <div>
-        <WeekProgressPicker
-          onDateSelect={handleTargetDate}
-          selectedDate={formData.target_date}
-          title="End Date"
-          disabled={isReadOnly}
-          minDate={milestoneStartDate}
-          maxDate={milestoneEndDate}
-          availabilityData={userAvailability}
-        />
       </div>
 
       <div className="flex items-start gap-4 mt-3">
@@ -276,9 +386,9 @@ const TaskForm = ({
             Tags <span className="text-red-600">*</span>
           </label>
           <MultiSelectBox
-            options={tags.map(tag => ({ value: tag.id, label: tag.name }))}
+            options={tags.map((tag) => ({ value: tag.id, label: tag.name }))}
             value={formData.tags}
-            onChange={values => handleMultiSelectChange("tags", values)}
+            onChange={(values) => handleMultiSelectChange("tags", values)}
             placeholder="Select Tags"
             disabled={isReadOnly}
           />
@@ -296,18 +406,23 @@ const Tasks = ({ isEdit, onCloseModal }) => {
   const { fetchUsers: users = [] } = useSelector((state) => state.fetchUsers);
   const { fetchTags: tags = [] } = useSelector((state) => state.fetchTags);
   const { taskDetails: task } = useSelector((state) => state.taskDetails);
-  const { fetchProjectDetails: project } = useSelector((state) => state.fetchProjectDetails);
-  const { fetchMilestoneById: milestone } = useSelector((state) => state.fetchMilestoneById);
+  const { fetchProjectDetails: project } = useSelector(
+    (state) => state.fetchProjectDetails
+  );
+  const { fetchMilestoneById: milestone } = useSelector(
+    (state) => state.fetchMilestoneById
+  );
   const {
     loading: editLoading,
     success: editSuccess,
     error: editError,
   } = useSelector((state) => state.editTask);
 
+  const [taskDuration, setTaskDuration] = useState();
   const [nextId, setNextId] = useState(1);
   const [savedTasks, setSavedTasks] = useState([]);
   const [isDelete, setIsDelete] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [totalWorkingHours, setTotalWorkingHours] = useState(0);
   const [formData, setFormData] = useState({
     project: id,
@@ -315,6 +430,7 @@ const Tasks = ({ isEdit, onCloseModal }) => {
     taskTitle: "",
     description: "",
     responsiblePerson: "",
+    responsiblePersonName: "",
     department: "",
     priority: "",
     duration: 0,
@@ -327,9 +443,9 @@ const Tasks = ({ isEdit, onCloseModal }) => {
   useEffect(() => {
     setFormData({
       ...formData,
-      duration: Math.round(totalWorkingHours)
-    })
-  }, [totalWorkingHours])
+      duration: Math.round(totalWorkingHours),
+    });
+  }, [totalWorkingHours]);
 
   const [prevTags, setPrevTags] = useState([]);
   const [prevObservers, setPrevObservers] = useState([]);
@@ -341,8 +457,12 @@ const Tasks = ({ isEdit, onCloseModal }) => {
     const shiftEndHour = 17;
     const shiftMinutesPerDay = (shiftEndHour - shiftStartHour) * 60;
 
-    const start = new Date(`${startDateStr}T${shiftStartHour.toString().padStart(2, "0")}:00:00`);
-    const end = new Date(`${endDateStr}T${shiftEndHour.toString().padStart(2, "0")}:00:00`);
+    const start = new Date(
+      `${startDateStr}T${shiftStartHour.toString().padStart(2, "0")}:00:00`
+    );
+    const end = new Date(
+      `${endDateStr}T${shiftEndHour.toString().padStart(2, "0")}:00:00`
+    );
 
     if (end <= start) {
       setTotalWorkingHours(0); // Expired → 0 hours
@@ -391,7 +511,6 @@ const Tasks = ({ isEdit, onCloseModal }) => {
     return `${days}d : ${hours}h : ${minutes}m`;
   };
 
-
   useEffect(() => {
     dispatch(fetchUsers({ token }));
     dispatch(fetchTags({ token }));
@@ -406,17 +525,19 @@ const Tasks = ({ isEdit, onCloseModal }) => {
 
   useEffect(() => {
     if (isEdit && task) {
-      const mappedTags = task.task_tags?.map((tag) => ({
-        value: tag?.company_tag?.id,
-        label: getTagName(tag?.company_tag?.id),
-        id: tag.id
-      })) || [];
+      const mappedTags =
+        task.task_tags?.map((tag) => ({
+          value: tag?.company_tag?.id,
+          label: getTagName(tag?.company_tag?.id),
+          id: tag.id,
+        })) || [];
 
-      const mappedObservers = task.observers?.map((observer) => ({
-        value: observer?.user_id,
-        label: observer?.user_name,
-        id: observer.id
-      })) || [];
+      const mappedObservers =
+        task.observers?.map((observer) => ({
+          value: observer?.user_id,
+          label: observer?.user_name,
+          id: observer.id,
+        })) || [];
 
       setFormData({
         project: id,
@@ -450,7 +571,7 @@ const Tasks = ({ isEdit, onCloseModal }) => {
     project_management_id: id,
     milestone_id: mid,
     active: true,
-    estimated_hour: data.duration
+    estimated_hour: data.duration,
   });
 
   const isFormEmpty = () => {
@@ -499,9 +620,12 @@ const Tasks = ({ isEdit, onCloseModal }) => {
       return;
     }
 
-    setIsSubmitting(true)
+    setIsSubmitting(true);
 
-    const duration = calculateDuration(formData.expected_start_date, formData.target_date);
+    const duration = calculateDuration(
+      formData.expected_start_date,
+      formData.target_date
+    );
     if (duration.startsWith("Invalid")) {
       toast.dismiss();
       toast.error("End date cannot be before start date.");
@@ -539,7 +663,7 @@ const Tasks = ({ isEdit, onCloseModal }) => {
       toast.dismiss();
       toast.error("Error creating task.");
     } finally {
-      setIsSubmitting(false)
+      setIsSubmitting(false);
     }
   };
 
@@ -568,7 +692,10 @@ const Tasks = ({ isEdit, onCloseModal }) => {
 
     setIsSubmitting(true);
 
-    const duration = calculateDuration(formData.expected_start_date, formData.target_date);
+    const duration = calculateDuration(
+      formData.expected_start_date,
+      formData.target_date
+    );
     if (duration.startsWith("Invalid")) {
       toast.dismiss();
       toast.error("End date cannot be before start date.");
@@ -602,12 +729,12 @@ const Tasks = ({ isEdit, onCloseModal }) => {
 
   return (
     <form
-      className="pt-2 pb-12 h-full overflow-y-auto text-[12px]"
+      className="pb-12 h-full overflow-y-auto text-[12px]"
       onSubmit={(e) => handleSubmit(e, tid)}
     >
       <div
         id="addTask"
-        className="max-w-[90%] mx-auto h-[calc(100%-4rem)] overflow-y-auto pr-3"
+        className="max-w-[95%] mx-auto h-[calc(100%-4rem)] overflow-y-auto pr-3"
       >
         {savedTasks.map((task) => (
           <TaskForm
@@ -632,6 +759,8 @@ const Tasks = ({ isEdit, onCloseModal }) => {
             calculateDuration={calculateDuration}
             hasSavedTasks={savedTasks.length > 0}
             setIsDelete={setIsDelete}
+            taskDuration={taskDuration}
+            setTaskDuration={setTaskDuration}
           />
         ))}
 
@@ -657,6 +786,8 @@ const Tasks = ({ isEdit, onCloseModal }) => {
             calculateDuration={calculateDuration}
             hasSavedTasks={savedTasks.length > 0}
             setIsDelete={setIsDelete}
+            taskDuration={taskDuration}
+            setTaskDuration={setTaskDuration}
           />
         )}
 

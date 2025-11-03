@@ -96,7 +96,7 @@ export const fetchChannelById = createAsyncThunk('fetchChannelById', async ({ id
 
 export const createMessage = createAsyncThunk('createMessage', async ({ token, payload }) => {
     try {
-        const response = await axios.post(`${baseURL}/messages.json`, { message: payload }, {
+        const response = await axios.post(`${baseURL}/messages.json`, payload, {
             headers: {
                 Authorization: `Bearer ${token}`,
             },
@@ -122,11 +122,11 @@ export const startConversation = createAsyncThunk('startConversation', async ({ 
 
 export const fetchMessagesOfConversation = createAsyncThunk(
     'fetchMessagesOfConversation',
-    async ({ token, id, page = 1 }) => {
+    async ({ token, id, page = 1, param = "conversation_id_eq" }) => {
         try {
             const response = await axios.get(`${baseURL}/messages.json`, {
                 params: {
-                    'q[conversation_id_eq]': id,
+                    [`q[${param}]`]: id,
                     page,
                     per_page: 50
                 },

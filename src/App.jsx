@@ -144,13 +144,13 @@ const App = () => {
                   <Route path="/mom/:id" element={<MomDetails />} />
                   <Route path="/new-mom" element={<MoMAdd />} />
 
-                  <Route path="/channels/*" element={<Channel />} />
-                  {/* <Route path="/channels" element={<Channel />} >
+                  {/* <Route path="/channels/*" element={<Channel />} /> */}
+                  <Route path="/channels" element={<Channel />} >
                     <Route
                       index
                       element={
                         <div
-                          className={`flex justify-center items-center h-[calc(100vh-112px)] w-[calc(100vw-32rem)]`}
+                          className={`flex justify-center items-center h-[calc(100vh-59px)] w-[calc(100vw-30rem)]`}
                         >
                           Select a Chat/Group to view messages
                         </div>
@@ -165,7 +165,7 @@ const App = () => {
                       path="/channels/groups/:id"
                       element={<GroupConversation />}
                     />
-                  </Route> */}
+                  </Route>
 
                   <Route path="/documents" element={<Documents />} />
 
