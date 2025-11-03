@@ -22,7 +22,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { ClipboardPlus, FileText, X, Reply, Forward, Search, Users, MessageCircle, CornerDownRight, Pin, PinOff } from "lucide-react";
 // import CreateChatTask from "./CreateChatTask";
 // import PinnedMessagesHeader from "./PinnedMessagesHeader";
-import { toast } from "sonner";
+import { toast } from "react-hot-toast";
 import { useParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { createMessage } from "@/redux/slices/channelSlice";
