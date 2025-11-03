@@ -36,7 +36,6 @@ import { Toaster } from "react-hot-toast";
 import Table from "./components/Setup/Issues_Type/Table.jsx";
 import IssuesType from "./pages/Setup/IssueType.jsx";
 import SprintDetails from "./components/Home/Sprints/SprintDetails.jsx";
-import ChatLayout from "./components/Home/Channel/ChatLayout.jsx";
 import Issues from "./pages/Home/Issues.jsx";
 import Documents from "./pages/Home/Documents.jsx";
 import IssueDetails from "./pages/Home/IssueDetails.jsx";
