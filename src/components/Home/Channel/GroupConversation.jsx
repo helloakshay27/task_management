@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { toast } from "sonner";
+import { toast } from "react-hot-toast";
 import ChatTasks from "./ChatTasks";
 import { Paperclip, X, UserMinus, Smile } from "lucide-react";
 import ChatAttachments from "./ChatAttachments";
