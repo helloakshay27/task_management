@@ -335,11 +335,11 @@ const ProjectDetails = () => {
         "Completed",
     ];
 
-    const handleOptionSelect = (option) => {
+    const handleOptionSelect = async (option) => {
         setSelectedOption(option);
         setOpenDropdown(false);
 
-        dispatch(
+        await dispatch(
             changeProjectStatus({
                 token,
                 id,
@@ -347,7 +347,9 @@ const ProjectDetails = () => {
                     project_management: { status: mapDisplayToApiStatus(option) },
                 },
             })
-        );
+        ).unwrap();
+        toast.dismiss();
+        toast.success("Status updated successfully");
     };
 
     useEffect(() => {
