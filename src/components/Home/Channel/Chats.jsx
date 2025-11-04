@@ -25,7 +25,8 @@ import { ClipboardPlus, FileText, X, Reply, Forward, Search, Users, MessageCircl
 import { toast } from "react-hot-toast";
 import { useParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { createMessage } from "@/redux/slices/channelSlice";
+import { createMessage, updateMessage } from "@/redux/slices/channelSlice";
+import PinnedMessagesHeader from "./PinMessageHeader";
 
 const Chats = ({ messages, onReply, bottomRef }) => {
     const { id } = useParams();
@@ -107,24 +108,24 @@ const Chats = ({ messages, onReply, bottomRef }) => {
         setSearchQuery("");
     };
 
-    // const handlePin = async (message) => {
-    //     try {
-    //         if (message.is_pinned) {
-    //             await dispatch(
-    //                 updateMessage({ baseUrl, token, id: message.id, data: { message: { is_pinned: false } } })
-    //             ).unwrap();
-    //             toast.success("Message unpinned");
-    //         } else {
-    //             await dispatch(
-    //                 updateMessage({ baseUrl, token, id: message.id, data: { message: { is_pinned: true } } })
-    //             ).unwrap();
-    //             toast.success("Message pinned");
-    //         }
-    //     } catch (error) {
-    //         console.log(error);
-    //         toast.error("Failed to update pin status");
-    //     }
-    // };
+    const handlePin = async (message) => {
+        try {
+            if (message.is_pinned) {
+                await dispatch(
+                    updateMessage({ token, id: message.id, payload: { message: { is_pinned: false } } })
+                ).unwrap();
+                toast.success("Message unpinned");
+            } else {
+                await dispatch(
+                    updateMessage({ token, id: message.id, payload: { message: { is_pinned: true } } })
+                ).unwrap();
+                toast.success("Message pinned");
+            }
+        } catch (error) {
+            console.log(error);
+            toast.error("Failed to update pin status");
+        }
+    };
 
     const scrollToMessage = (messageId) => {
         const messageElement = messageRefs.current[messageId];
@@ -395,11 +396,11 @@ const Chats = ({ messages, onReply, bottomRef }) => {
                 }
             `}</style>
 
-            {/* <PinnedMessagesHeader
+            <PinnedMessagesHeader
                 messages={messages}
                 onUnpin={handlePin}
                 onMessageClick={(message) => scrollToMessage(message.id)}
-            /> */}
+            />
 
             <div className="flex-1 w-full overflow-y-auto max-h-[calc(100vh-160px)] px-6 py-4">
                 {[...messages].reverse().map((message, index) => {
@@ -452,7 +453,7 @@ const Chats = ({ messages, onReply, bottomRef }) => {
 
                                         {!isMe && (
                                             <div className="w-8 h-8 rounded-full bg-[#F2EEE9] text-[#C72030] text-sm flex items-center justify-center mt-[2px]">
-                                                {(message.user_name || "U")[0].toUpperCase()}
+                                                {(message.user_name || message.user?.firstname || "U")[0].toUpperCase()}
                                             </div>
                                         )}
                                         <div

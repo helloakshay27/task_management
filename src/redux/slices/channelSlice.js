@@ -146,6 +146,19 @@ export const fetchMessagesOfConversation = createAsyncThunk(
     }
 );
 
+export const updateMessage = createAsyncThunk('updateMessage', async ({ token, id, payload }) => {
+    try {
+        const response = await axios.put(`${baseURL}/messages/${id}.json`, payload, {
+            headers: {
+                Authorization: `Bearer ${token}`,
+            },
+        });
+        return response.data;
+    } catch (error) {
+        console.log(error)
+    }
+})
+
 
 export const fetchChannelsSlice = createApiSlice('fetchChannels', fetchChannels);
 export const fetchConversationsSlice = createApiSlice('fetchConversations', fetchConversations);
@@ -153,6 +166,7 @@ export const fetchChannelByIdSlice = createApiSlice('fetchChannelById', fetchCha
 export const createMessageSlice = createApiSlice('createMessage', createMessage);
 export const startConversationSlice = createApiSlice('startConversation', startConversation);
 export const fetchMessagesOfConversationSlice = createApiSlice('fetchMessagesOfConversation', fetchMessagesOfConversation);
+export const updateMessageSlice = createApiSlice('updateMessage', updateMessage);
 
 export const fetchChannelsReducer = fetchChannelsSlice.reducer;
 export const fetchConversationsReducer = fetchConversationsSlice.reducer;
@@ -160,6 +174,7 @@ export const fetchChannelByIdReducer = fetchChannelByIdSlice.reducer;
 export const createMessageReducer = createMessageSlice.reducer;
 export const startConversationReducer = startConversationSlice.reducer;
 export const fetchMessagesOfConversationReducer = fetchMessagesOfConversationSlice.reducer;
+export const updateMessageReducer = updateMessageSlice.reducer;
 
 export const { resetSendMessage } = createMessageSlice.actions;
 export const { resetstartConversation } = startConversationSlice.actions;

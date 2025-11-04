@@ -10,7 +10,7 @@ import { fetchSpirintByIdReducer, fetchSpirintsReducer, postSprintReducer, putSp
 import { createIssueReducer, fetchIssueReducer, updateIssueReducer, fetchIssueTypeReducer, filterIssueReducer, createIssueTypeReducer, updateIssueTypeReducer, deleteIssueTypeReducer, removeIssueAttachmentReducer, fetchIssueByIdReducer } from './slices/IssueSlice'
 import { fetchStatusReducer, createStatusReducer, deleteStatusReducer, updateStatusReducer } from './slices/statusSlice'
 import { createMoMReducer, fetchMomDetailsReducer, fetchMoMReducer, removeMomAttachmentReducer } from './slices/momSlice'
-import { createMessageReducer, fetchChannelByIdReducer, fetchChannelsReducer, fetchConversationsReducer, fetchMessagesOfConversationReducer, startConversationReducer } from './slices/channelSlice'
+import { createMessageReducer, fetchChannelByIdReducer, fetchChannelsReducer, fetchConversationsReducer, fetchMessagesOfConversationReducer, startConversationReducer, updateMessageReducer } from './slices/channelSlice'
 import { createCompanyReducer, editCompanyReducer, fetchCompanyReducer } from './slices/companySlice'
 import { createRegionReducer, updateRegionReducer, fetchRegionReducer, deleteRegionReducer } from './slices/regionSlice'
 import { createZoneReducer, updateZoneReducer, fetchZoneReducer, deleteZoneReducer } from './slices/zoneSlice'
@@ -167,5 +167,6 @@ export const store = configureStore({
     createMessage: createMessageReducer,
     startConversation: startConversationReducer,
     fetchMessagesOfConversation: fetchMessagesOfConversationReducer,
+    updateMessage: updateMessageReducer
   },
 })
