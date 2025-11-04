@@ -826,7 +826,7 @@ const GanttChart = () => {
                         title: task.text,
                         started_at: formatDateToISO(task.start_date),
                         target_date: formatDateToISO(task.end_date),
-                        status: task.status || 'open',
+                        status: task.status || 'Open',
                     }
                 };
 
