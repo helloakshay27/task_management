@@ -1,12 +1,39 @@
-import { ChevronUp, ChevronDown, Calendar, Clock, CircleDot } from 'lucide-react';
-import { useState } from 'react';
-import { DndProvider, useDrag } from 'react-dnd';
-import { HTML5Backend } from 'react-dnd-html5-backend';
-import { useDrop } from 'react-dnd';
+import {
+    ChevronUp,
+    ChevronDown,
+    Calendar,
+    CalendarCheck2,
+} from "lucide-react";
+import { useState, useMemo, useEffect } from "react";
+import { DndProvider, useDrag, useDrop } from "react-dnd";
+import { HTML5Backend } from "react-dnd-html5-backend";
+import { useDispatch } from "react-redux";
+import { updateTask } from "@/redux/slices/taskSlice";
 
-const TaskCard = ({ task }) => {
+// ===================== TaskCard =====================
+const TaskCard = ({ task, selectedDate }) => {
+    const date = `${selectedDate.year}-${String(selectedDate.month + 1).padStart(
+        2,
+        "0"
+    )}-${String(selectedDate.date).padStart(2, "0")}`;
+
+    // Calculate today's total allocation
+    const todayAllocation = (task.allocation_times || [])
+        .filter(a => a.date === date)
+        .reduce(
+            (acc, a) => {
+                const totalMins = acc.minutes + (a.minutes || 0);
+                const totalHours = acc.hours + (a.hours || 0) + Math.floor(totalMins / 60);
+                return { hours: totalHours, minutes: totalMins % 60 };
+            },
+            { hours: 0, minutes: 0 }
+        );
+
+    const hours = String(todayAllocation?.hours ?? 0).padStart(2, "0");
+    const minutes = String(todayAllocation?.minutes ?? 0).padStart(2, "0");
+
     const [{ isDragging }, drag] = useDrag(() => ({
-        type: 'TASK',
+        type: "TASK",
         item: { task },
         collect: (monitor) => ({
             isDragging: !!monitor.isDragging(),
@@ -16,78 +43,108 @@ const TaskCard = ({ task }) => {
     return (
         <div
             ref={drag}
-            className={`p-3 mb-2 rounded border-l-4 border-[#C72030] bg-[#D5DBDB] ${isDragging ? 'opacity-50' : ''}`}
+            className={`p-3 mb-2 rounded border-l-4 border-[#C72030] bg-[#D5DBDB] ${isDragging ? "opacity-50" : ""
+                }`}
         >
             <div className="text-xs font-medium text-gray-800 mb-2">{task.title}</div>
             <div className="flex items-center gap-4 text-xs text-gray-600">
                 <div className="flex items-center gap-1">
-                    <Calendar className="w-3 h-3" />
-                    <span>{task.date}</span>
+                    <Calendar className="w-4 h-4" />
+                    <span>{task.target_date}</span>
                 </div>
                 <div className="flex items-center gap-1">
-                    <Clock className="w-3 h-3" />
-                    <span>{task.duration}</span>
-                </div>
-                <div className="flex items-center gap-1">
-                    <CircleDot className="w-3 h-3" />
-                    <span>{task.time}</span>
+                    <CalendarCheck2 className="w-4 h-4" />
+                    <span>{`${hours}:${minutes} Hrs`}</span>
                 </div>
             </div>
         </div>
     );
 };
 
-const CalendarWeekView = ({ selectedDate, weekDates, onScroll, onDrop, assignedTasks }) => {
+// ===================== DroppableDay =====================
+const DroppableDay = ({ dateInfo, onDrop, assignedTasks }) => {
+    const [{ isOver }, drop] = useDrop(
+        () => ({
+            accept: "TASK",
+            drop: (item) => onDrop(item.task, dateInfo),
+            collect: (monitor) => ({
+                isOver: !!monitor.isOver(),
+            }),
+        }),
+        [dateInfo] // ✅ ensures drop updates when weekDates change
+    );
+
+    const calculationHrs = dateInfo.hours.split(" ")[0];
+    const durationPercentage = (calculationHrs / 8) * 100;
+
+    const bgClass = dateInfo.isSelected
+        ? "bg-blue-50"
+        : dateInfo.overloaded
+            ? "bg-red-100"
+            : assignedTasks[dateInfo.fullDate]
+                ? "bg-[#D5DBDB]"
+                : "hover:bg-gray-50";
+
     return (
-        <div className="bg-white rounded border border-gray-300">
-            <div className="flex items-center justify-center border-b border-gray-300">
+        <div
+            ref={drop}
+            className={`relative grid grid-cols-3 border-t border-b border-r border-dashed border-gray-400 items-center px-3 py-[19px] ${bgClass} ${isOver ? "bg-gray-200" : ""
+                }`}
+        >
+            <span
+                className={`absolute left-0 top-0 h-full w-[4px] ${durationPercentage <= 33
+                    ? "bg-[#1FCFB3]"
+                    : durationPercentage <= 66
+                        ? "bg-[#ED9017]"
+                        : "bg-[#C72030]"
+                    }`}
+            />
+            <div className="font-medium text-xs text-left">{dateInfo.day}</div>
+            <div className="text-xs text-gray-600 text-left">{dateInfo.date}</div>
+            <div className="font-semibold text-xs text-right">{dateInfo.hours}</div>
+        </div>
+    );
+};
+
+// ===================== CalendarWeekView =====================
+const CalendarWeekView = ({
+    selectedDate,
+    weekDates,
+    onScroll,
+    onDrop,
+    assignedTasks,
+}) => {
+    return (
+        <div className="bg-white border-gray-300 relative">
+            {/* Scroll Up */}
+            <div className="flex items-center justify-center absolute -top-[23px] left-[50%] translate-x-[-50%] z-10">
                 <button
-                    type='button'
-                    onClick={() => onScroll('up')}
-                    className="p-1 hover:bg-gray-100 rounded"
+                    type="button"
+                    onClick={() => onScroll("up")}
+                    className="p-1 rounded"
                 >
                     <ChevronUp className="w-5 h-5" />
                 </button>
             </div>
 
-            <div className="divide-y divide-gray-200">
-                {weekDates.map((dateInfo, index) => {
-                    const [{ isOver }, drop] = useDrop(() => ({
-                        accept: 'TASK',
-                        drop: (item) => onDrop(item.task, dateInfo),
-                        collect: (monitor) => ({
-                            isOver: !!monitor.isOver(),
-                        }),
-                    }));
-
-                    const bgClass = assignedTasks[dateInfo.fullDate]
-                        ? 'bg-[#D5DBDB]'
-                        : dateInfo.isSelected
-                            ? 'bg-blue-50'
-                            : 'hover:bg-gray-50';
-
-                    return (
-                        <div
-                            key={index}
-                            ref={drop}
-                            className={`relative grid grid-cols-3 items-center px-3 py-[19px] ${bgClass} ${isOver ? 'bg-gray-200' : ''}`}
-                        >
-                            <span className="absolute left-0 top-0 h-full w-[4px] bg-[#C72030]" />
-                            <div className="font-medium text-xs text-left">{dateInfo.day}</div>
-
-                            <div className="text-xs text-gray-600 text-left">{dateInfo.date}</div>
-
-                            <div className="font-semibold text-xs text-right">{dateInfo.hours}</div>
-                        </div>
-                    );
-                })}
+            {/* Week Days */}
+            <div className="space-y-1 my-4">
+                {weekDates.map((dateInfo) => (
+                    <DroppableDay
+                        key={dateInfo.fullDate} // ✅ key ensures remount on scroll
+                        dateInfo={dateInfo}
+                        onDrop={onDrop}
+                        assignedTasks={assignedTasks}
+                    />
+                ))}
             </div>
 
-            <div className="flex items-center justify-center border-t border-gray-300">
+            {/* Scroll Down */}
+            <div className="flex items-center justify-center absolute -bottom-[25px] left-[50%] translate-x-[-50%] z-10">
                 <button
-                    type='button'
-                    onClick={() => onScroll('down')}
-                    className="p-1 hover:bg-gray-100 rounded"
+                    type="button"
+                    onClick={() => onScroll("down")}
+                    className="p-1 rounded"
                 >
                     <ChevronDown className="w-5 h-5" />
                 </button>
@@ -96,122 +153,112 @@ const CalendarWeekView = ({ selectedDate, weekDates, onScroll, onDrop, assignedT
     );
 };
 
-const TasksOfDate = ({ selectedDate, onClose }) => {
-    const [dateOffset, setDateOffset] = useState(0);
+// ===================== TasksOfDate =====================
+const TasksOfDate = ({ selectedDate, onClose, tasks, userAvailability }) => {
+    const dispatch = useDispatch();
+    const token = localStorage.getItem("token");
+
+    const [dateStartIndex, setDateStartIndex] = useState(0);
     const [assignedTasks, setAssignedTasks] = useState({});
     const [taskStartIndex, setTaskStartIndex] = useState(0);
-    const [currentTasks, setCurrentTasks] = useState([
-        {
-            id: 1,
-            title: 'FM Matrix Training',
-            date: '23 Aug',
-            duration: '02:36 Hrs',
-            time: '09:06',
-            type: 'primary'
-        },
-        {
-            id: 2,
-            title: 'Design Figma Page of Task creation and hand it over to developers.',
-            date: '23 Aug',
-            duration: '02:36 Hrs',
-            time: '09:06',
-            type: 'secondary'
-        },
-        {
-            id: 3,
-            title: 'Give Inventory training to Yukta and Abdul.',
-            date: '23 Aug',
-            duration: '02:36 Hrs',
-            time: '09:06',
-            type: 'tertiary'
-        },
-        {
-            id: 4,
-            title: 'Review documentation and update API endpoints.',
-            date: '23 Aug',
-            duration: '01:30 Hrs',
-            time: '14:00',
-            type: 'tertiary'
-        },
-        {
-            id: 5,
-            title: 'Team standup meeting and sprint planning.',
-            date: '23 Aug',
-            duration: '01:00 Hrs',
-            time: '10:00',
-            type: 'primary'
-        },
-        {
-            id: 6,
-            title: 'Code review for pull requests.',
-            date: '23 Aug',
-            duration: '02:00 Hrs',
-            time: '15:30',
-            type: 'secondary'
+    const [currentTasks, setCurrentTasks] = useState([]);
+
+    useEffect(() => {
+        if (tasks.length > 0) {
+            setCurrentTasks(tasks);
         }
-    ]);
+    }, [tasks]);
+
     const visibleTasksCount = 3;
     const visibleDaysCount = 3;
 
-    // Generate dynamic dates based on offset
-    const generateDynamicDates = () => {
-        const dates = [];
-        const today = selectedDate ? new Date(2024, selectedDate.month, selectedDate.date) : new Date();
-        const selectedFullDate = today.toISOString().split('T')[0];
-        const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    // ✅ Build weekDates directly from userAvailability
+    const weekDates = useMemo(() => {
+        if (!userAvailability || userAvailability.length === 0) return [];
 
-        // Generate dates starting from dateOffset
-        for (let i = 0; i < visibleDaysCount; i++) {
-            const currentDate = new Date(today);
-            currentDate.setDate(today.getDate() + dateOffset + i);
+        const sorted = [...userAvailability].sort(
+            (a, b) => new Date(a.date) - new Date(b.date)
+        );
 
-            const fullDate = currentDate.toISOString().split('T')[0];
-            const dayName = dayNames[currentDate.getDay()];
-            const date = currentDate.getDate();
-            const month = currentDate.toLocaleString('default', { month: 'short' });
+        const visible = sorted.slice(
+            dateStartIndex,
+            dateStartIndex + visibleDaysCount
+        );
 
-            // Calculate random hours for demo (replace with actual data)
-            const hours = Math.floor(Math.random() * 9);
+        const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+        const selectedFullDate = selectedDate
+            ? new Date(2024, selectedDate.month, selectedDate.date)
+                .toISOString()
+                .split("T")[0]
+            : new Date().toISOString().split("T")[0];
 
-            dates.push({
-                day: dayName,
+        return visible.map((u) => {
+            const d = new Date(u.date);
+            const day = dayNames[d.getDay()];
+            const month = d.toLocaleString("default", { month: "short" });
+            const date = d.getDate();
+
+            return {
+                day,
                 date: `${date} ${month}`,
-                hours: `${hours.toString().padStart(2, '0')} hrs`,
-                isSelected: fullDate === selectedFullDate,
-                hasIndicator: hours > 0,
-                indicatorColor: hours > 6 ? 'green' : hours > 3 ? 'orange' : 'blue',
-                fullDate,
-            });
-        }
-
-        return dates;
-    };
-
-    const weekDates = generateDynamicDates();
+                hours: `${u.allocated_hours.toString().padStart(2, "0")} hrs`,
+                fullDate: u.date,
+                isSelected: u.date === selectedFullDate,
+                overloaded: u.overloaded,
+            };
+        });
+    }, [userAvailability, dateStartIndex, visibleDaysCount, selectedDate]);
 
     const handleScroll = (direction) => {
-        if (direction === 'up') {
-            // Scroll to previous dates
-            setDateOffset(dateOffset - 1);
-        } else {
-            // Scroll to next dates
-            setDateOffset(dateOffset + 1);
+        if (direction === "up" && dateStartIndex > 0) {
+            setDateStartIndex(dateStartIndex - 1);
+        } else if (
+            direction === "down" &&
+            dateStartIndex + visibleDaysCount < userAvailability.length
+        ) {
+            setDateStartIndex(dateStartIndex + 1);
         }
     };
 
-    const handleDrop = (task, dateInfo) => {
+    const handleDrop = async (task, dateInfo) => {
         const fullDate = dateInfo.fullDate;
-        if (assignedTasks[fullDate]) {
-            return;
-        }
+        if (assignedTasks[fullDate]) return;
+
+        const formatedSelectedDate = `${selectedDate.year}-${(
+            selectedDate.month + 1
+        )
+            .toString()
+            .padStart(2, "0")}-${selectedDate.date.toString().padStart(2, "0")}`;
+
+        await dispatch(
+            updateTask({
+                token,
+                id: task.id,
+                payload: {
+                    ...(task.target_date == formatedSelectedDate && {
+                        target_date: fullDate,
+                        allocation_date: fullDate,
+                    }),
+                    task_allocation_times_attributes: task.allocation_times.map((t) =>
+                        t.date == formatedSelectedDate
+                            ? { ...t, date: fullDate }
+                            : t
+                    ),
+                },
+            })
+        ).unwrap();
+
         setAssignedTasks((prev) => ({ ...prev, [fullDate]: task }));
         setCurrentTasks((prev) => prev.filter((t) => t.id !== task.id));
     };
 
     const handleTaskScroll = (direction) => {
-        if (direction === 'down' && taskStartIndex + visibleTasksCount < currentTasks.length) {
+        if (
+            direction === "down" &&
+            taskStartIndex + visibleTasksCount < currentTasks.length
+        ) {
             setTaskStartIndex(taskStartIndex + 1);
-        } else if (direction === 'up' && taskStartIndex > 0) {
+        } else if (direction === "up" && taskStartIndex > 0) {
             setTaskStartIndex(taskStartIndex - 1);
         }
     };
@@ -220,9 +267,34 @@ const TasksOfDate = ({ selectedDate, onClose }) => {
     const hasPreviousTasks = taskStartIndex > 0;
 
     const monthNames = [
-        'January', 'February', 'March', 'April', 'May', 'June',
-        'July', 'August', 'September', 'October', 'November', 'December'
+        "January",
+        "February",
+        "March",
+        "April",
+        "May",
+        "June",
+        "July",
+        "August",
+        "September",
+        "October",
+        "November",
+        "December",
     ];
+
+    const selectedDateString = `${selectedDate.year}-${String(selectedDate.month + 1).padStart(
+        2,
+        "0"
+    )}-${String(selectedDate.date).padStart(2, "0")}`;
+
+    const selectedDayAvailability = userAvailability?.find(
+        (u) => u.date === selectedDateString
+    );
+
+    const totalTaskHours = selectedDayAvailability
+        ? `${selectedDayAvailability.allocated_hours
+            .toString()
+            .padStart(2, "0")} hrs`
+        : "00 hrs";
 
     return (
         <DndProvider backend={HTML5Backend}>
@@ -231,52 +303,66 @@ const TasksOfDate = ({ selectedDate, onClose }) => {
                 <div className="bg-red-600 text-white px-4 py-3 flex items-center justify-between">
                     <div className="flex items-center gap-3">
                         <span className="font-semibold">
-                            {selectedDate?.day || 'Sunday'}
+                            {selectedDate?.day || "Sunday"}
                         </span>
                         <span>
-                            {selectedDate?.date || '10'} {monthNames[selectedDate?.month || 9]}
+                            {selectedDate?.date || "10"}{" "}
+                            {monthNames[selectedDate?.month || 9]}
                         </span>
                     </div>
                     <div className="font-semibold">
-                        Total Task Hours: {selectedDate?.totalHours || '08'}
+                        Total Task Hours: {totalTaskHours}
                     </div>
                 </div>
 
-                {/* Content Area */}
+                {/* Content */}
                 <div className="py-4 grid grid-cols-3 gap-3">
-                    {/* Left Side - Tasks List */}
-                    <div className='col-span-2'>
-                        {/* Scroll Up Button */}
+                    {/* Left: Task List */}
+                    <div className="col-span-2 relative">
                         {hasPreviousTasks && (
-                            <div className="flex justify-center mb-1">
+                            <div className="flex justify-center mb-1 absolute -top-[18px] left-[50%] translate-x-[-50%] z-10">
                                 <button
-                                    className="hover:bg-gray-100 rounded"
-                                    type='button'
-                                    onClick={() => handleTaskScroll('up')}
+                                    className="rounded"
+                                    type="button"
+                                    onClick={() => handleTaskScroll("up")}
                                 >
                                     <ChevronUp className="w-6 h-6 text-gray-600" />
                                 </button>
                             </div>
                         )}
 
-                        <div className="space-y-2 overflow-hidden" style={{ height: `${visibleTasksCount * 72}px` }}>
+                        <div
+                            className="space-y-2 overflow-hidden"
+                            style={{ height: `${visibleTasksCount * 72}px` }}
+                        >
                             <div
                                 className="transition-transform duration-300 ease-in-out space-y-2"
-                                style={{ transform: `translateY(-${taskStartIndex * 72}px)` }}
+                                style={{
+                                    transform: `translateY(-${taskStartIndex * 72}px)`,
+                                }}
                             >
-                                {currentTasks.map(task => (
-                                    <TaskCard key={task.id} task={task} />
-                                ))}
+                                {currentTasks.length > 0 ? (
+                                    currentTasks.map((task) => (
+                                        <TaskCard
+                                            key={task.id}
+                                            task={task}
+                                            selectedDate={selectedDate}
+                                        />
+                                    ))
+                                ) : (
+                                    <div className="text-center text-gray-500 text-sm">
+                                        No tasks available
+                                    </div>
+                                )}
                             </div>
                         </div>
 
-                        {/* Expand More */}
                         {hasMoreTasks && (
-                            <div className="flex justify-center mt-1">
+                            <div className="flex justify-center mt-1 absolute -bottom-[16px] left-[50%] translate-x-[-50%] z-10">
                                 <button
-                                    className="hover:bg-gray-100 rounded"
-                                    type='button'
-                                    onClick={() => handleTaskScroll('down')}
+                                    className="rounded"
+                                    type="button"
+                                    onClick={() => handleTaskScroll("down")}
                                 >
                                     <ChevronDown className="w-6 h-6 text-gray-600" />
                                 </button>
@@ -284,7 +370,7 @@ const TasksOfDate = ({ selectedDate, onClose }) => {
                         )}
                     </div>
 
-                    {/* Right Side - Calendar Week View */}
+                    {/* Right: Calendar View */}
                     <div className="col-span-1">
                         <CalendarWeekView
                             selectedDate={selectedDate}
@@ -296,8 +382,8 @@ const TasksOfDate = ({ selectedDate, onClose }) => {
                     </div>
                 </div>
             </div>
-        </DndProvider>
+        </DndProvider >
     );
-}
+};
 
 export default TasksOfDate;

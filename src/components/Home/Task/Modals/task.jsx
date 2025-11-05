@@ -11,6 +11,7 @@ import SelectBox from "../../../SelectBox";
 import {
   createTask,
   editTask,
+  fetchTargetDateTasks,
   fetchTasks,
 } from "../../../../redux/slices/taskSlice";
 import { useParams } from "react-router-dom";
@@ -42,25 +43,26 @@ const TaskForm = ({
   setPrevObservers,
   isEdit,
   dispatch,
-  milestoneStartDate,
-  milestoneEndDate,
   token,
   allUsers,
-  calculateDuration,
   hasSavedTasks,
   setIsDelete,
   taskDuration,
   setTaskDuration,
+  setDateWiseHours,
+  totalWorkingHours,
+  setTotalWorkingHours,
+  startDate,
+  setStartDate,
+  endDate,
+  setEndDate
 }) => {
   const { fetchUserAvailability: userAvailability } = useSelector(
     (state) => state.fetchUserAvailability
   );
 
-  console.log(users);
-
   const [showDatePicker, setShowDatePicker] = useState(false);
-  const [startDate, setStartDate] = useState(null);
-  const [endDate, setEndDate] = useState(null);
+  const [targetDateTasks, setTargetDateTasks] = useState([]);
 
   const monthNames = [
     "Jan",
@@ -100,6 +102,21 @@ const TaskForm = ({
       });
     }
   }, [showDatePicker]);
+
+  useEffect(() => {
+    const getTargetDateTasks = async () => {
+      const formattedEndDate = `${endDate.year}-${String(endDate.month + 1).padStart(2, '0')}-${String(endDate.date).padStart(2, '0')}`;
+      try {
+        const response = await dispatch(fetchTargetDateTasks({ token, id: formData.responsiblePerson, date: formattedEndDate })).unwrap();
+        setTargetDateTasks(response);
+      } catch (error) {
+        console.log(error)
+      }
+    }
+    if (formData.responsiblePerson && endDate) {
+      getTargetDateTasks();
+    }
+  }, [formData.responsiblePerson, endDate]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -287,9 +304,12 @@ const TaskForm = ({
           <DurationPicker
             value={taskDuration}
             onChange={setTaskDuration}
+            onDateWiseHoursChange={setDateWiseHours}
             startDate={startDate}
             endDate={endDate}
             resposiblePerson={formData.responsiblePersonName}
+            totalWorkingHours={totalWorkingHours}
+            setTotalWorkingHours={setTotalWorkingHours}
           />
         </div>
       </div>
@@ -337,9 +357,9 @@ const TaskForm = ({
         style={{ willChange: "height, opacity" }}
       >
         {!endDate ? (
-          <TaskDatePicker selectedDate={endDate} onDateSelect={setEndDate} />
+          <TaskDatePicker selectedDate={endDate} onDateSelect={setEndDate} startDate={startDate} userAvailability={userAvailability} />
         ) : (
-          <TasksOfDate selectedDate={endDate} onClose={() => { }} />
+          <TasksOfDate selectedDate={endDate} onClose={() => { }} tasks={targetDateTasks} userAvailability={userAvailability} />
         )}
       </div>
 
@@ -424,6 +444,9 @@ const Tasks = ({ isEdit, onCloseModal }) => {
   const [isDelete, setIsDelete] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [totalWorkingHours, setTotalWorkingHours] = useState(0);
+  const [dateWiseHours, setDateWiseHours] = useState([]);
+  const [startDate, setStartDate] = useState(null);
+  const [endDate, setEndDate] = useState(null);
   const [formData, setFormData] = useState({
     project: id,
     milestone: mid,
@@ -433,9 +456,6 @@ const Tasks = ({ isEdit, onCloseModal }) => {
     responsiblePersonName: "",
     department: "",
     priority: "",
-    duration: 0,
-    expected_start_date: null,
-    target_date: null,
     observer: [],
     tags: [],
   });
@@ -449,67 +469,6 @@ const Tasks = ({ isEdit, onCloseModal }) => {
 
   const [prevTags, setPrevTags] = useState([]);
   const [prevObservers, setPrevObservers] = useState([]);
-
-  const calculateDuration = (startDateStr, endDateStr) => {
-    if (!startDateStr || !endDateStr) return "";
-
-    const shiftStartHour = 9;
-    const shiftEndHour = 17;
-    const shiftMinutesPerDay = (shiftEndHour - shiftStartHour) * 60;
-
-    const start = new Date(
-      `${startDateStr}T${shiftStartHour.toString().padStart(2, "0")}:00:00`
-    );
-    const end = new Date(
-      `${endDateStr}T${shiftEndHour.toString().padStart(2, "0")}:00:00`
-    );
-
-    if (end <= start) {
-      setTotalWorkingHours(0); // Expired → 0 hours
-      return "Expired";
-    }
-
-    let totalMinutes = 0;
-    let current = new Date(start);
-
-    while (current <= end) {
-      const currentDay = new Date(current);
-      currentDay.setHours(0, 0, 0, 0);
-
-      const shiftStart = new Date(currentDay);
-      shiftStart.setHours(shiftStartHour, 0, 0, 0);
-
-      const shiftEnd = new Date(currentDay);
-      shiftEnd.setHours(shiftEndHour, 0, 0, 0);
-
-      const isWeekend = current.getDay() === 0 || current.getDay() === 6;
-      if (!isWeekend) {
-        // If it's within the date range and not a weekend, count full day
-        const isSameDay = current.toDateString() === end.toDateString();
-        const to = isSameDay && end < shiftEnd ? end : shiftEnd;
-
-        // Always count full shift minutes if date is valid
-        if (shiftStart <= to) {
-          const diff = Math.floor((to - shiftStart) / 60000);
-          totalMinutes += Math.min(diff, shiftMinutesPerDay);
-        }
-      }
-
-      // Move to next day
-      current.setDate(current.getDate() + 1);
-      current.setHours(shiftStartHour, 0, 0, 0);
-    }
-
-    const totalHours = +(totalMinutes / 60).toFixed(2);
-    setTotalWorkingHours(totalHours);
-
-    const days = Math.floor(totalMinutes / shiftMinutesPerDay);
-    const remainingMinutes = totalMinutes % shiftMinutesPerDay;
-    const hours = Math.floor(remainingMinutes / 60);
-    const minutes = remainingMinutes % 60;
-
-    return `${days}d : ${hours}h : ${minutes}m`;
-  };
 
   useEffect(() => {
     dispatch(fetchUsers({ token }));
@@ -547,9 +506,6 @@ const Tasks = ({ isEdit, onCloseModal }) => {
         responsiblePerson: task.responsible_person_id || "",
         department: "",
         priority: task.priority || "",
-        duration: "",
-        expected_start_date: task.expected_start_date?.split("T")[0] || null,
-        target_date: task.target_date || null,
         observer: mappedObservers,
         tags: mappedTags,
       });
@@ -559,20 +515,25 @@ const Tasks = ({ isEdit, onCloseModal }) => {
     }
   }, [isEdit, task, id, mid, getTagName]);
 
-  const createTaskPayload = (data) => ({
-    title: data.taskTitle,
-    description: data.description,
-    responsible_person_id: data.responsiblePerson,
-    priority: data.priority,
-    observer_ids: data.observer.map((observer) => observer.value),
-    task_tag_ids: data.tags.map((tag) => tag.value),
-    expected_start_date: data.expected_start_date,
-    target_date: data.target_date,
-    project_management_id: id,
-    milestone_id: mid,
-    active: true,
-    estimated_hour: data.duration,
-  });
+  const createTaskPayload = (data) => {
+    const formatedEndDate = `${endDate.year}-${endDate.month + 1}-${endDate.date}`;
+    return ({
+      title: data.taskTitle,
+      description: data.description,
+      responsible_person_id: data.responsiblePerson,
+      priority: data.priority,
+      observer_ids: data.observer.map((observer) => observer.value),
+      task_tag_ids: data.tags.map((tag) => tag.value),
+      expected_start_date: startDate,
+      target_date: formatedEndDate,
+      allocation_date: formatedEndDate,
+      project_management_id: id,
+      milestone_id: mid,
+      active: true,
+      estimated_hour: totalWorkingHours,
+      task_allocation_times_attributes: dateWiseHours
+    })
+  };
 
   const isFormEmpty = () => {
     return (
@@ -610,8 +571,6 @@ const Tasks = ({ isEdit, onCloseModal }) => {
       !formData.taskTitle ||
       !formData.responsiblePerson ||
       !formData.priority ||
-      !formData.expected_start_date ||
-      !formData.target_date ||
       !formData.observer.length ||
       !formData.tags.length
     ) {
@@ -621,16 +580,6 @@ const Tasks = ({ isEdit, onCloseModal }) => {
     }
 
     setIsSubmitting(true);
-
-    const duration = calculateDuration(
-      formData.expected_start_date,
-      formData.target_date
-    );
-    if (duration.startsWith("Invalid")) {
-      toast.dismiss();
-      toast.error("End date cannot be before start date.");
-      return;
-    }
 
     const payload = createTaskPayload(formData);
 
@@ -647,9 +596,6 @@ const Tasks = ({ isEdit, onCloseModal }) => {
         responsiblePerson: "",
         department: "",
         priority: "",
-        duration: 0,
-        expected_start_date: null,
-        target_date: null,
         observer: [],
         tags: [],
       });
@@ -680,8 +626,6 @@ const Tasks = ({ isEdit, onCloseModal }) => {
       (!formData.taskTitle ||
         !formData.responsiblePerson ||
         !formData.priority ||
-        !formData.expected_start_date ||
-        !formData.target_date ||
         !formData.observer.length ||
         !formData.tags.length)
     ) {
@@ -691,16 +635,6 @@ const Tasks = ({ isEdit, onCloseModal }) => {
     }
 
     setIsSubmitting(true);
-
-    const duration = calculateDuration(
-      formData.expected_start_date,
-      formData.target_date
-    );
-    if (duration.startsWith("Invalid")) {
-      toast.dismiss();
-      toast.error("End date cannot be before start date.");
-      return;
-    }
 
     const payload = createTaskPayload(formData);
 
@@ -752,15 +686,19 @@ const Tasks = ({ isEdit, onCloseModal }) => {
             setPrevObservers={setPrevObservers}
             isEdit={isEdit}
             dispatch={dispatch}
-            milestoneStartDate={milestone?.start_date}
-            milestoneEndDate={milestone?.end_date}
             token={token}
             allUsers={users}
-            calculateDuration={calculateDuration}
             hasSavedTasks={savedTasks.length > 0}
             setIsDelete={setIsDelete}
             taskDuration={taskDuration}
             setTaskDuration={setTaskDuration}
+            setDateWiseHours={setDateWiseHours}
+            totalWorkingHours={totalWorkingHours}
+            setTotalWorkingHours={setTotalWorkingHours}
+            startDate={startDate}
+            setStartDate={setStartDate}
+            endDate={endDate}
+            setEndDate={setEndDate}
           />
         ))}
 
@@ -779,15 +717,19 @@ const Tasks = ({ isEdit, onCloseModal }) => {
             setPrevObservers={setPrevObservers}
             isEdit={isEdit}
             dispatch={dispatch}
-            milestoneStartDate={milestone?.start_date}
-            milestoneEndDate={milestone?.end_date}
             token={token}
             allUsers={users}
-            calculateDuration={calculateDuration}
             hasSavedTasks={savedTasks.length > 0}
             setIsDelete={setIsDelete}
             taskDuration={taskDuration}
             setTaskDuration={setTaskDuration}
+            setDateWiseHours={setDateWiseHours}
+            totalWorkingHours={totalWorkingHours}
+            setTotalWorkingHours={setTotalWorkingHours}
+            startDate={startDate}
+            setStartDate={setStartDate}
+            endDate={endDate}
+            setEndDate={setEndDate}
           />
         )}
 

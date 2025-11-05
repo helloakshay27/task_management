@@ -11,58 +11,52 @@ import {
     TableRow,
 } from "@/components/ui/table";
 
-const invoices = [
-    {
-        invoice: "INV001",
-        paymentStatus: "Paid",
-        totalAmount: "$250.00",
-        paymentMethod: "Credit Card",
-    },
-];
-
 export const DurationPicker = ({
     value = 0,
     onChange,
     className = "",
-    disabled = false,
-    placeholder = "Select duration",
+    onDateWiseHoursChange,
     startDate,
     endDate,
+    disabled = false,
+    placeholder = "Select duration",
     resposiblePerson = "Unassigned",
+    totalWorkingHours,
+    setTotalWorkingHours,
 }) => {
     const [isOpen, setIsOpen] = useState(false);
     const [taskType, setTaskType] = useState("standard");
-    const [workingHours, setWorkingHours] = useState(0);
     const [dailyHours, setDailyHours] = useState([]);
     const [daysList, setDaysList] = useState([]);
-
     const pickerRef = useRef(null);
 
-    /** ✅ Calculate working hours excluding weekends */
-    const calculateWorkingHours = () => {
-        if (!startDate || !endDate) return 0;
-
-        const start = new Date(startDate);
-        const end = new Date(endDate.year, endDate.month, endDate.date, endDate.hours || 0);
-        if (isNaN(start.getTime()) || isNaN(end.getTime()) || end < start) return 0;
-
-        let workingDays = 0;
-        const current = new Date(start);
-        while (current <= end) {
-            const dayOfWeek = current.getDay();
-            if (dayOfWeek !== 0 && dayOfWeek !== 6) workingDays++;
-            current.setDate(current.getDate() + 1);
+    /** ✅ Parse input like "7", "7.5", "7:30" into decimal hours */
+    const parseHours = (val) => {
+        if (!val) return 0;
+        if (typeof val === "number") return val;
+        if (typeof val === "string" && val.includes(":")) {
+            const [h, m] = val.split(":").map(Number);
+            if (isNaN(h) || isNaN(m)) return 0;
+            return h + m / 60;
         }
-
-        return workingDays * 8; // Default 8 hours per working day
+        const num = parseFloat(val);
+        return isNaN(num) ? 0 : num;
     };
 
-    /** ✅ Generate all days (including weekends) */
-    const getAllDays = (startDate, endDate) => {
-        if (!startDate || !endDate) return [];
+    /** ✅ Format total hours into HH:MM */
+    const formatTotalHours = (total) => {
+        const totalMinutes = Math.round(total * 60);
+        const hours = Math.floor(totalMinutes / 60);
+        const minutes = totalMinutes % 60;
+        return `${hours}:${String(minutes).padStart(2, "0")}`;
+    };
 
-        const start = new Date(startDate);
-        const end = new Date(endDate.year, endDate.month, endDate.date, endDate.hours || 0);
+    /** ✅ Generate all days (inclusive, including weekends) */
+    const getAllDays = (startDate, endDate) => {
+        if (!endDate) return [];
+
+        const start = startDate ? new Date(startDate) : new Date(endDate.year, endDate.month, endDate.date);
+        const end = new Date(endDate.year, endDate.month, endDate.date, 23, 59, 59, 999); // include full day
         if (end < start) return [];
 
         const days = [];
@@ -82,38 +76,88 @@ export const DurationPicker = ({
         return days;
     };
 
+    /** ✅ Format local date safely */
+    const formatLocalDate = (date) => {
+        return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(
+            date.getDate()
+        ).padStart(2, "0")}`;
+    };
+
     /** ✅ When start/end changes */
     useEffect(() => {
-        if (startDate && endDate) {
-            if (taskType === "standard") {
-                const hrs = calculateWorkingHours();
-                setWorkingHours(hrs);
-                if (onChange) onChange(hrs);
-            } else {
+        if (taskType === "standard") {
+            if (startDate && endDate) {
                 const allDays = getAllDays(startDate, endDate);
+                const workingDays = allDays.filter((d) => !d.isWeekend);
+                const hrs = workingDays.length * 8;
+
+                setTotalWorkingHours(hrs);
+                if (onChange) onChange(hrs);
+
+                // ✅ Send 8h per working day
+                if (onDateWiseHoursChange) {
+                    const dateWise = workingDays.map((d) => ({
+                        hours: 8,
+                        minutes: 0,
+                        date: formatLocalDate(d.date),
+                    }));
+                    onDateWiseHoursChange(dateWise);
+                }
+
                 setDaysList(allDays);
-                const defaultHours = allDays.map((d) => (d.isWeekend ? "" : 8));
-                setDailyHours(defaultHours);
-                const total = defaultHours.reduce((sum, h) => sum + (Number(h) || 0), 0);
-                setWorkingHours(total);
-                if (onChange) onChange(total);
+            } else {
+                setTotalWorkingHours(0);
+                setDaysList([]);
+                if (onChange) onChange(0);
+                if (onDateWiseHoursChange) onDateWiseHoursChange([]);
             }
         } else {
-            setWorkingHours(0);
-            setDaysList([]);
-            setDailyHours([]);
-            if (onChange) onChange(0);
+            // ✅ Flexible logic
+            if (endDate) {
+                const allDays = getAllDays(startDate, endDate);
+                setDaysList(allDays);
+                const defaultHours = allDays.map((d) => (d.isWeekend ? "" : "8:00"));
+                setDailyHours(defaultHours);
+
+                const total = defaultHours.reduce((sum, h) => sum + parseHours(h), 0);
+                setTotalWorkingHours(total);
+                if (onChange) onChange(total);
+
+                if (onDateWiseHoursChange) {
+                    const dateWise = allDays.map((d, idx) => ({
+                        hours: parseHours(defaultHours[idx]),
+                        minutes: 0,
+                        date: formatLocalDate(d.date),
+                    }));
+                    onDateWiseHoursChange(dateWise);
+                }
+            } else {
+                setDaysList([]);
+                setDailyHours([]);
+                setTotalWorkingHours(0);
+                if (onChange) onChange(0);
+                if (onDateWiseHoursChange) onDateWiseHoursChange([]);
+            }
         }
     }, [startDate, endDate, taskType]);
 
-    /** ✅ Update total when flexible hours change */
+    /** ✅ Update total & date-wise data when flexible hours change */
     useEffect(() => {
         if (taskType === "flexible") {
-            const total = dailyHours.reduce((sum, h) => sum + (Number(h) || 0), 0);
-            setWorkingHours(total);
+            const total = dailyHours.reduce((sum, h) => sum + parseHours(h), 0);
+            setTotalWorkingHours(total);
             if (onChange) onChange(total);
+
+            if (onDateWiseHoursChange && daysList.length > 0) {
+                const dateWise = daysList.map((d, idx) => ({
+                    hours: parseHours(dailyHours[idx]),
+                    minutes: 0,
+                    date: formatLocalDate(d.date),
+                }));
+                onDateWiseHoursChange(dateWise);
+            }
         }
-    }, [dailyHours]);
+    }, [dailyHours, taskType]);
 
     /** ✅ Close picker on outside click */
     useEffect(() => {
@@ -139,10 +183,12 @@ export const DurationPicker = ({
                 <div className="flex items-center gap-2">
                     <Clock className="w-4 h-4 text-gray-400" />
                     <span
-                        className={`${workingHours === 0 ? "text-gray-400" : "text-gray-700 font-medium"
+                        className={`${totalWorkingHours === 0 ? "text-gray-400" : "text-gray-700 font-medium"
                             }`}
                     >
-                        {workingHours > 0 ? `${workingHours} Hrs` : placeholder}
+                        {totalWorkingHours > 0
+                            ? `${formatTotalHours(totalWorkingHours)} Hrs`
+                            : placeholder}
                     </span>
                 </div>
                 <span className="text-gray-400">
@@ -175,16 +221,16 @@ export const DurationPicker = ({
 
                     {/* === Flexible Table === */}
                     {taskType === "flexible" ? (
-                        (!startDate || !endDate) ? (
+                        !endDate ? (
                             <div className="text-sm text-gray-500 bg-red-100 px-3 py-2 flex items-center gap-2">
-                                <Info size={16} /> Please enter the Task's start and due date to enable flexible work hours.
+                                <Info size={16} /> Please select at least an end date to enable flexible work hours.
                             </div>
                         ) : (
                             <div className="relative w-full overflow-x-auto">
                                 <Table className="min-w-full border-collapse">
                                     <TableHeader>
                                         <TableRow>
-                                            <TableHead className="sticky left-0 bg-white w-[200px] border-r">
+                                            <TableHead className="sticky left-0 bg-white w-[200px] border-r !z-20">
                                                 Owner
                                             </TableHead>
                                             {daysList.map((d, i) => (
@@ -196,9 +242,7 @@ export const DurationPicker = ({
                                                     {d.formatted}
                                                 </TableHead>
                                             ))}
-                                            <TableHead className="sticky right-0 bg-white border-l">
-                                                Hrs
-                                            </TableHead>
+                                            <TableHead className="sticky right-0 bg-white border-l">Hrs</TableHead>
                                         </TableRow>
                                     </TableHeader>
 
@@ -216,17 +260,16 @@ export const DurationPicker = ({
                                             {daysList.map((d, idx) => (
                                                 <TableCell
                                                     key={idx}
-                                                    className={`text-center ${d.isWeekend ? "bg-gray-100" : ""
+                                                    className={`text-center bg-white ${d.isWeekend ? "bg-gray-100" : ""
                                                         }`}
                                                 >
                                                     <input
-                                                        type="number"
-                                                        min="0"
-                                                        max="24"
+                                                        type="text"
                                                         value={dailyHours[idx]}
                                                         onChange={(e) => {
+                                                            const input = e.target.value;
                                                             const newHours = [...dailyHours];
-                                                            newHours[idx] = e.target.value;
+                                                            newHours[idx] = input;
                                                             setDailyHours(newHours);
                                                         }}
                                                         disabled={d.isWeekend}
@@ -235,12 +278,14 @@ export const DurationPicker = ({
                                                             : ""
                                                             }`}
                                                     />
-                                                    <div className="text-xs text-gray-500 mt-1">100%</div>
+                                                    <div className="text-xs text-gray-500 mt-1">
+                                                        {((parseHours(dailyHours[idx]) / 8) * 100).toFixed(2)}%
+                                                    </div>
                                                 </TableCell>
                                             ))}
 
                                             <TableCell className="sticky right-0 bg-white border-l text-center font-medium">
-                                                {workingHours.toFixed(2)}h
+                                                {formatTotalHours(totalWorkingHours)}h
                                             </TableCell>
                                         </TableRow>
                                     </TableBody>
@@ -255,22 +300,15 @@ export const DurationPicker = ({
                                         <TableHead className="sticky left-0 !z-20 bg-white w-[200px] border-r">
                                             Owner
                                         </TableHead>
-                                        <TableHead className="min-w-[200px] bg-white">
-                                            Business Hours
-                                        </TableHead>
-                                        <TableHead className="min-w-[200px] bg-white">
-                                            Work Hours Per Day
-                                        </TableHead>
-                                        <TableHead className="min-w-[200px] bg-white">
-                                            Duration
-                                        </TableHead>
+                                        <TableHead className="min-w-[200px] bg-white">Business Hours</TableHead>
+                                        <TableHead className="min-w-[200px] bg-white">Work Hours Per Day</TableHead>
+                                        <TableHead className="min-w-[200px] bg-white">Duration</TableHead>
                                         <TableHead className="sticky right-0 z-20 bg-white border-l">
                                             Total Hours
                                         </TableHead>
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
-
                                     <TableRow>
                                         <TableCell className="sticky left-0 bg-white border-r font-medium flex items-center gap-2">
                                             <div className="w-[35px] h-[55px] flex items-center justify-center text-sm font-bold">
@@ -280,20 +318,19 @@ export const DurationPicker = ({
                                             </div>
                                             {resposiblePerson || "Unassigned"}
                                         </TableCell>
-                                        <TableCell className="min-w-[200px]">
-                                            Standard Business Hours
+                                        <TableCell className="bg-white">Standard Business Hours</TableCell>
+                                        <TableCell className="!px-2 bg-white">8:00 hr/day (100% day)</TableCell>
+                                        <TableCell className="bg-white">
+                                            {daysList.length > 0
+                                                ? `${daysList.filter((d) => !d.isWeekend).length}d`
+                                                : "--"}
                                         </TableCell>
-                                        <TableCell className="min-w-[200px] !px-2">
-                                            8:00 hr/day (100% day)
-                                        </TableCell>
-                                        <TableCell className="min-w-[200px]">
-                                            3d
-                                        </TableCell>
-                                        <TableCell className="sticky right-0 bg-white z-10 border-l text-right">
-                                            24:00hrs
+                                        <TableCell className="text-right sticky right-0 bg-white border-l">
+                                            {totalWorkingHours > 0
+                                                ? `${formatTotalHours(totalWorkingHours)} hrs`
+                                                : "--"}
                                         </TableCell>
                                     </TableRow>
-
                                 </TableBody>
                             </Table>
                         </div>
@@ -305,8 +342,9 @@ export const DurationPicker = ({
                             onClick={() => {
                                 setDailyHours([]);
                                 setDaysList([]);
-                                setWorkingHours(0);
+                                setTotalWorkingHours(0);
                                 if (onChange) onChange(0);
+                                if (onDateWiseHoursChange) onDateWiseHoursChange([]);
                             }}
                             className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors text-gray-700 font-medium"
                             type="button"

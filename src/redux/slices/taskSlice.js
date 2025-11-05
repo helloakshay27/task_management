@@ -143,6 +143,21 @@ export const taskDetails = createAsyncThunk('taskDetails', async ({ token, id })
     }
 })
 
+export const fetchTargetDateTasks = createAsyncThunk('fetchTargetDateTasks', async ({ token, id, date }) => {
+    try {
+        const response = await axios.get(`${baseURL}/task_managements/filtered_tasks.json?target_date=${date}&responsible_person_id=${id}`, {
+            headers: {
+                Authorization: `Bearer ${token}`,
+            }
+        });
+
+        return response.data;
+    } catch (error) {
+        console.log(error);
+        return error.response.data;
+    }
+})
+
 export const editTask = createAsyncThunk('editTask', async ({ token, id, payload }) => {
     try {
         const response = await axios.put(`${baseURL}/task_managements/${id}.json`,
@@ -411,6 +426,7 @@ export const fetchTasksOfMilestoneSlice = createApiSlice('fetchTasksOfMilestone'
 export const removeTaskAttachmentSlice = createApiSlice('removeTaskAttachment', removeTaskAttachment);
 export const fetchKanbanTasksSlice = createApiSlice('fetchKanbanTasks', fetchKanbanTasks);
 export const deleteDependancySlice = createApiSlice('deleteDependancy', deleteDependancy);
+export const fetchTargetDateTasksSlice = createApiSlice('fetchTargetDateTasks', fetchTargetDateTasks);
 
 export const createTaskReducer = createTaskSlice.reducer;
 export const fetchTasksReducer = fetchTasksSlice.reducer;
@@ -433,5 +449,6 @@ export const fetchTasksOfMilestoneReducer = fetchTasksOfMilestoneSlice.reducer;
 export const removeTaskAttachmentReducer = removeTaskAttachmentSlice.reducer;
 export const fetchKanbanTasksReducer = fetchKanbanTasksSlice.reducer;
 export const deleteDependancyReducer = deleteDependancySlice.reducer;
+export const fetchTargetDateTasksReducer = fetchTargetDateTasksSlice.reducer;
 
 export const { resetCommentEdit } = editTaskCommentSlice.actions;
