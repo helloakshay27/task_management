@@ -3,12 +3,42 @@ import {
     ChevronDown,
     Calendar,
     CalendarCheck2,
+    Timer,
 } from "lucide-react";
 import { useState, useMemo, useEffect } from "react";
 import { DndProvider, useDrag, useDrop } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
 import { useDispatch } from "react-redux";
 import { updateTask } from "@/redux/slices/taskSlice";
+
+const calculateDuration = (end) => {
+    const now = new Date();
+    const endDate = new Date(end);
+    endDate.setHours(23, 59, 59, 999);
+    const diffMs = endDate - now;
+    if (diffMs <= 0) return "0s";
+    const seconds = Math.floor(diffMs / 1000);
+    const minutes = Math.floor(seconds / 60);
+    const hours = Math.floor(minutes / 60);
+    const days = Math.floor(hours / 24);
+    const remainingHours = hours % 24;
+    const remainingMinutes = minutes % 60;
+    const remainingSeconds = seconds % 60;
+    return `${days > 0 ? days + "d" : ""} : ${remainingHours > 0 ? remainingHours + "h" : ""} : ${remainingMinutes > 0 ? remainingMinutes + "m" : ""}`;
+};
+
+const CountdownTimer = ({ targetDate }) => {
+    const [countdown, setCountdown] = useState(calculateDuration(targetDate));
+    useEffect(() => {
+        const interval = setInterval(() => {
+            setCountdown(calculateDuration(targetDate));
+        }, 1000);
+        return () => clearInterval(interval);
+    }, [targetDate]);
+    return (
+        <div className="text-left text-xs">{countdown}</div>
+    );
+};
 
 // ===================== TaskCard =====================
 const TaskCard = ({ task, selectedDate }) => {
@@ -55,6 +85,10 @@ const TaskCard = ({ task, selectedDate }) => {
                 <div className="flex items-center gap-1">
                     <CalendarCheck2 className="w-4 h-4" />
                     <span>{`${hours}:${minutes} Hrs`}</span>
+                </div>
+                <div className="flex items-center gap-1">
+                    <Timer className="w-4 h-4" />
+                    <CountdownTimer targetDate={task.target_date} />
                 </div>
             </div>
         </div>
