@@ -76,7 +76,7 @@ const TaskCard = ({ task, selectedDate }) => {
             className={`p-3 mb-2 border-l-4 ${task.priority === "High" ? "border-[#C72030]" : task.priority === "Medium" ? "border-[#ED9017]" : "border-[#1FCFB3]"} bg-[#D5DBDB] ${isDragging ? "opacity-50" : ""
                 }`}
         >
-            <div className="text-xs font-medium text-gray-800 mb-2">{task.title}</div>
+            <div className="text-xs font-medium text-gray-800 mb-2 text-ellipsis whitespace-nowrap overflow-hidden">{task.title}</div>
             <div className="flex items-center gap-4 text-xs text-gray-600">
                 <div className="flex items-center gap-1">
                     <Calendar className="w-4 h-4" />
