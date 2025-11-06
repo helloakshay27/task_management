@@ -55,7 +55,7 @@ export const DurationPicker = ({
     const getAllDays = (startDate, endDate) => {
         if (!endDate) return [];
 
-        const start = startDate ? new Date(startDate) : new Date(endDate.year, endDate.month, endDate.date);
+        const start = new Date(startDate.year, startDate.month, startDate.date, 23, 59, 59, 999);
         const end = new Date(endDate.year, endDate.month, endDate.date, 23, 59, 59, 999); // include full day
         if (end < start) return [];
 
@@ -300,9 +300,9 @@ export const DurationPicker = ({
                                         <TableHead className="sticky left-0 !z-20 bg-white w-[200px] border-r">
                                             Owner
                                         </TableHead>
-                                        <TableHead className="min-w-[200px] bg-white">Business Hours</TableHead>
-                                        <TableHead className="min-w-[200px] bg-white">Work Hours Per Day</TableHead>
-                                        <TableHead className="min-w-[200px] bg-white">Duration</TableHead>
+                                        <TableHead className="min-w-[150px] bg-white">Business Hours</TableHead>
+                                        <TableHead className="min-w-[180px] bg-white">Work Hours Per Day</TableHead>
+                                        <TableHead className="min-w-[100px] bg-white">Duration</TableHead>
                                         <TableHead className="sticky right-0 z-20 bg-white border-l">
                                             Total Hours
                                         </TableHead>
@@ -352,7 +352,12 @@ export const DurationPicker = ({
                             Clear
                         </button>
                         <button
-                            onClick={() => setIsOpen(false)}
+                            onClick={() => {
+                                if (taskType === "standard") {
+                                    setTotalWorkingHours(8)
+                                }
+                                setIsOpen(false)
+                            }}
                             className="flex-1 px-4 py-2 bg-[#c72030] text-white rounded-lg transition-colors font-medium"
                             type="button"
                         >

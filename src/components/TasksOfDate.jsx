@@ -332,7 +332,7 @@ const TasksOfDate = ({ selectedDate, onClose, tasks, userAvailability }) => {
 
     return (
         <DndProvider backend={HTML5Backend}>
-            <div className="bg-white">
+            <div className="bg-white mt-3">
                 {/* Header */}
                 <div className="bg-red-600 text-white px-4 py-3 flex items-center justify-between">
                     <div className="flex items-center gap-3">

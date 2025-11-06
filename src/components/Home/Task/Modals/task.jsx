@@ -28,6 +28,7 @@ import gsap from "gsap";
 import { TaskDatePicker } from "@/components/TaskDatePicker";
 import TasksOfDate from "@/components/TasksOfDate";
 import { CustomDatePicker } from "@/components/CustomDatePicker";
+import { CustomCalender } from "@/components/CustomCalender";
 
 const TaskForm = ({
   formData,
@@ -55,14 +56,17 @@ const TaskForm = ({
   startDate,
   setStartDate,
   endDate,
-  setEndDate
+  setEndDate,
 }) => {
   const { fetchUserAvailability: userAvailability } = useSelector(
     (state) => state.fetchUserAvailability
   );
 
   const [showDatePicker, setShowDatePicker] = useState(false);
+  const [showStartDatePicker, setShowStartDatePicker] = useState(false);
   const [targetDateTasks, setTargetDateTasks] = useState([]);
+  const [showCalender, setShowCalender] = useState(false);
+  const [showStartCalender, setShowStartCalender] = useState(false)
 
   const monthNames = [
     "Jan",
@@ -80,6 +84,7 @@ const TaskForm = ({
   ];
 
   const collapsibleRef = useRef(null);
+  const startCollapsibleRef = useRef(null);
 
   // Animate when showDatePicker changes
   useEffect(() => {
@@ -104,15 +109,44 @@ const TaskForm = ({
   }, [showDatePicker]);
 
   useEffect(() => {
+    const el = startCollapsibleRef.current;
+    if (!el) return;
+
+    if (showStartDatePicker) {
+      gsap.to(el, {
+        height: "auto",
+        opacity: 1,
+        duration: 0.4,
+        ease: "power2.out",
+      });
+    } else {
+      gsap.to(el, {
+        height: 0,
+        opacity: 0,
+        duration: 0.3,
+        ease: "power2.in",
+      });
+    }
+  }, [showStartDatePicker]);
+
+  useEffect(() => {
     const getTargetDateTasks = async () => {
-      const formattedEndDate = `${endDate.year}-${String(endDate.month + 1).padStart(2, '0')}-${String(endDate.date).padStart(2, '0')}`;
+      const formattedEndDate = `${endDate.year}-${String(
+        endDate.month + 1
+      ).padStart(2, "0")}-${String(endDate.date).padStart(2, "0")}`;
       try {
-        const response = await dispatch(fetchTargetDateTasks({ token, id: formData.responsiblePerson, date: formattedEndDate })).unwrap();
+        const response = await dispatch(
+          fetchTargetDateTasks({
+            token,
+            id: formData.responsiblePerson,
+            date: formattedEndDate,
+          })
+        ).unwrap();
         setTargetDateTasks(response);
       } catch (error) {
-        console.log(error)
+        console.log(error);
       }
-    }
+    };
     if (formData.responsiblePerson && endDate) {
       getTargetDateTasks();
     }
@@ -158,6 +192,9 @@ const TaskForm = ({
 
     setFormData((prev) => ({ ...prev, [name]: selectedOptions }));
   };
+
+  console.log(startDate)
+  console.log(endDate)
 
   return (
     <div className="p-4 bg-white relative">
@@ -316,12 +353,34 @@ const TaskForm = ({
 
       <div className="flex justify-between mt-3 gap-2 text-[12px]">
         <div className="space-y-2 w-full">
-          <label className="block">Start Date</label>
-          <CustomDatePicker
-            value={startDate}
-            onChange={setStartDate}
-            placeholder="Select Start Date"
-          />
+          <label className="block">
+            Start Date <span className="text-red-600">*</span>
+          </label>
+          <button
+            type="button"
+            className="w-full border outline-none border-gray-300 px-2 py-[7px] text-[13px] flex items-center gap-3 text-gray-400"
+            onClick={() => {
+              if (showDatePicker) {
+                setShowDatePicker(false);
+              }
+              setShowStartDatePicker(!showStartDatePicker)
+            }}
+          >
+            {startDate ? (
+              <div className="text-black flex items-center justify-between w-full">
+                <CalendarIcon className="w-4 h-4" />
+                <div>
+                  Target : {startDate.date.toString().padStart(2, "0")}{" "}
+                  {monthNames[startDate.month]}
+                </div>
+                <X className="w-4 h-4" onClick={() => setStartDate(null)} />
+              </div>
+            ) : (
+              <>
+                <CalendarIcon className="w-4 h-4" /> Select Start Date
+              </>
+            )}
+          </button>
         </div>
 
         <div className="space-y-2 w-full">
@@ -331,7 +390,12 @@ const TaskForm = ({
           <button
             type="button"
             className="w-full border outline-none border-gray-300 px-2 py-[7px] text-[13px] flex items-center gap-3 text-gray-400"
-            onClick={() => setShowDatePicker(!showDatePicker)}
+            onClick={() => {
+              if (showStartDatePicker) {
+                setShowStartDatePicker(false)
+              }
+              setShowDatePicker(!showDatePicker)
+            }}
           >
             {endDate ? (
               <div className="text-black flex items-center justify-between w-full">
@@ -352,18 +416,53 @@ const TaskForm = ({
       </div>
 
       <div
-        ref={collapsibleRef}
-        className="overflow-hidden opacity-0 h-0 mt-3"
+        ref={startCollapsibleRef}
+        className="overflow-hidden opacity-0 h-0"
         style={{ willChange: "height, opacity" }}
       >
-        {!endDate ? (
-          <TaskDatePicker selectedDate={endDate} onDateSelect={setEndDate} startDate={startDate} userAvailability={userAvailability} />
-        ) : (
-          <TasksOfDate selectedDate={endDate} onClose={() => { }} tasks={targetDateTasks} userAvailability={userAvailability} />
+        {!startDate && (
+          showStartCalender ? (
+            <CustomCalender setShowCalender={setShowStartCalender} onDateSelect={setStartDate} selectedDate={startDate} />
+          ) : (
+            <TaskDatePicker
+              selectedDate={startDate}
+              onDateSelect={setStartDate}
+              startDate={startDate}
+              userAvailability={userAvailability}
+              setShowCalender={setShowStartCalender}
+            />
+          )
         )}
       </div>
 
-      <div className="flex gap-2 text-[12px]">
+      <div
+        ref={collapsibleRef}
+        className="overflow-hidden opacity-0 h-0"
+        style={{ willChange: "height, opacity" }}
+      >
+        {!endDate ? (
+          showCalender ? (
+            <CustomCalender setShowCalender={setShowCalender} onDateSelect={setEndDate} selectedDate={endDate} />
+          ) : (
+            <TaskDatePicker
+              selectedDate={endDate}
+              onDateSelect={setEndDate}
+              startDate={startDate}
+              userAvailability={userAvailability}
+              setShowCalender={setShowCalender}
+            />
+          )
+        ) : (
+          <TasksOfDate
+            selectedDate={endDate}
+            onClose={() => { }}
+            tasks={targetDateTasks}
+            userAvailability={userAvailability}
+          />
+        )}
+      </div>
+
+      <div className="flex gap-2 text-[12px] mt-3">
         <div className="space-y-2 w-full">
           <label className="block">
             Priority <span className="text-red-600">*</span>
@@ -516,8 +615,9 @@ const Tasks = ({ isEdit, onCloseModal }) => {
   }, [isEdit, task, id, mid, getTagName]);
 
   const createTaskPayload = (data) => {
-    const formatedEndDate = `${endDate.year}-${endDate.month + 1}-${endDate.date}`;
-    return ({
+    const formatedEndDate = `${endDate.year}-${endDate.month + 1}-${endDate.date
+      }`;
+    return {
       title: data.taskTitle,
       description: data.description,
       responsible_person_id: data.responsiblePerson,
@@ -531,8 +631,8 @@ const Tasks = ({ isEdit, onCloseModal }) => {
       milestone_id: mid,
       active: true,
       estimated_hour: totalWorkingHours,
-      task_allocation_times_attributes: dateWiseHours
-    })
+      task_allocation_times_attributes: dateWiseHours,
+    };
   };
 
   const isFormEmpty = () => {
