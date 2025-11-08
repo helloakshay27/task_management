@@ -55,8 +55,8 @@ export const DurationPicker = ({
     const getAllDays = (startDate, endDate) => {
         if (!endDate) return [];
 
-        const start = new Date(startDate.year, startDate.month, startDate.date, 23, 59, 59, 999);
-        const end = new Date(endDate.year, endDate.month, endDate.date, 23, 59, 59, 999); // include full day
+        const start = new Date(startDate?.year, startDate?.month, startDate?.date, 23, 59, 59, 999);
+        const end = new Date(endDate?.year, endDate?.month, endDate?.date, 23, 59, 59, 999); // include full day
         if (end < start) return [];
 
         const days = [];
