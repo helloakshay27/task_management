@@ -319,7 +319,7 @@ const TaskForm = ({
             </label>
             <SelectBox
               options={[
-                projects.map((project) => ({
+                ...projects.map((project) => ({
                   label: project.title,
                   value: project.id,
                 })),
@@ -659,8 +659,8 @@ const Tasks = ({ isEdit, onCloseModal }) => {
   const [startDate, setStartDate] = useState(null);
   const [endDate, setEndDate] = useState(null);
   const [formData, setFormData] = useState({
-    project: id,
-    milestone: mid,
+    project: "",
+    milestone: "",
     taskTitle: "",
     description: "",
     responsiblePerson: "",
