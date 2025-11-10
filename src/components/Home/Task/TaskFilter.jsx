@@ -7,6 +7,8 @@ import { useSelector, useDispatch } from "react-redux";
 import { filterTask } from "../../../redux/slices/taskSlice";
 import { useParams } from "react-router-dom";
 import qs from "qs";
+import axios from "axios";
+import { baseURL } from "../../../../apiDomain";
 
 const colorOptions = [
     { label: "Open", color: "bg-[#c85e68]", value: "open" },
@@ -31,10 +33,12 @@ const TaskFilter = ({ isModalOpen, setIsModalOpen }) => {
                     selectedStatuses: [],
                     selectedResponsible: [],
                     selectedCreators: [],
+                    selectedProjects: [],
                     dates: { startDate: "", endDate: "" },
                     statusSearch: "",
                     ResponsiblePersonSearch: "",
                     creatorSearch: "",
+                    projectSearch: "",
                 };
         } catch (error) {
             console.error("Error parsing taskFilters from localStorage:", error);
@@ -42,10 +46,12 @@ const TaskFilter = ({ isModalOpen, setIsModalOpen }) => {
                 selectedStatuses: [],
                 selectedResponsible: [],
                 selectedCreators: [],
+                selectedProjects: [],
                 dates: { startDate: "", endDate: "" },
                 statusSearch: "",
                 ResponsiblePersonSearch: "",
                 creatorSearch: "",
+                projectSearch: "",
             };
         }
     };
@@ -56,21 +62,25 @@ const TaskFilter = ({ isModalOpen, setIsModalOpen }) => {
     const [selectedStatuses, setSelectedStatuses] = useState(initialFilters.selectedStatuses);
     const [selectedResponsible, setSelectedResponsible] = useState(initialFilters.selectedResponsible);
     const [selectedCreators, setSelectedCreators] = useState(initialFilters.selectedCreators);
+    const [selectedProjects, setSelectedProjects] = useState(initialFilters.selectedProjects);
     const [dates, setDates] = useState(initialFilters.dates);
     const [responsiblePersonOptions, setResponsiblePersonOptions] = useState([]);
     const [createdByOptions, setCreatedByOptions] = useState([]);
     const [statusOptions, setStatusOptions] = useState([]);
+    const [projectOptions, setProjectOptions] = useState([]);
 
     // Search inputs inside dropdowns
     const [statusSearch, setStatusSearch] = useState(initialFilters.statusSearch);
     const [ResponsiblePersonSearch, setResponsiblePersonSearch] = useState(initialFilters.ResponsiblePersonSearch);
     const [creatorSearch, setCreatorSearch] = useState(initialFilters.creatorSearch);
+    const [projectSearch, setProjectSearch] = useState(initialFilters.projectSearch);
     const [dropdowns, setDropdowns] = useState({
         status: false,
         ResponsiblePerson: false,
         startDate: false,
         endDate: false,
         createdBy: false,
+        project: false,
     });
     const dispatch = useDispatch();
 
@@ -103,28 +113,57 @@ const TaskFilter = ({ isModalOpen, setIsModalOpen }) => {
         }
     }, [tasksFromStore, filteredTasks, users])
 
+    // Fetch projects from API
+    useEffect(() => {
+        const fetchProjects = async () => {
+            try {
+                const response = await axios.get(`${baseURL}/project_managements.json`, {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                });
+                if (response.data && Array.isArray(response.data)) {
+                    setProjectOptions(response.data.map(project => ({
+                        label: project.name || project.title,
+                        value: project.id
+                    })));
+                }
+            } catch (error) {
+                console.error("Error fetching projects:", error);
+            }
+        };
+
+        if (token) {
+            fetchProjects();
+        }
+    }, [token]);
+
     // Save filter state to localStorage whenever it changes
     useEffect(() => {
         const filters = {
             selectedStatuses,
             selectedResponsible,
             selectedCreators,
+            selectedProjects,
             dates,
             statusSearch,
             ResponsiblePersonSearch,
             creatorSearch,
+            projectSearch,
         };
-        if (selectedStatuses?.length > 0 || selectedResponsible?.length > 0 || selectedCreators?.length > 0 || dates.startDate || dates.endDate || statusSearch || ResponsiblePersonSearch || creatorSearch) {
+        if (selectedStatuses?.length > 0 || selectedResponsible?.length > 0 || selectedCreators?.length > 0 || selectedProjects?.length > 0 || dates.startDate || dates.endDate || statusSearch || ResponsiblePersonSearch || creatorSearch || projectSearch) {
             localStorage.setItem("taskFilters", JSON.stringify(filters));
         }
     }, [
         selectedStatuses,
         selectedResponsible,
         selectedCreators,
+        selectedProjects,
         dates,
         statusSearch,
         ResponsiblePersonSearch,
         creatorSearch,
+        projectSearch,
     ]);
 
 
@@ -137,6 +176,7 @@ const TaskFilter = ({ isModalOpen, setIsModalOpen }) => {
                 "q[start_date_eq]": dates.startDate,
                 "q[end_date_eq]": dates.endDate,
                 "q[responsible_person_id_in][]": selectedResponsible?.length > 0 ? selectedResponsible : [],
+                "q[project_management_id_in][]": selectedProjects?.length > 0 ? selectedProjects : [],
                 "q[milestone_id_eq]": mid
             }
             if (newFilter) {
@@ -160,6 +200,7 @@ const TaskFilter = ({ isModalOpen, setIsModalOpen }) => {
                 status: false,
                 ResponsiblePerson: false,
                 createdBy: false,
+                project: false,
                 startDate: false,
                 endDate: false,
                 [key]: true,
@@ -239,10 +280,12 @@ const TaskFilter = ({ isModalOpen, setIsModalOpen }) => {
         setSelectedStatuses([]);
         setSelectedResponsible([]);
         setSelectedCreators([]);
+        setSelectedProjects([]);
         setDates({ startDate: "", endDate: "" });
         setStatusSearch("");
         setResponsiblePersonSearch("");
         setCreatorSearch("");
+        setProjectSearch("");
         localStorage.removeItem("taskFilters");
         handleApplyFilter({
             "q[milestone_id_eq]": mid
@@ -273,6 +316,37 @@ const TaskFilter = ({ isModalOpen, setIsModalOpen }) => {
                 </div>
 
                 <div className="flex-1 overflow-y-auto divide-y">
+
+                    {/* Project */}
+                    <div className="p-6 py-3">
+                        <div
+                            className="flex items-center justify-between cursor-pointer"
+                            onClick={() => toggleDropdown("project")}
+                        >
+                            <span className="font-medium text-sm select-none">Project</span>
+                            {dropdowns.project ? (
+                                <ChevronDown className="text-gray-400" />
+                            ) : (
+                                <ChevronRight className="text-gray-400" />
+                            )}
+                        </div>
+                        {dropdowns.project && (
+                            <div className="mt-4 border">
+                                <div className="relative border-b">
+                                    <Search className="absolute left-3 top-2.5 text-red-400" size={16} />
+                                    <input
+                                        type="text"
+                                        placeholder="Filter project..."
+                                        className="w-full pl-8 pr-4 py-2 text-sm border focus:outline-none"
+                                        value={projectSearch}
+                                        onChange={(e) => setProjectSearch(e.target.value)}
+                                    />
+                                </div>
+                                {renderCheckboxList(projectOptions, selectedProjects, setSelectedProjects, projectSearch)}
+                            </div>
+                        )}
+                    </div>
+
                     <div className="p-6 py-3">
                         <div
                             className="flex items-center justify-between cursor-pointer"
@@ -331,6 +405,8 @@ const TaskFilter = ({ isModalOpen, setIsModalOpen }) => {
                             </div>
                         )}
                     </div>
+
+
 
                     {/* Start Date and End Date */}
                     {/* {["startDate", "endDate"].map((key) => {
