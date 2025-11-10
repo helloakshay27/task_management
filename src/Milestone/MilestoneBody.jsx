@@ -247,9 +247,9 @@ const GanttChart = () => {
                 resize: true,
                 template: function (task) {
                     if (task.type === "milestone") {
-                        return `<span class="gantt-milestone-link" data-id="${task.navigationid}" style="cursor: pointer;">${task.text}</span>`;
+                        return `<span class="gantt-milestone-link" data-id="${task.navigationid}" style="cursor: pointer;" title="${task.text}">${task.text}</span> <span class="gantt-open-task" data-id="${task.navigationid}" data-type="milestone" data-milestone-id="${task.id}" style="cursor: pointer;">${task.text}</span>`;
                     }
-                    return task.text;
+                    return `<span style="cursor: pointer;" title="${task.text}">${task.text}</span>`;
                 },
             },
             {
@@ -332,70 +332,69 @@ const GanttChart = () => {
 
         const weekDateFormatter = gantt.date.date_to_str("%d %M");
 
+        gantt.config.scale_offset_minimal = true;
+        gantt.config.fit_tasks = false;
+        gantt.config.min_column_width = 80;
+        gantt.config.show_chart = true;
+        gantt.config.scroll_size = 20;
+        gantt.config.smart_rendering = true;
+        gantt.config.smart_scales = true;
+
+        // Modify the scales configuration for each view type:
         if (scale === "week") {
             gantt.config.scales = [
+                { unit: "month", step: 1, format: "%F %Y" },
                 {
                     unit: "week",
                     step: 1,
                     format: function (date) {
                         const start = gantt.date.week_start(new Date(date));
-                        const end = gantt.date.add(start, 7, "day");
-                        return `${weekDateFormatter(start)} - ${weekDateFormatter(end)} , ${start.getFullYear()}`;
-                    },
+                        const end = gantt.date.add(start, 6, "day");
+                        return weekDateFormatter(start) + " - " + weekDateFormatter(end);
+                    }
                 },
-                {
-                    unit: "day",
-                    step: 1,
-                    format: function (date) {
-                        return gantt.date.date_to_str("%j")(date);
-                    },
-                },
+                { unit: "day", step: 1, format: "%j" }
             ];
+            gantt.config.scale_height = 90;
         } else if (scale === "month") {
             gantt.config.scales = [
-                {
-                    unit: "month",
-                    step: 1,
-                    format: "%F, %Y",
-                },
+                { unit: "year", step: 1, format: "%Y" },
+                { unit: "month", step: 1, format: "%F" },
                 {
                     unit: "week",
                     step: 1,
                     format: function (date) {
                         const start = gantt.date.week_start(new Date(date));
-                        const end = gantt.date.add(start, 7, "day");
-                        return `${weekDateFormatter(start)} - ${weekDateFormatter(end)}`;
-                    },
-                },
+                        return "W" + gantt.date.date_to_str("%W")(start);
+                    }
+                }
             ];
+            gantt.config.scale_height = 90;
         } else if (scale === "year") {
             gantt.config.scales = [
+                { unit: "year", step: 1, format: "%Y" },
                 {
-                    unit: "year",
-                    step: 1,
-                    format: "%Y",
+                    unit: "quarter", step: 1, format: function (date) {
+                        var quarterNum = Math.floor((date.getMonth() + 3) / 3);
+                        return "Q" + quarterNum;
+                    }
                 },
-                {
-                    unit: "month",
-                    step: 1,
-                    format: "%M",
-                },
+                { unit: "month", step: 1, format: "%M" }
             ];
+            gantt.config.scale_height = 90;
         }
 
-        gantt.config.row_height = 40;
-        gantt.config.scale_height = 60;
-        gantt.config.grid_width = 500;
-        gantt.config.show_task_cells = true;
-        gantt.config.show_progress = true;
-        gantt.config.grid_resize = true;
-        gantt.config.autofit_columns = true;
+        // Add this to set minimum and maximum dates for scrolling
+        const setDateRange = () => {
+            const today = new Date();
+            const minDate = new Date(today.getFullYear() - 2, 0, 1); // 2 years ago
+            const maxDate = new Date(today.getFullYear() + 2, 11, 31); // 2 years ahead
 
-        gantt.config.date_format = "%d-%m-%Y";
-        gantt.config.xml_date = "%d-%m-%Y";
+            gantt.config.start_date = minDate;
+            gantt.config.end_date = maxDate;
+        };
 
-        gantt.config.auto_scheduling = true;
-        gantt.config.auto_scheduling_strict = true;
+        setDateRange();
 
         gantt.templates.task_class = function (start, end, task) {
             if (task.type === "milestone") {
@@ -411,6 +410,9 @@ const GanttChart = () => {
         gantt.config.types.sub_task = "sub_task";
 
         if (ganttContainer.current) {
+            gantt.templates.task_text = function (start, end, task) {
+                return ""; // Return empty string to remove text from bars
+            };
             gantt.init(ganttContainer.current);
         } else {
             console.error("Gantt container not found!");

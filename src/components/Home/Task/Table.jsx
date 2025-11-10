@@ -48,13 +48,17 @@ const EditableTextField = ({
   isNewRow,
   onEnterPress,
   validator,
+  'data-task-id': taskId,
+  'data-field-name': fieldName,
 }) => {
   const [localValue, setLocalValue] = useState(value);
   useEffect(() => setLocalValue(value), [value]);
+  useEffect(() => {
+    if (localValue) onUpdate(localValue)
+  }, [localValue])
   const handleKeyDown = (event) => {
     if (event.key === "Enter") {
       event.preventDefault();
-      onUpdate(localValue);
       onEnterPress();
     }
   };
@@ -67,6 +71,8 @@ const EditableTextField = ({
       onChange={(e) => setLocalValue(e.target.value)}
       onBlur={handleBlur}
       onKeyDown={handleKeyDown}
+      data-task-id={taskId}
+      data-field-name={fieldName}
       className={`${validator ? "border border-red-600" : "border-none"} focus:outline-none w-full h-full p-1 rounded text-[12px] bg-transparent`}
     />
   );
@@ -268,7 +274,7 @@ const processTaskData = (task) => {
   };
 };
 
-const TaskTable = () => {
+const TaskTable = ({ isModalOpen }) => {
   const token = localStorage.getItem("token");
   const { id, mid } = useParams();
   const dispatch = useDispatch();
@@ -301,6 +307,7 @@ const TaskTable = () => {
   const userFetchInitiatedRef = useRef(false);
   const isFetchingRef = useRef(false);
   const lastFetchedPageRef = useRef(null);
+  const lastFetchedPathRef = useRef(location.pathname);
   const [data, setData] = useState([]);
   const [expanded, setExpanded] = useState({});
   const [isAddingNewTask, setIsAddingNewTask] = useState(false);
@@ -339,6 +346,108 @@ const TaskTable = () => {
     }),
     []
   );
+
+  const handleFetchTasks = async () => {
+    const myTasks = localStorage.getItem("myTasks");
+    const page = pagination.pageIndex + 1;
+    if (localStorage.getItem("taskFilters")) {
+      const saved = JSON.parse(localStorage.getItem("taskFilters"));
+      const newFilter = {
+        "q[status_in][]": saved.selectedStatuses.length > 0 ? saved.selectedStatuses : [],
+        "q[created_by_id_eq]": saved.selectedCreators.length > 0 ? saved.selectedCreators : [],
+        "q[start_date_eq]": saved.dates["Start Date"],
+        "q[end_date_eq]": saved.dates["End Date"],
+        "q[responsible_person_id_in][]": saved.selectedResponsible.length > 0 ? saved.selectedResponsible : [],
+        "q[milestone_id_eq]": mid,
+        page,
+      };
+      const queryString = qs.stringify(newFilter, { arrayFormat: "repeat" });
+      await dispatch(filterTask({ token, filter: queryString })).unwrap();
+      return;
+    }
+    if (localStorage.getItem("taskStatus")) {
+      const saved = localStorage.getItem("taskStatus");
+      const filter = {
+        "q[status_eq]": saved,
+        page,
+      };
+      await dispatch(filterTask({ token, filter })).unwrap();
+      return;
+    }
+    if (mid != undefined && mid != null) {
+      await dispatch(fetchTasks({ token, id: mid, page })).unwrap();
+    } else {
+      if (myTasks === "false") {
+        await dispatch(fetchTasks({ token, id: "", page })).unwrap();
+      } else {
+        await dispatch(fetchMyTasks({ token, page })).unwrap();
+      }
+    }
+  };
+
+  const handleUpdateTaskFieldCell = useCallback(
+    async (taskId, fieldName, newValue, taskRow) => {
+      if (isUpdatingTask) return;
+      const payload = { [fieldName]: newValue };
+      setIsUpdatingTask(true);
+      setLocalError(null);
+      try {
+        if (fieldName === "status") {
+          await dispatch(changeTaskStatus({ token, id: taskId, payload })).unwrap();
+
+          // If this is a subtask, check and update parent task status
+          if (taskRow && taskRow.depth > 0) {
+            // This is a subtask, need to update parent task
+            const parentTaskId = taskRow.parentId;
+            if (parentTaskId) {
+              // Fetch parent task data to recalculate status
+              await handleFetchTasks();
+            }
+          }
+        } else {
+          await dispatch(updateTask({ token, id: taskId, payload })).unwrap();
+        }
+        lastFetchedPageRef.current = null;
+        await handleFetchTasks();
+      } catch (error) {
+        console.error(`Task field update failed for ${taskId} (${fieldName}):`, error);
+        setLocalError(`Update failed: ${error?.response?.data?.errors || error?.message || "Server error"}`);
+      } finally {
+        setIsUpdatingTask(false);
+      }
+    },
+    [dispatch, isUpdatingTask, token, handleFetchTasks]
+  );
+
+  // Add this new hook near the top of the TaskTable component
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (isModalOpen) return;
+      // Check if click is outside the table
+      const tableWrapper = document.querySelector('.table-wrapper');
+      if (tableWrapper && !tableWrapper.contains(event.target)) {
+        // Get any active editable fields
+        const activeElement = document.activeElement;
+        if (activeElement && activeElement.tagName === 'INPUT') {
+          // Find the closest row to get task data
+          const row = activeElement.closest('tr');
+          if (row) {
+            const taskId = row.getAttribute('data-task-id');
+            const fieldName = activeElement.getAttribute('data-field-name');
+            const value = activeElement.value;
+
+            if (taskId && fieldName && value !== undefined) {
+              handleUpdateTaskFieldCell(taskId, fieldName, value);
+            }
+          }
+          activeElement.blur();
+        }
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [handleUpdateTaskFieldCell]);
 
   // Function to update parent task status based on subtasks via API
   const updateParentTaskStatus = useCallback(async (taskId, newStatus) => {
@@ -412,9 +521,21 @@ const TaskTable = () => {
     const fetch = async () => {
       if (isCreatingTask || isUpdatingTask || isFetchingRef.current) return;
 
+      // Reset pagination when route changes
+      if (location.pathname !== lastFetchedPathRef.current) {
+        setPagination(prev => ({
+          ...prev,
+          pageIndex: 0,
+          currentPage: 1
+        }));
+        lastFetchedPathRef.current = location.pathname;
+        lastFetchedPageRef.current = null;
+      }
+
       const pageToFetch = pagination.pageIndex + 1;
 
-      if (lastFetchedPageRef.current === pageToFetch) return;
+      if (lastFetchedPageRef.current === pageToFetch &&
+        lastFetchedPathRef.current === location.pathname) return;
 
       try {
         isFetchingRef.current = true;
@@ -427,7 +548,16 @@ const TaskTable = () => {
       }
     };
     fetch();
-  }, [dispatch, isCreatingTask, isUpdatingTask, location.pathname, mid, token, pagination.pageIndex]);
+  }, [
+    dispatch,
+    isCreatingTask,
+    isUpdatingTask,
+    location.pathname,
+    mid,
+    token,
+    pagination.pageIndex,
+    handleFetchTasks
+  ]);
 
   useEffect(() => {
     if (!loadingUsers && Array.isArray(users) && users.length === 0 && !usersFetchError && !isCreatingTask && !isUpdatingTask) {
@@ -648,78 +778,6 @@ const TaskTable = () => {
     return () => window.removeEventListener("keydown", handleEscape);
   }, [isAddingNewTask, handleCancelNewTask]);
 
-  const handleFetchTasks = async () => {
-    const myTasks = localStorage.getItem("myTasks");
-    const page = pagination.pageIndex + 1;
-    if (localStorage.getItem("taskFilters")) {
-      const saved = JSON.parse(localStorage.getItem("taskFilters"));
-      const newFilter = {
-        "q[status_in][]": saved.selectedStatuses.length > 0 ? saved.selectedStatuses : [],
-        "q[created_by_id_eq]": saved.selectedCreators.length > 0 ? saved.selectedCreators : [],
-        "q[start_date_eq]": saved.dates["Start Date"],
-        "q[end_date_eq]": saved.dates["End Date"],
-        "q[responsible_person_id_in][]": saved.selectedResponsible.length > 0 ? saved.selectedResponsible : [],
-        "q[milestone_id_eq]": mid,
-        page,
-      };
-      const queryString = qs.stringify(newFilter, { arrayFormat: "repeat" });
-      await dispatch(filterTask({ token, filter: queryString })).unwrap();
-      return;
-    }
-    if (localStorage.getItem("taskStatus")) {
-      const saved = localStorage.getItem("taskStatus");
-      const filter = {
-        "q[status_eq]": saved,
-        page,
-      };
-      await dispatch(filterTask({ token, filter })).unwrap();
-      return;
-    }
-    if (mid != undefined && mid != null) {
-      await dispatch(fetchTasks({ token, id: mid, page })).unwrap();
-    } else {
-      if (myTasks === "false") {
-        await dispatch(fetchTasks({ token, id: "", page })).unwrap();
-      } else {
-        await dispatch(fetchMyTasks({ token, page })).unwrap();
-      }
-    }
-  };
-
-  const handleUpdateTaskFieldCell = useCallback(
-    async (taskId, fieldName, newValue, taskRow) => {
-      if (isUpdatingTask) return;
-      const payload = { [fieldName]: newValue };
-      setIsUpdatingTask(true);
-      setLocalError(null);
-      try {
-        if (fieldName === "status") {
-          await dispatch(changeTaskStatus({ token, id: taskId, payload })).unwrap();
-
-          // If this is a subtask, check and update parent task status
-          if (taskRow && taskRow.depth > 0) {
-            // This is a subtask, need to update parent task
-            const parentTaskId = taskRow.parentId;
-            if (parentTaskId) {
-              // Fetch parent task data to recalculate status
-              await handleFetchTasks();
-            }
-          }
-        } else {
-          await dispatch(updateTask({ token, id: taskId, payload })).unwrap();
-        }
-        lastFetchedPageRef.current = null;
-        await handleFetchTasks();
-      } catch (error) {
-        console.error(`Task field update failed for ${taskId} (${fieldName}):`, error);
-        setLocalError(`Update failed: ${error?.response?.data?.errors || error?.message || "Server error"}`);
-      } finally {
-        setIsUpdatingTask(false);
-      }
-    },
-    [dispatch, isUpdatingTask, token, handleFetchTasks]
-  );
-
   const mainTableColumns = [
     {
       id: "expander",
@@ -773,6 +831,8 @@ const TaskTable = () => {
             value={editTitle}
             onUpdate={(title) => setEditTitle(title)}
             onEnterPress={() => handleUpdateTaskFieldCell(row.original.id, "title", editTitle, row)}
+            data-task-id={row.original.id}
+            data-field-name="title"
           />
         );
       },
@@ -1011,6 +1071,7 @@ const TaskTable = () => {
               {table.getRowModel().rows.map((row) => (
                 <Fragment key={row.id}>
                   <tr
+                    data-task-id={row.original.id}
                     className={`hover:bg-gray-50 ${row.getIsExpanded() ? "bg-gray-100" : "even:bg-[#D5DBDB4D]"} font-[300] relative z-1`}
                     style={{ height: `${ROW_HEIGHT}px` }}
                   >

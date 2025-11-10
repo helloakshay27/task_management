@@ -5,7 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import clsx from "clsx";
 import { useSelector, useDispatch } from "react-redux";
 import { filterTask } from "../../../redux/slices/taskSlice";
-import { useParams } from "react-router-dom";
+import { useLocation, useParams } from "react-router-dom";
 import qs from "qs";
 import axios from "axios";
 import { baseURL } from "../../../../apiDomain";
@@ -23,6 +23,7 @@ const TaskFilter = ({ isModalOpen, setIsModalOpen }) => {
     const token = localStorage.getItem("token");
     const { id, mid } = useParams();
     const modalRef = useRef(null);
+    const location = useLocation();
 
     const getInitialFilters = () => {
         try {
@@ -318,35 +319,37 @@ const TaskFilter = ({ isModalOpen, setIsModalOpen }) => {
                 <div className="flex-1 overflow-y-auto divide-y">
 
                     {/* Project */}
-                    <div className="p-6 py-3">
-                        <div
-                            className="flex items-center justify-between cursor-pointer"
-                            onClick={() => toggleDropdown("project")}
-                        >
-                            <span className="font-medium text-sm select-none">Project</span>
-                            {dropdowns.project ? (
-                                <ChevronDown className="text-gray-400" />
-                            ) : (
-                                <ChevronRight className="text-gray-400" />
+                    {
+                        !location.pathname.includes('projects') &&
+                        <div className="p-6 py-3">
+                            <div
+                                className="flex items-center justify-between cursor-pointer"
+                                onClick={() => toggleDropdown("project")}
+                            >
+                                <span className="font-medium text-sm select-none">Project</span>
+                                {dropdowns.project ? (
+                                    <ChevronDown className="text-gray-400" />
+                                ) : (
+                                    <ChevronRight className="text-gray-400" />
+                                )}
+                            </div>
+                            {dropdowns.project && (
+                                <div className="mt-4 border">
+                                    <div className="relative border-b">
+                                        <Search className="absolute left-3 top-2.5 text-red-400" size={16} />
+                                        <input
+                                            type="text"
+                                            placeholder="Filter project..."
+                                            className="w-full pl-8 pr-4 py-2 text-sm border focus:outline-none"
+                                            value={projectSearch}
+                                            onChange={(e) => setProjectSearch(e.target.value)}
+                                        />
+                                    </div>
+                                    {renderCheckboxList(projectOptions, selectedProjects, setSelectedProjects, projectSearch)}
+                                </div>
                             )}
                         </div>
-                        {dropdowns.project && (
-                            <div className="mt-4 border">
-                                <div className="relative border-b">
-                                    <Search className="absolute left-3 top-2.5 text-red-400" size={16} />
-                                    <input
-                                        type="text"
-                                        placeholder="Filter project..."
-                                        className="w-full pl-8 pr-4 py-2 text-sm border focus:outline-none"
-                                        value={projectSearch}
-                                        onChange={(e) => setProjectSearch(e.target.value)}
-                                    />
-                                </div>
-                                {renderCheckboxList(projectOptions, selectedProjects, setSelectedProjects, projectSearch)}
-                            </div>
-                        )}
-                    </div>
-
+                    }
                     <div className="p-6 py-3">
                         <div
                             className="flex items-center justify-between cursor-pointer"

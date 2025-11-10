@@ -2,15 +2,18 @@ import { useCallback, useEffect, useState } from "react"
 import { cardsTitle } from "../data/Data"
 import Boards from "./Home/Boards"
 import MilestoneCard from "./MilestoneCard"
+import MilestoneTaskCard from "./MilestoneTaskCard"
 import { useDispatch } from "react-redux"
 import { fetchMilestone, updateMilestone } from "../redux/slices/milestoneSlice"
 import { useParams } from "react-router-dom"
+import { updateTask } from "@/redux/slices/taskSlice"
 
 const MilestoneKanban = () => {
     const dispatch = useDispatch();
     const token = localStorage.getItem("token");
     const { id } = useParams();
     const [milestones, setMilestones] = useState([])
+    const [taskCardVisibility, setTaskCardVisibility] = useState({});
 
     const getMilestones = async () => {
         try {
@@ -59,6 +62,19 @@ const MilestoneKanban = () => {
         [handleStatusChange]
     );
 
+    const handleTaskStatusChange = useCallback(async (taskId, newStatus) => {
+        try {
+            await dispatch(updateTask({
+                token,
+                id: taskId,
+                payload: { status: newStatus.toLowerCase().replace(/\s+/g, "_") }
+            })).unwrap();
+            getMilestones();
+        } catch (err) {
+            console.error(`Failed to update task status for ID ${taskId}:`, err);
+        }
+    }, [dispatch]);
+
     const handleDrop = useCallback(
         (item, newStatus) => {
             if (newStatus.toLowerCase() === "overdue") {
@@ -66,10 +82,21 @@ const MilestoneKanban = () => {
                 return;
             }
 
-            handleMilestoneStatusChange({ id: item.id, status: newStatus });
+            if (item.type === "TASK") {
+                handleTaskStatusChange(item.id, newStatus);
+            } else {
+                handleMilestoneStatusChange({ id: item.id, status: newStatus });
+            }
         },
-        [handleMilestoneStatusChange]
+        [handleMilestoneStatusChange, handleTaskStatusChange]
     );
+
+    const toggleTaskCard = useCallback((taskId) => {
+        setTaskCardVisibility((prev) => ({
+            ...prev,
+            [taskId]: !prev[taskId],
+        }));
+    }, []);
 
     return (
         <div className="relative">
@@ -81,7 +108,20 @@ const MilestoneKanban = () => {
                     cardsTitle.map(card => {
                         const cardStatus = card.title.toLowerCase().replace(" ", "_");
 
+                        // Get milestones for this status board
                         const filteredMilestone = milestones && milestones.filter((milestone) => milestone.status === cardStatus);
+
+                        // Get all tasks that belong in this status board, regardless of parent milestone status
+                        const tasksInThisStatus = milestones?.flatMap(milestone =>
+                            (milestone.task_managements || [])
+                                .filter(task => cardStatus === "active" ?
+                                    task.status === "open" :
+                                    task.status === cardStatus)
+                                .map(task => ({
+                                    ...task,
+                                    parentMilestone: milestone
+                                }))
+                        ) || [];
 
                         return (
                             <Boards
@@ -89,15 +129,68 @@ const MilestoneKanban = () => {
                                 add={card.add}
                                 color={card.color}
                                 title={card.title}
+                                count={filteredMilestone.length + tasksInThisStatus.length}
                                 onDrop={handleDrop}
+                                isDropDisabled={card.title.toLowerCase() === "overdue"}
                             >
-                                {
-                                    filteredMilestone && filteredMilestone.map((milestone) => (
-                                        <div className="relative" key={milestone.id} id={milestone.id}>
-                                            <MilestoneCard milestone={milestone} />
+                                {/* Show milestones in this status */}
+                                {filteredMilestone && filteredMilestone.map((milestone) => {
+                                    const milestoneTasks = milestone.task_managements || [];
+                                    const visibleTasks = milestoneTasks.filter(task =>
+                                        cardStatus === "active" ? task.status === "open" : task.status === cardStatus
+                                    );
+
+                                    return (
+                                        <div key={milestone.id} className="relative">
+                                            <div id={`milestone-${milestone.id}`}>
+                                                <MilestoneCard
+                                                    milestone={milestone}
+                                                    toggleTaskCard={() => toggleTaskCard(milestone.id)}
+                                                    hasVisibleTasks={visibleTasks.length > 0}
+                                                    isExpanded={taskCardVisibility[milestone.id]}
+                                                />
+                                            </div>
+
+                                            {taskCardVisibility[milestone.id] && visibleTasks.length > 0 && (
+                                                <div className="ml-5 mt-2 space-y-2">
+                                                    {visibleTasks.map((task) => (
+                                                        <div
+                                                            key={`task-${task.id}`}
+                                                            id={`task-${task.id}`}
+                                                            className="relative"
+                                                        >
+                                                            <MilestoneTaskCard
+                                                                task={task}
+                                                                parentMilestoneId={milestone.id}
+                                                            />
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            )}
                                         </div>
-                                    ))
-                                }
+                                    );
+                                })}
+
+                                {/* Show tasks from other milestones that belong in this status */}
+                                {tasksInThisStatus
+                                    .filter(task => !filteredMilestone.find(m => m.id === task.parentMilestone.id))
+                                    .map((task) => (
+                                        <div
+                                            key={`task-${task.id}`}
+                                            id={`task-${task.id}`}
+                                            className="relative mt-2"
+                                        >
+                                            <MilestoneTaskCard
+                                                task={task}
+                                                parentMilestoneId={task.parentMilestone.id}
+                                            />
+                                        </div>
+                                    ))}
+
+                                {/* Show placeholder when no items */}
+                                {filteredMilestone.length === 0 && tasksInThisStatus.length === 0 && (
+                                    <img src="/draganddrop.svg" alt="svg" className="w-full" />
+                                )}
                             </Boards>
                         )
                     })

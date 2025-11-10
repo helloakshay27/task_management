@@ -51,12 +51,13 @@ const TaskActions = ({
     filters,
     context,
     searchQuery,
-    setSearchQuery
+    setSearchQuery,
+    isModalOpen,
+    setIsModalOpen,
 }) => {
     const { id, mid } = useParams();
     const [isTypeOpen, setIsTypeOpen] = useState(false);
     const [isStatusOpen, setIsStatusOpen] = useState(false);
-    const [isModalOpen, setIsModalOpen] = useState(false);
     const [isSprintModalOpen, setIsSprintModalOpen] = useState(false);
     const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
     const [isAddProjectModalOpen, setIsAddProjectModalOpen] = useState(false);

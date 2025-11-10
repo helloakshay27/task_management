@@ -1,10 +1,10 @@
 import TaskTable from "./Table";
 
-const TasksList = () => {
+const TasksList = ({ isModalOpen }) => {
     return (
         <div className="m-3">
             <div className="overflow-x-auto ">
-                <TaskTable />
+                <TaskTable isModalOpen={isModalOpen} />
             </div>
         </div>
     );

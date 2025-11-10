@@ -106,7 +106,6 @@ export const DurationPicker = ({
 
                 setDaysList(allDays);
             } else {
-                setTotalWorkingHours(0);
                 setDaysList([]);
                 if (onChange) onChange(0);
                 if (onDateWiseHoursChange) onDateWiseHoursChange([]);
@@ -187,7 +186,7 @@ export const DurationPicker = ({
                             }`}
                     >
                         {totalWorkingHours > 0
-                            ? `${formatTotalHours(totalWorkingHours)} Hrs`
+                            ? `${formatTotalHours(totalWorkingHours)} Hrs${taskType === "standard" ? "/Day" : ""}`
                             : placeholder}
                     </span>
                 </div>

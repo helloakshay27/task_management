@@ -5,6 +5,7 @@ export const CustomCalender = ({
     initialDate = new Date(), // Default to current month
     selectedDate: propSelectedDate, // Optional external selected date
     eventDates = [],
+    taskHoursData = [],
     onDateSelect = () => { },
     onMonthChange = () => { },
     setShowCalender
@@ -47,6 +48,24 @@ export const CustomCalender = ({
             eventDate.getMonth() === month &&
             eventDate.getFullYear() === year
         );
+    };
+
+    const getTaskHoursIndicator = (day, month, year) => {
+        const formattedDate = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+
+        const matchingData = taskHoursData.find(data => {
+            const dataDate = typeof data.date === 'string' ? data.date : data.date.toISOString().split('T')[0];
+            return dataDate === formattedDate;
+        });
+
+        if (!matchingData) return null;
+
+        const hours = matchingData.hours;
+        const percentage = ((hours / 8) * 100);
+
+        if (percentage <= 33) return '#1FCFB3';
+        if (percentage <= 66) return '#ED9017';
+        return '#c72030';
     };
 
     const generateCalendarDays = () => {
@@ -106,7 +125,6 @@ export const CustomCalender = ({
     };
 
     const handleDateClick = (dayObj) => {
-        console.log(dayObj)
         const clickedDate = {
             date: dayObj.day,
             month: dayObj.month,
@@ -158,11 +176,10 @@ export const CustomCalender = ({
             {/* Calendar Grid */}
             <div className="grid grid-cols-7 gap-1">
                 {calendarDays.map((dayObj, index) => {
-                    console.log(dayObj)
                     const dateObj = new Date(dayObj.year, dayObj.month, dayObj.day);
                     const isSelected = isSameDay(dateObj, selectedDate);
-                    const hasEventMarker = hasEvent(dayObj.day, dayObj.month, dayObj.year);
                     const isToday = isSameDay(dateObj, today);
+                    const taskIndicator = getTaskHoursIndicator(dayObj.day, dayObj.month, dayObj.year);
 
                     return (
                         <button
@@ -172,13 +189,15 @@ export const CustomCalender = ({
                             className={`
                                 relative aspect-square flex flex-col items-center justify-center rounded-full text-xs font-medium transition-all
                                 ${!dayObj.isCurrentMonth ? 'text-gray-300' : 'text-gray-900'}
-                                ${isSelected ? 'bg-red-500 text-white' : 'hover:bg-gray-100'}
+                                ${isSelected ? 'bg-red-100 text-red-500' : 'hover:bg-gray-100'}
                                 ${isToday && !isSelected ? 'border border-red-300' : ''}
                             `}
                         >
                             {dayObj.day.toString().padStart(2, '0')}
-                            {hasEventMarker && (
-                                <div className={`absolute bottom-0.5 w-0.5 h-0.5 rounded-full ${isSelected ? 'bg-white' : 'bg-red-500'}`} />
+                            {taskIndicator && (
+                                <div className="absolute bottom-1 flex gap-0.5">
+                                    <div className={`w-1 h-1 rounded-full bg-[${taskIndicator}]`} />
+                                </div>
                             )}
                         </button>
                     );

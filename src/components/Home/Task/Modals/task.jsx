@@ -17,9 +17,10 @@ import {
 import { useParams } from "react-router-dom";
 import {
   fetchProjectDetails,
+  fetchProjects,
   removeTagFromProject,
 } from "../../../../redux/slices/projectSlice";
-import { fetchMilestoneById } from "../../../../redux/slices/milestoneSlice";
+import { fetchMilestone, fetchMilestoneById } from "../../../../redux/slices/milestoneSlice";
 import toast from "react-hot-toast";
 import DeleteOutlinedIcon from "@mui/icons-material/DeleteOutlined";
 import { DurationPicker } from "@/components/DurationPicker";
@@ -63,9 +64,14 @@ const TaskForm = ({
 
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showStartDatePicker, setShowStartDatePicker] = useState(false);
+  const [startDateTasks, setStartDateTasks] = useState([]);
   const [targetDateTasks, setTargetDateTasks] = useState([]);
   const [showCalender, setShowCalender] = useState(false);
-  const [showStartCalender, setShowStartCalender] = useState(false)
+  const [showStartCalender, setShowStartCalender] = useState(false);
+  const [calendarTaskHours, setCalendarTaskHours] = useState([]);
+  const [selectedProject, setSelectedProject] = useState(null);
+  const [projects, setProjects] = useState([])
+  const [milestones, setMilestones] = useState([]);
 
   const monthNames = [
     "Jan",
@@ -108,6 +114,36 @@ const TaskForm = ({
   }, [showDatePicker]);
 
   useEffect(() => {
+    const getProjects = async () => {
+      try {
+        const response = await dispatch(fetchProjects({ token })).unwrap();
+        setProjects(response);
+      } catch (error) {
+        console.log(error);
+      }
+    }
+
+    getProjects();
+  }, [])
+
+  useEffect(() => {
+    const getMilestones = async () => {
+      if (!selectedProject) return;
+
+      try {
+        const response = await dispatch(
+          fetchMilestone({ token, id: selectedProject })
+        ).unwrap();
+        setMilestones(response);
+      } catch (error) {
+        console.log(error);
+      }
+    }
+
+    getMilestones();
+  }, [selectedProject])
+
+  useEffect(() => {
     const el = startCollapsibleRef.current;
     if (!el) return;
 
@@ -127,6 +163,43 @@ const TaskForm = ({
       });
     }
   }, [showStartDatePicker]);
+
+  useEffect(() => {
+    if (userAvailability.length > 0) {
+      const formattedHours = userAvailability.map((dayData) => ({
+        date: dayData.date,
+        hours: dayData.allocated_hours,
+      }));
+      setCalendarTaskHours(formattedHours);
+    }
+  }, [userAvailability]);
+
+  useEffect(() => {
+    const getStartDateTasks = async () => {
+      if (!startDate) return;
+
+      const formattedStartDate = `${startDate.year}-${String(
+        startDate.month + 1
+      ).padStart(2, "0")}-${String(startDate.date).padStart(2, "0")}`;
+
+      try {
+        const response = await dispatch(
+          fetchTargetDateTasks({
+            token,
+            id: formData.responsiblePerson,
+            date: formattedStartDate,
+          })
+        ).unwrap();
+        setStartDateTasks(response);
+      } catch (error) {
+        console.log(error);
+      }
+    };
+
+    if (formData.responsiblePerson && startDate) {
+      getStartDateTasks();
+    }
+  }, [formData.responsiblePerson, startDate]);
 
   useEffect(() => {
     const getTargetDateTasks = async () => {
@@ -208,37 +281,75 @@ const TaskForm = ({
           className="absolute top-3 right-3 text-red-600 cursor-pointer"
         />
       )}
-      {project &&
+      {(project &&
         milestone &&
         !Array.isArray(project) &&
         !Array.isArray(milestone) &&
         project.title &&
-        milestone.title && (
-          <div className="flex items-center justify-between gap-3">
-            <div className="mt-4 space-y-2 w-full">
-              <label className="block ms-2">
-                Project <span className="text-red-600">*</span>
-              </label>
-              <input
-                type="text"
-                value={project.title}
-                className="w-full border h-[40px] outline-none border-gray-300 p-2 text-[13px] bg-gray-200 overflow-hidden text-ellipsis"
-                readOnly
-              />
-            </div>
-            <div className="mt-4 space-y-2 w-full">
-              <label className="block ms-2">
-                Milestone <span className="text-red-600">*</span>
-              </label>
-              <input
-                type="text"
-                value={milestone.title}
-                readOnly
-                className="w-full border h-[40px] outline-none border-gray-300 p-2 text-[13px] bg-gray-200"
-              />
-            </div>
+        milestone.title) ? (
+        <div className="flex items-center justify-between gap-3">
+          <div className="mt-4 space-y-2 w-full">
+            <label className="block ms-2">
+              Project <span className="text-red-600">*</span>
+            </label>
+            <input
+              type="text"
+              value={project.title}
+              className="w-full border h-[40px] outline-none border-gray-300 p-2 text-[13px] bg-gray-200 overflow-hidden text-ellipsis"
+              readOnly
+            />
           </div>
-        )}
+          <div className="mt-4 space-y-2 w-full">
+            <label className="block ms-2">
+              Milestone <span className="text-red-600">*</span>
+            </label>
+            <input
+              type="text"
+              value={milestone.title}
+              readOnly
+              className="w-full border h-[40px] outline-none border-gray-300 p-2 text-[13px] bg-gray-200"
+            />
+          </div>
+        </div>
+      ) : (
+        <div className="flex items-center justify-between gap-3">
+          <div className="mt-4 space-y-2 w-full">
+            <label className="block ms-2">
+              Project
+            </label>
+            <SelectBox
+              options={[
+                projects.map((project) => ({
+                  label: project.title,
+                  value: project.id,
+                })),
+              ]}
+              placeholder="Select Project"
+              value={formData.project}
+              onChange={(value) => {
+                setFormData({ ...formData, project: value });
+                setSelectedProject(value);
+              }}
+              disabled={isReadOnly}
+            />
+          </div>
+          <div className="mt-4 space-y-2 w-full">
+            <label className="block ms-2">
+              Milestone
+            </label>
+            <SelectBox
+              options={milestones.map((milestone) => ({
+                label: milestone.title,
+                value: milestone.id,
+              }))}
+              placeholder="Select Milestone"
+              value={formData.milestone}
+              onChange={(value) => setFormData({ ...formData, milestone: value })}
+              disabled={isReadOnly}
+            />
+          </div>
+        </div>
+      )}
 
       <div className="flex items-start gap-4 mt-3">
         <div className="w-full flex flex-col justify-between">
@@ -306,16 +417,14 @@ const TaskForm = ({
           />
         </div>
         <div className="mt-4 space-y-2 w-full">
-          <label className="block">
-            Department <span className="text-red-600">*</span>
-          </label>
+          <label className="block">Department</label>
           <input
             type="text"
             value={
               allUsers.find((user) => user.id === formData.responsiblePerson)
                 ?.lock_role?.display_name || ""
             }
-            className="text-[13px] border-2 border-grey-300 px-2 py-[6px] w-full"
+            className="text-[13px] border-2 border-gray-300 px-2 py-[6px] w-full bg-gray-200"
             readOnly
           />
         </div>
@@ -341,9 +450,7 @@ const TaskForm = ({
 
       <div className="flex justify-between mt-3 gap-2 text-[12px]">
         <div className="space-y-2 w-full">
-          <label className="block">
-            Start Date <span className="text-red-600">*</span>
-          </label>
+          <label className="block">Start Date</label>
           <button
             type="button"
             className="w-full border outline-none border-gray-300 px-2 py-[7px] text-[13px] flex items-center gap-3 text-gray-400"
@@ -351,14 +458,14 @@ const TaskForm = ({
               if (showDatePicker) {
                 setShowDatePicker(false);
               }
-              setShowStartDatePicker(!showStartDatePicker)
+              setShowStartDatePicker(!showStartDatePicker);
             }}
           >
             {startDate ? (
               <div className="text-black flex items-center justify-between w-full">
                 <CalendarIcon className="w-4 h-4" />
                 <div>
-                  Target : {startDate.date.toString().padStart(2, "0")}{" "}
+                  Start Date : {startDate.date.toString().padStart(2, "0")}{" "}
                   {monthNames[startDate.month]}
                 </div>
                 <X className="w-4 h-4" onClick={() => setStartDate(null)} />
@@ -380,9 +487,9 @@ const TaskForm = ({
             className="w-full border outline-none border-gray-300 px-2 py-[7px] text-[13px] flex items-center gap-3 text-gray-400"
             onClick={() => {
               if (showStartDatePicker) {
-                setShowStartDatePicker(false)
+                setShowStartDatePicker(false);
               }
-              setShowDatePicker(!showDatePicker)
+              setShowDatePicker(!showDatePicker);
             }}
           >
             {endDate ? (
@@ -408,18 +515,30 @@ const TaskForm = ({
         className="overflow-hidden opacity-0 h-0"
         style={{ willChange: "height, opacity" }}
       >
-        {!startDate && (
+        {!startDate ? (
           showStartCalender ? (
-            <CustomCalender setShowCalender={setShowStartCalender} onDateSelect={setStartDate} selectedDate={startDate} />
+            <CustomCalender
+              setShowCalender={setShowStartCalender}
+              onDateSelect={setStartDate}
+              selectedDate={startDate}
+              taskHoursData={calendarTaskHours}
+            />
           ) : (
             <TaskDatePicker
               selectedDate={startDate}
               onDateSelect={setStartDate}
-              startDate={startDate}
+              startDate={null}
               userAvailability={userAvailability}
               setShowCalender={setShowStartCalender}
             />
           )
+        ) : (
+          <TasksOfDate
+            selectedDate={startDate}
+            onClose={() => { }}
+            tasks={startDateTasks}
+            userAvailability={userAvailability}
+          />
         )}
       </div>
 
@@ -430,7 +549,12 @@ const TaskForm = ({
       >
         {!endDate ? (
           showCalender ? (
-            <CustomCalender setShowCalender={setShowCalender} onDateSelect={setEndDate} selectedDate={endDate} />
+            <CustomCalender
+              setShowCalender={setShowCalender}
+              onDateSelect={setEndDate}
+              selectedDate={endDate}
+              taskHoursData={calendarTaskHours}
+            />
           ) : (
             <TaskDatePicker
               selectedDate={endDate}
@@ -605,6 +729,8 @@ const Tasks = ({ isEdit, onCloseModal }) => {
   const createTaskPayload = (data) => {
     const formatedEndDate = `${endDate.year}-${endDate.month + 1}-${endDate.date
       }`;
+    const formatedStartDate = `${startDate.year}-${startDate.month + 1}-${startDate.date
+      }`;
     return {
       title: data.taskTitle,
       description: data.description,
@@ -612,11 +738,11 @@ const Tasks = ({ isEdit, onCloseModal }) => {
       priority: data.priority,
       observer_ids: data.observer.map((observer) => observer.value),
       task_tag_ids: data.tags.map((tag) => tag.value),
-      expected_start_date: startDate,
+      expected_start_date: formatedStartDate,
       target_date: formatedEndDate,
       allocation_date: formatedEndDate,
-      project_management_id: id,
-      milestone_id: mid,
+      project_management_id: id || formData.project,
+      milestone_id: mid || formData.milestone,
       active: true,
       estimated_hour: totalWorkingHours,
       task_allocation_times_attributes: dateWiseHours,

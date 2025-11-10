@@ -17,6 +17,8 @@ const Tasks = ({ setIsSidebarOpen }) => {
         (state) => state.fetchMilestoneById
     );
 
+    const [isModalOpen, setIsModalOpen] = useState(false);
+
     useEffect(() => {
         dispatch(fetchProjectDetails({ token, id }))
         dispatch(fetchMilestoneById({ token, id: mid }));
@@ -41,13 +43,15 @@ const Tasks = ({ setIsSidebarOpen }) => {
                 setSelectedType={setSelectedType}
                 addType={"Task"}
                 context="Tasks"
+                isModalOpen={isModalOpen}
+                setIsModalOpen={setIsModalOpen}
             />
 
             {
                 selectedType === "Kanban" ? (
                     <BoardsSection section={"Tasks"} />
                 ) : selectedType === "List" ? (
-                    <TasksList />
+                    <TasksList isModalOpen={isModalOpen} />
                 ) : <></>
             }
         </div>
