@@ -27,7 +27,6 @@ import { CalendarIcon, X } from "lucide-react";
 import gsap from "gsap";
 import { TaskDatePicker } from "@/components/TaskDatePicker";
 import TasksOfDate from "@/components/TasksOfDate";
-import { CustomDatePicker } from "@/components/CustomDatePicker";
 import { CustomCalender } from "@/components/CustomCalender";
 
 const TaskForm = ({
@@ -157,14 +156,6 @@ const TaskForm = ({
     setFormData({ ...formData, [name]: value });
   };
 
-  const handleDateSelect = (date) => {
-    setFormData({ ...formData, expected_start_date: date });
-  };
-
-  const handleTargetDate = (date) => {
-    setFormData({ ...formData, target_date: date });
-  };
-
   const handleMultiSelectChange = (name, selectedOptions) => {
     if (name === "tags") {
       const removed = prevTags.find(
@@ -192,9 +183,6 @@ const TaskForm = ({
 
     setFormData((prev) => ({ ...prev, [name]: selectedOptions }));
   };
-
-  console.log(startDate)
-  console.log(endDate)
 
   return (
     <div className="p-4 bg-white relative">
