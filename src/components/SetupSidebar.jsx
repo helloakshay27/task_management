@@ -118,6 +118,16 @@ const SetupSidebar = ({ isSidebarOpen, setIsSidebarOpen }) => {
                                 </li>
                                 <li className="text-[14px] ms-[60px] mb-4">
                                     <NavLink
+                                        to="/setup/roster"
+                                        className={({ isActive }) =>
+                                            `${isActive ? "text-[#c72030]" : "text-gray-700"}`
+                                        }
+                                    >
+                                        Roster
+                                    </NavLink>
+                                </li>
+                                <li className="text-[14px] ms-[60px] mb-4">
+                                    <NavLink
                                         to="/setup/project-teams"
                                         className={({ isActive }) =>
                                             `${isActive ? "text-[#c72030]" : "text-gray-700"}`

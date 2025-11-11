@@ -427,7 +427,7 @@ const BoardsSection = ({ section }) => {
           if (dependency?.type === "predecessor") {
             dashness = false;
             strokeWidth = 1;
-            color = "#A0A0A0";
+            color = "#DA2400";
           } else if (dependency?.type === "successor") {
             dashness = { strokeLen: 8, nonStrokeLen: 6 };
             strokeWidth = 1.5;

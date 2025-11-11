@@ -49,6 +49,8 @@ import { WebSocketProvider } from "./contexts/WebSocketContext.jsx";
 import MilestoneDetailsPage from "./pages/Home/MilestoneDetailsPage.jsx";
 import DMConversation from "./components/Home/Channel/DMConversation.jsx";
 import GroupConversation from "./components/Home/Channel/GroupConversation.jsx";
+import Roster from "./pages/Setup/Roster";
+import CreateRoster from "./pages/Setup/CreateRoster";
 
 const App = () => {
   const token = localStorage.getItem("token");
@@ -185,6 +187,14 @@ const App = () => {
                   <Route
                     path="/setup/external-users"
                     element={<ExternalTable />}
+                  />
+                  <Route
+                    path="/setup/roster"
+                    element={<Roster />}
+                  />
+                  <Route
+                    path="/setup/roster/add-roster"
+                    element={<CreateRoster />}
                   />
                   <Route
                     path="/setup/project-teams"

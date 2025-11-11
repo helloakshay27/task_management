@@ -186,7 +186,7 @@ export const DurationPicker = ({
                             }`}
                     >
                         {totalWorkingHours > 0
-                            ? `${formatTotalHours(totalWorkingHours)} Hrs${taskType === "standard" ? "/Day" : ""}`
+                            ? `${formatTotalHours(totalWorkingHours)} Hrs${(taskType === "standard" && !startDate && !endDate) ? "/Day" : ""}`
                             : placeholder}
                     </span>
                 </div>
