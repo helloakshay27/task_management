@@ -417,7 +417,7 @@ const TaskForm = ({
           />
         </div>
         <div className="mt-4 space-y-2 w-full">
-          <label className="block">Department</label>
+          <label className="block">Role</label>
           <input
             type="text"
             value={

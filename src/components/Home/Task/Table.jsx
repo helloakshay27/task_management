@@ -139,69 +139,51 @@ const DateEditor = ({
   );
 };
 
-const calculateDuration = (startDateStr, endDateStr) => {
-  if (!endDateStr) return "0d:0h:0m:0s";
-  
-  // If start date is not provided, use today's date for duration calculation
-  const start = startDateStr ? new Date(startDateStr) : new Date();
-  const end = new Date(endDateStr);
-  
-  if (end < start) return "Invalid: End date before start date";
-  
+const calculateDuration = (start, end) => {
   const now = new Date();
-  const isInProgress = now >= start && now <= end;
-  const isCompleted = now > end;
-  
-  if (isInProgress || isCompleted) {
-    // Show countdown/elapsed time from now to end date
-    const ms = Math.abs(end - now);
-    const totalSeconds = Math.floor(ms / 1000);
-    const days = Math.floor(totalSeconds / (60 * 60 * 24));
-    const hours = Math.floor((totalSeconds % (60 * 60 * 24)) / (60 * 60));
-    const minutes = Math.floor((totalSeconds % (60 * 60)) / 60);
-    const seconds = totalSeconds % 60;
-    
-    if (isCompleted) {
-      // `Overdue: ${days}d : ${hours}h : ${minutes}m : ${seconds}s`;
-      return `Overdue`;
-    }
-    return `${days}d : ${hours}h : ${minutes}m : ${seconds}s`;
-  } else {
-    // Show total duration for upcoming tasks
-    const ms = end - start;
-    const totalSeconds = Math.floor(ms / 1000);
-    const days = Math.floor(totalSeconds / (60 * 60 * 24));
-    const hours = Math.floor((totalSeconds % (60 * 60 * 24)) / (60 * 60));
-    const minutes = Math.floor((totalSeconds % (60 * 60)) / 60);
-    const seconds = totalSeconds % 60;
-    return `${days}d : ${hours}h : ${minutes}m : ${seconds}s`;
+  const startDate = new Date(start);
+  const endDate = new Date(end);
+
+  // Set end date to end of the day
+  endDate.setHours(23, 59, 59, 999);
+
+  // Check if task hasn't started yet
+  if (now < startDate) {
+    return "Not started";
   }
+
+  // Check if task has already ended
+  const diffMs = endDate - now;
+  if (diffMs <= 0) return "0s";
+
+  // Calculate time differences
+  const seconds = Math.floor(diffMs / 1000);
+  const minutes = Math.floor(seconds / 60);
+  const hours = Math.floor(minutes / 60);
+  const days = Math.floor(hours / 24);
+
+  const remainingHours = hours % 24;
+  const remainingMinutes = minutes % 60;
+  const remainingSeconds = seconds % 60;
+
+  return `${days > 0 ? days + "d " : ""}${remainingHours > 0 ? remainingHours + "h " : ""}${remainingMinutes > 0 ? remainingMinutes + "m " : ""
+    }${remainingSeconds}s`;
 };
 
 // Live Timer Component that updates every second
-const LiveDurationTimer = ({ startDate, endDate }) => {
-  const [duration, setDuration] = useState(calculateDuration(startDate, endDate));
+const CountdownTimer = ({ startDate, targetDate }) => {
+  const [countdown, setCountdown] = useState(calculateDuration(startDate, targetDate));
 
   useEffect(() => {
-    // Update immediately
-    setDuration(calculateDuration(startDate, endDate));
-
-    // Update every second (1000ms)
     const interval = setInterval(() => {
-      setDuration(calculateDuration(startDate, endDate));
+      setCountdown(calculateDuration(startDate, targetDate));
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [startDate, endDate]);
+  }, [targetDate]);
 
   return (
-    <span 
-      className="text-xs block truncate" 
-      title={duration}
-      style={{ maxWidth: '100%' }}
-    >
-      {duration}
-    </span>
+    <div className="text-left text-[12px]">{countdown}</div>
   );
 };
 
@@ -262,7 +244,7 @@ const processTaskData = (task) => {
     responsiblePerson: task.responsible_person?.name || "Unassigned",
     responsiblePersonId: task.responsible_person?.id || null,
     projectManagementId: task.project_management_id || 2,
-    startDate: task.expected_start_date?.split("T")[0] ,
+    startDate: task.expected_start_date?.split("T")[0],
     endDate: task.target_date?.split("T")[0],
     priority: task.priority,
     duration: calculateDuration(task.expected_start_date, task.target_date),
@@ -895,7 +877,7 @@ const TaskTable = ({ isModalOpen }) => {
       accessorKey: "duration",
       header: "Duration",
       size: 120,
-      cell: ({ row }) => <LiveDurationTimer startDate={row.original.startDate} endDate={row.original.endDate} />,
+      cell: ({ row }) => <CountdownTimer startDate={row.original.startDate} targetDate={row.original.endDate} />,
     },
     {
       accessorKey: "priority",

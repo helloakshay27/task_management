@@ -10,6 +10,7 @@ import { DndProvider, useDrag, useDrop } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
 import { useDispatch } from "react-redux";
 import { updateTask } from "@/redux/slices/taskSlice";
+import toast from "react-hot-toast";
 
 const calculateDuration = (end) => {
     const now = new Date();
@@ -108,7 +109,9 @@ const DroppableDay = ({ dateInfo, onDrop, assignedTasks }) => {
         [dateInfo] // ✅ ensures drop updates when weekDates change
     );
 
-    const calculationHrs = dateInfo.hours.split(" ")[0];
+    const calculationHrs = (typeof dateInfo.allocated_hours_num !== 'undefined')
+        ? dateInfo.allocated_hours_num
+        : parseFloat(String(dateInfo.hours).split(" ")[0]) || 0;
     const durationPercentage = (calculationHrs / 8) * 100;
 
     const bgClass = dateInfo.isSelected
@@ -136,6 +139,11 @@ const DroppableDay = ({ dateInfo, onDrop, assignedTasks }) => {
             <div className="font-medium text-xs text-left">{dateInfo.day}</div>
             <div className="text-xs text-gray-600 text-left">{dateInfo.date}</div>
             <div className="font-semibold text-xs text-right">{dateInfo.hours}</div>
+            {dateInfo.isPending && (
+                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                    <div className="bg-yellow-50 text-yellow-800 text-xs px-2 py-1 rounded">Processing...</div>
+                </div>
+            )}
         </div>
     );
 };
@@ -194,6 +202,10 @@ const TasksOfDate = ({ selectedDate, onClose, tasks, userAvailability }) => {
 
     const [dateStartIndex, setDateStartIndex] = useState(0);
     const [assignedTasks, setAssignedTasks] = useState({});
+    // track local adjustments to availability after successful drops
+    const [availabilityUpdates, setAvailabilityUpdates] = useState({});
+    // track pending drops per date so UI doesn't apply change until API returns
+    const [pendingDrops, setPendingDrops] = useState({});
     const [taskStartIndex, setTaskStartIndex] = useState(0);
     const [currentTasks, setCurrentTasks] = useState([]);
 
@@ -226,22 +238,34 @@ const TasksOfDate = ({ selectedDate, onClose, tasks, userAvailability }) => {
                 .split("T")[0]
             : new Date().toISOString().split("T")[0];
 
+        // helper to format hours string (shows decimals if needed)
+        const formatHoursString = (h) => {
+            if (Number.isInteger(h)) return `${String(h).padStart(2, "0")} hrs`;
+            return `${h.toFixed(2)} hrs`;
+        };
+
         return visible.map((u) => {
             const d = new Date(u.date);
             const day = dayNames[d.getDay()];
             const month = d.toLocaleString("default", { month: "short" });
             const date = d.getDate();
 
+            // apply any local availability updates for this date
+            const added = availabilityUpdates[u.date] || 0;
+            const hoursNum = (Number(u.allocated_hours) || 0) + added;
+
             return {
                 day,
                 date: `${date} ${month}`,
-                hours: `${u.allocated_hours.toString().padStart(2, "0")} hrs`,
+                hours: formatHoursString(hoursNum),
+                allocated_hours_num: hoursNum,
                 fullDate: u.date,
                 isSelected: u.date === selectedFullDate,
                 overloaded: u.overloaded,
+                isPending: !!pendingDrops[u.date],
             };
         });
-    }, [userAvailability, dateStartIndex, visibleDaysCount, selectedDate]);
+    }, [userAvailability, dateStartIndex, visibleDaysCount, selectedDate, availabilityUpdates, pendingDrops]);
 
     const handleScroll = (direction) => {
         if (direction === "up" && dateStartIndex > 0) {
@@ -256,7 +280,7 @@ const TasksOfDate = ({ selectedDate, onClose, tasks, userAvailability }) => {
 
     const handleDrop = async (task, dateInfo) => {
         const fullDate = dateInfo.fullDate;
-        if (assignedTasks[fullDate]) return;
+        if (assignedTasks[fullDate] || pendingDrops[fullDate]) return;
 
         const formatedSelectedDate = `${selectedDate.year}-${(
             selectedDate.month + 1
@@ -264,26 +288,55 @@ const TasksOfDate = ({ selectedDate, onClose, tasks, userAvailability }) => {
             .toString()
             .padStart(2, "0")}-${selectedDate.date.toString().padStart(2, "0")}`;
 
-        await dispatch(
-            updateTask({
-                token,
-                id: task.id,
-                payload: {
-                    ...(task.target_date == formatedSelectedDate && {
-                        target_date: fullDate,
-                        allocation_date: fullDate,
-                    }),
-                    task_allocation_times_attributes: task.allocation_times.map((t) =>
-                        t.date == formatedSelectedDate
-                            ? { ...t, date: fullDate }
-                            : t
-                    ),
-                },
-            })
-        ).unwrap();
+        // compute hours to add for the target date from this task's allocation entries
+        const addedHours = (task.allocation_times || [])
+            .filter((t) => t.date == formatedSelectedDate)
+            .reduce((acc, t) => {
+                const hrs = Number(t.hours || 0);
+                const mins = Number(t.minutes || 0);
+                return acc + hrs + mins / 60;
+            }, 0);
 
-        setAssignedTasks((prev) => ({ ...prev, [fullDate]: task }));
-        setCurrentTasks((prev) => prev.filter((t) => t.id !== task.id));
+        try {
+            // mark as pending so UI doesn't show assignment until success
+            setPendingDrops((p) => ({ ...p, [fullDate]: true }));
+
+            await dispatch(
+                updateTask({
+                    token,
+                    id: task.id,
+                    payload: {
+                        ...(task.target_date == formatedSelectedDate && {
+                            target_date: fullDate,
+                            allocation_date: fullDate,
+                        }),
+                        task_allocation_times_attributes: task.allocation_times.map((t) =>
+                            t.date == formatedSelectedDate
+                                ? { ...t, date: fullDate }
+                                : t
+                        ),
+                    },
+                })
+            ).unwrap();
+
+            // only after success update local UI state
+            setAssignedTasks((prev) => ({ ...prev, [fullDate]: task }));
+            setAvailabilityUpdates((prev) => ({
+                ...prev,
+                [fullDate]: (prev[fullDate] || 0) + addedHours,
+            }));
+            setCurrentTasks((prev) => prev.filter((t) => t.id !== task.id));
+        } catch (err) {
+            console.error("Failed to update task on drop:", err);
+            // optionally inform user - minimal handling here
+            toast.error("Could not move task. Please try again.");
+        } finally {
+            setPendingDrops((p) => {
+                const copy = { ...p };
+                delete copy[fullDate];
+                return copy;
+            });
+        }
     };
 
     const handleTaskScroll = (direction) => {
@@ -324,11 +377,13 @@ const TasksOfDate = ({ selectedDate, onClose, tasks, userAvailability }) => {
         (u) => u.date === selectedDateString
     );
 
-    const totalTaskHours = selectedDayAvailability
-        ? `${selectedDayAvailability.allocated_hours
-            .toString()
-            .padStart(2, "0")} hrs`
-        : "00 hrs";
+    const formatHoursString = (h) => {
+        if (Number.isInteger(h)) return `${String(h).padStart(2, "0")} hrs`;
+        return `${h.toFixed(2)} hrs`;
+    };
+
+    const selectedHoursNum = (Number(selectedDayAvailability?.allocated_hours) || 0) + (availabilityUpdates[selectedDateString] || 0);
+    const totalTaskHours = formatHoursString(selectedHoursNum);
 
     return (
         <DndProvider backend={HTML5Backend}>
