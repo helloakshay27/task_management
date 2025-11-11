@@ -64,7 +64,7 @@ export const createInternalUser = createAsyncThunk('createInternalUser', async (
 
 export const fetchInternalUser = createAsyncThunk('fetchInternalUser', async ({ token }) => {
     try {
-        const response = await axios.get(`${baseURL}/users.json?q[user_type_eq]=internal`, {
+        const response = await axios.get(`${baseURL}/users.json?q[employee_type_eq]=internal`, {
             headers: {
                 Authorization: `Bearer ${token}`,
             },
@@ -106,7 +106,7 @@ export const fetchInternalUserDetails = createAsyncThunk('fetchInternalUserDetai
 
 export const fetchExternalUser = createAsyncThunk('fetchExternalUser', async ({ token }) => {
     try {
-        const response = await axios.get(`${baseURL}/users.json?q[user_type_eq]=external`, {
+        const response = await axios.get(`${baseURL}/users.json?q[employee_type_eq]=external`, {
             headers: {
                 Authorization: `Bearer ${token}`,
             },

@@ -180,8 +180,16 @@ const SetupSidebar = ({ isSidebarOpen, setIsSidebarOpen }) => {
                                         Department
                                     </NavLink>
                                 </li>
-
-
+                                <li className="text-[14px] ms-[60px] mb-4 ">
+                                    <NavLink
+                                        to="/setup/sites"
+                                        className={({ isActive }) =>
+                                            `${isActive ? "text-[#c72030]" : "text-gray-700"}`
+                                        }
+                                    >
+                                        Sites
+                                    </NavLink>
+                                </li>
                                 <li className="text-[14px] ms-[60px] mb-4">
                                     <NavLink
                                         to="/setup/country"

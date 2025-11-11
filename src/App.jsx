@@ -52,6 +52,7 @@ import GroupConversation from "./components/Home/Channel/GroupConversation.jsx";
 import Roster from "./pages/Setup/Roster";
 import CreateRoster from "./pages/Setup/CreateRoster";
 import Department from "./pages/Setup/Department";
+import Sites from "./pages/Setup/Sites";
 
 const App = () => {
   const token = localStorage.getItem("token");
@@ -218,6 +219,7 @@ const App = () => {
                   <Route path="/setup/country" element={<Country />} />
                   <Route path="/setup/company" element={<Company />} />
                   <Route path="/setup/department" element={<Department />} />
+                  <Route path="/setup/sites" element={<Sites />} />
                   <Route
                     path="/setup/organizations"
                     element={<Organizations />}

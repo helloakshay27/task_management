@@ -11,6 +11,7 @@ import {
 import { toast } from "react-hot-toast";
 import { Eye, EyeOff } from "lucide-react";
 import { fetchCompany } from "../../../redux/slices/companySlice";
+import { fetchDepartment } from "@/redux/slices/departmentSlice";
 
 const AddInternalUser = ({
     open,
@@ -32,6 +33,7 @@ const AddInternalUser = ({
         role: null,
         reportTo: "",
         company: "",
+        department: "",
     });
 
     const { success, loading } = useSelector((state) => state.createInternalUser);
@@ -43,6 +45,9 @@ const AddInternalUser = ({
     const { fetchCompany: companies = [] } = useSelector(
         (state) => state.fetchCompany
     );
+    const { fetchDepartment: departments = [] } = useSelector(
+        (state) => state.fetchDepartment
+    );
 
     // Fetch dropdown data
     useEffect(() => {
@@ -51,6 +56,7 @@ const AddInternalUser = ({
                 await dispatch(fetchActiveRoles({ token })).unwrap();
                 await dispatch(fetchUsers({ token })).unwrap();
                 await dispatch(fetchCompany({ token })).unwrap();
+                await dispatch(fetchDepartment({ token })).unwrap();
             } catch (err) {
                 console.error("Dropdown data fetch failed:", err);
                 toast.error("Failed to load dropdown data");
@@ -97,13 +103,24 @@ const AddInternalUser = ({
 
         const payload = {
             user: {
+                registration_source: "Web",
+                lock_user_permissions_attributes: [
+                    {
+                        account_id: formData.company,
+                        department_id: formData.department,
+                        user_type: "pms_admin",
+                        lock_role_id: formData.role,
+                        access_level: "Site",
+                        access_to: []
+                    }
+                ],
                 firstname,
                 lastname,
                 mobile: formData.mobile,
                 email: formData.email,
                 password: formData.password,
                 role_id: formData.role,
-                user_type: "internal",
+                employee_type: "internal",
                 report_to_id: formData.reportTo,
                 company_id: formData.company,
             },
@@ -152,6 +169,7 @@ const AddInternalUser = ({
             role: null,
             reportTo: "",
             company: "",
+            department: "",
         });
         setError("");
         onClose();
@@ -166,6 +184,7 @@ const AddInternalUser = ({
             role: null,
             reportTo: "",
             company: "",
+            department: "",
         });
         setError("");
         onSuccess();
@@ -279,6 +298,24 @@ const AddInternalUser = ({
                             }
                             value={formData.company}
                             onChange={(val) => setFormData({ ...formData, company: val })}
+                            className="w-full"
+                        />
+                    </div>
+
+                    {/* Department */}
+                    <div className="px-6">
+                        <label className="block text-[11px] text-[#1B1B1B] mb-1">
+                            Department<span className="text-red-500 ml-1">*</span>
+                        </label>
+                        <SelectBox
+                            options={
+                                departments ? departments.map((department) => ({
+                                    value: department.id,
+                                    label: department.name,
+                                })) : []
+                            }
+                            value={formData.department}
+                            onChange={(val) => setFormData({ ...formData, department: val })}
                             className="w-full"
                         />
                     </div>

@@ -54,7 +54,7 @@ export const fetchDepartment = createAsyncThunk('fetchDepartment', async ({ toke
         return response.data
     } catch (error) {
         console.log(error)
-        return error.response.data
+        return error
     }
 })
 
@@ -69,13 +69,13 @@ export const createDepartment = createAsyncThunk('createDepartment', async ({ to
         return response.data
     } catch (error) {
         console.log(error)
-        return error.response.data
+        return error
     }
 })
 
 export const updateDepartment = createAsyncThunk('updateDepartment', async ({ token, payload, id }) => {
     try {
-        const response = await axios.put(`${baseURL}/departments/${id}.json`, payload , {
+        const response = await axios.put(`${baseURL}/departments/${id}.json`, payload, {
             headers: {
                 Authorization: `Bearer ${token}`,
             }
@@ -84,7 +84,7 @@ export const updateDepartment = createAsyncThunk('updateDepartment', async ({ to
         return response.data
     } catch (error) {
         console.log(error)
-        return error.response.data
+        return error
     }
 })
 
@@ -99,7 +99,7 @@ export const deleteDepartment = createAsyncThunk('deleteDepartment', async ({ to
         return response.data
     } catch (error) {
         console.log(error)
-        return error.response.data
+        return error
     }
 })
 

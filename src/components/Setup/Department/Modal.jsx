@@ -49,39 +49,31 @@ const AddDepartmentModel = ({
     const payload = {
       department: {
         name: formData.name,
-        active: true
+        // active: true
       },
     };
     try {
-      let response;
       if (isEditMode && initialData?.id) {
-        response = await dispatch(
+        await dispatch(
           updateDepartment({
             token,
             id: initialData.id,
             payload,
           })
-        );
+        ).unwrap();
       } else {
-        response = await dispatch(createDepartment({ token, payload }));
+        await dispatch(createDepartment({ token, payload })).unwrap();
       }
-      console.log(response);
-      if (response.payload?.errors) {
-        setError(response.payload.errors);
-      } else if (response.payload.user_exists) {
-        setError(response.payload.message);
-      } else {
-        toast.success(
-          `Department ${isEditMode ? "updated" : "created"} successfully`,
-          {
-            iconTheme: {
-              primary: "green",
-              secondary: "white",
-            },
-          }
-        );
-        handleSuccess();
-      }
+      toast.success(
+        `Department ${isEditMode ? "updated" : "created"} successfully`,
+        {
+          iconTheme: {
+            primary: "green",
+            secondary: "white",
+          },
+        }
+      );
+      handleSuccess();
     } catch (error) {
       console.log(error);
       setError(error.message);

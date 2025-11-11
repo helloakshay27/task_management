@@ -1,7 +1,12 @@
+import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { TextField } from "@mui/material";
-import { ArrowLeft, Calendar } from "lucide-react"
-import { useState } from "react";
+import { FormControl, InputLabel, TextField, Select as MuiSelect, OutlinedInput, Checkbox, MenuItem, CircularProgress, ListItemText } from "@mui/material";
+import { baseURL } from "../../../apiDomain";
+import { ArrowLeft, Building2, Calendar, Clock, Loader2, MapPin, Save, Users } from "lucide-react"
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useDispatch } from "react-redux";
+import { fetchDepartment } from "@/redux/slices/departmentSlice";
 
 const Section = ({ title, icon, children }) => (
     <section className="bg-card border border-border shadow-sm">
@@ -35,7 +40,21 @@ const fieldStyles = {
 };
 
 const CreateRoster = () => {
+    const navigate = useNavigate();
+    const dispatch = useDispatch();
+    const token = localStorage.getItem("token");
+
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [loadingDepartments, setLoadingDepartments] = useState(false);
+    const [departments, setDepartments] = useState([]);
+    const [loadingFilteredFMUsers, setLoadingFilteredFMUsers] = useState(false);
+    const [loadingShifts, setLoadingShifts] = useState(false);
+    const [shifts, setShifts] = useState([]);
+    const [filteredFMUsers, setFilteredFMUsers] = useState([]);
+    const [period, setPeriod] = useState({
+        startDate: null,
+        endDate: null
+    });
     const [formData, setFormData] = useState({
         templateName: "",
         selectedDays: [],
@@ -56,6 +75,26 @@ const CreateRoster = () => {
         shift: false,
         selectedEmployees: false,
     });
+
+    const fetchDepartments = async () => {
+        setLoadingDepartments(true);
+        try {
+            const departmentData = await dispatch(fetchDepartment({ token })).unwrap();
+            setDepartments(departmentData);
+        } catch (error) {
+            console.error("Error fetching departments:", error);
+            toast.error("Failed to load departments");
+            setDepartments([]);
+        } finally {
+            setLoadingDepartments(false);
+        }
+    };
+
+    console.log(departments)
+
+    useEffect(() => {
+        fetchDepartments();
+    }, []);
 
     const handleInputChange = (field, value) => {
         setFormData((prev) => ({ ...prev, [field]: value }));
@@ -92,6 +131,270 @@ const CreateRoster = () => {
         }
     };
 
+    const handleRecurringDayToggle = (day, week) => {
+        const dayKey = `${week}-${day}`;
+        setFormData((prev) => ({
+            ...prev,
+            selectedDays: prev.selectedDays.includes(dayKey)
+                ? prev.selectedDays.filter((d) => d !== dayKey)
+                : [...prev.selectedDays, dayKey],
+        }));
+
+        if (errors.selectedDays) {
+            setErrors((prev) => ({ ...prev, selectedDays: false }));
+        }
+    };
+
+    const handleWeekToggle = (week) => {
+        setFormData((prev) => {
+            const newWeekSelection = prev.weekSelection.includes(week)
+                ? prev.weekSelection.filter((w) => w !== week)
+                : [...prev.weekSelection, week];
+
+            // If "All" is selected, select all other options
+            if (week === "All" && !prev.weekSelection.includes("All")) {
+                if (prev.dayType === "Weekdays") {
+                    return {
+                        ...prev,
+                        weekSelection: [
+                            "1st Week",
+                            "2nd Week",
+                            "3rd Week",
+                            "4th Week",
+                            "5th Week",
+                            "All",
+                        ],
+                    };
+                } else if (prev.dayType === "Weekends") {
+                    return {
+                        ...prev,
+                        weekSelection: [
+                            "1st Weekend",
+                            "2nd Weekend",
+                            "3rd Weekend",
+                            "4th Weekend",
+                            "5th Weekend",
+                            "All",
+                        ],
+                    };
+                }
+            }
+
+            // If "All" is deselected, deselect all other options
+            if (week === "All" && prev.weekSelection.includes("All")) {
+                return {
+                    ...prev,
+                    weekSelection: [],
+                };
+            }
+
+            // If any other option is selected and "All" was already selected, remove "All"
+            if (week !== "All" && prev.weekSelection.includes("All")) {
+                const filteredSelection = prev.weekSelection.filter((w) => w !== "All");
+                return {
+                    ...prev,
+                    weekSelection: newWeekSelection.filter((w) => w !== "All"),
+                };
+            }
+
+            // Check if all individual options are selected (except "All"), then auto-select "All"
+            const allOptions =
+                prev.dayType === "Weekdays"
+                    ? ["1st Week", "2nd Week", "3rd Week", "4th Week", "5th Week"]
+                    : [
+                        "1st Weekend",
+                        "2nd Weekend",
+                        "3rd Weekend",
+                        "4th Weekend",
+                        "5th Weekend",
+                    ];
+
+            const hasAllIndividualOptions = allOptions.every((option) =>
+                newWeekSelection.includes(option)
+            );
+
+            if (hasAllIndividualOptions && !newWeekSelection.includes("All")) {
+                return {
+                    ...prev,
+                    weekSelection: [...newWeekSelection, "All"],
+                };
+            }
+
+            return {
+                ...prev,
+                weekSelection: newWeekSelection,
+            };
+        });
+
+        // Clear day error when user selects a week
+        if (errors.selectedDays) {
+            setErrors((prev) => ({ ...prev, selectedDays: false }));
+        }
+    };
+
+    const validateForm = () => {
+        let hasSelectedDays = false;
+
+        if (formData.dayType === "Recurring") {
+            hasSelectedDays = formData.selectedDays.length > 0;
+        } else if (
+            formData.dayType === "Weekdays" ||
+            formData.dayType === "Weekends"
+        ) {
+            hasSelectedDays = formData.weekSelection.length > 0;
+        }
+
+        const newErrors = {
+            templateName: !formData.templateName.trim(),
+            selectedDays: !hasSelectedDays,
+            dayType: false, // dayType is always selected by default
+            location: false, // Location is auto-populated, not required validation
+            departments: formData.departments.length === 0,
+            shift: formData.shift === null,
+            selectedEmployees:
+                formData.departments.length > 0 &&
+                formData.selectedEmployees.length === 0,
+        };
+
+        setErrors(newErrors);
+
+        const hasErrors = Object.values(newErrors).some((error) => error);
+
+        if (hasErrors) {
+            const errorFields = [];
+            if (newErrors.templateName) errorFields.push("Template Name");
+            if (newErrors.selectedDays) errorFields.push("Working Days");
+            if (newErrors.departments) errorFields.push("Department");
+            if (newErrors.shift) errorFields.push("Shift");
+            if (newErrors.selectedEmployees) errorFields.push("Selected Employees");
+
+            toast.error(
+                `Please fill in the following required fields: ${errorFields.join(
+                    ", "
+                )}`,
+                {
+                    duration: 5000,
+                }
+            );
+        }
+
+        return !hasErrors;
+    };
+
+    const handleSubmit = async () => {
+        if (isSubmitting) return;
+
+        if (!validateForm()) {
+            return;
+        }
+
+        setIsSubmitting(true);
+
+        try {
+            // Build payload for API
+            let payload;
+            const baseUserRoaster = {
+                name: formData.templateName,
+                resource_id:
+                    selectedSite?.id || localStorage.getItem("selectedSiteId") || "",
+                user_shift_id: formData.shift || "",
+                seat_category_id: "1", // Required field
+                allocation_type: formData.rosterType,
+                roaster_type: formData.dayType,
+            };
+
+            // Common date format (Rails style for all types)
+            const commonDateFields = period.startDate && period.endDate ? {
+                "start_date(3i)": period.startDate.getDate().toString(),
+                "start_date(2i)": (period.startDate.getMonth() + 1).toString(),
+                "start_date(1i)": period.startDate.getFullYear().toString(),
+                "end_date(3i)": period.endDate.getDate().toString(),
+                "end_date(2i)": (period.endDate.getMonth() + 1).toString(),
+                "end_date(1i)": period.endDate.getFullYear().toString(),
+            } : {};
+
+            const basePayload = {
+                user_roaster: {
+                    ...baseUserRoaster,
+                    ...commonDateFields,
+                },
+                department_id: formData.departments.map((d) => d),
+                no_of_days: "",
+                weekdays: [],
+                weekends: [],
+                user_ids: formData.selectedEmployees,
+            };
+
+            if (formData.dayType === "Weekdays") {
+                const weekdays = formData.weekSelection
+                    .filter((w) => w.match(/^\d/)) // Filter selections that start with digit
+                    .map((w) => w.charAt(0)); // Get first character (week number)
+
+                payload = {
+                    ...basePayload,
+                    weekdays: weekdays,
+                };
+            } else if (formData.dayType === "Weekends") {
+                const weekends = formData.weekSelection
+                    .filter((w) => w.match(/^\d/)) // Filter selections that start with digit
+                    .map((w) => w.charAt(0)); // Get first character (weekend number)
+
+                payload = {
+                    ...basePayload,
+                    weekends: weekends,
+                };
+            } else if (formData.dayType === "Recurring") {
+                // Recurring payload - matching your example structure
+                const recurringData = {};
+                for (let weekNum = 1; weekNum <= 5; weekNum++) {
+                    const daysForWeek = formData.selectedDays
+                        .filter((d) => d.startsWith(`Week${weekNum}-`))
+                        .map((d) => {
+                            const dayShort = d.split("-")[1];
+                            return (
+                                ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].indexOf(
+                                    dayShort
+                                ) + 1
+                            ).toString();
+                        });
+                    if (daysForWeek.length > 0) {
+                        recurringData[weekNum.toString()] = daysForWeek;
+                    }
+                }
+
+                payload = {
+                    ...basePayload,
+                    recurring: [recurringData],
+                };
+            } else {
+                payload = basePayload;
+            }
+
+            // Make API call
+            const response = await fetch(
+                `${baseURL}/user_roasters.json`,
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${token}`,
+                    },
+                    body: JSON.stringify(payload),
+                }
+            );
+
+            if (!response.ok) throw new Error("API error");
+
+            toast.success("Roster template created successfully!");
+            navigate("/roster");
+        } catch (error) {
+            console.error("Error creating roster template:", error);
+            toast.error("Failed to create roster template. Please try again.");
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
     return (
         <div className="p-6 space-y-6">
             <header className="flex items-center justify-between">
@@ -99,6 +402,7 @@ const CreateRoster = () => {
                     <button
                         className="p-2 hover:bg-gray-100 rounded-full transition-colors"
                         title="Back to Roster Management"
+                        onClick={() => navigate(-1)}
                     >
                         <ArrowLeft className="w-5 h-5 text-gray-600" />
                     </button>
@@ -183,7 +487,7 @@ const CreateRoster = () => {
                                         name="dayType"
                                         checked={formData.dayType === "Weekdays"}
                                         onChange={() => handleDayTypeChange("Weekdays")}
-                                        className="w-4 h-4 text-[#C72030] border-gray-300 focus:ring-[#C72030] focus:ring-2"
+                                        className="w-4 h-4 text-[#C72030] border-gray-300"
                                         style={{
                                             accentColor: "#C72030",
                                         }}
@@ -200,7 +504,7 @@ const CreateRoster = () => {
                                         name="dayType"
                                         checked={formData.dayType === "Weekends"}
                                         onChange={() => handleDayTypeChange("Weekends")}
-                                        className="w-4 h-4 text-[#C72030] border-gray-300 focus:ring-[#C72030] focus:ring-2"
+                                        className="w-4 h-4 text-[#C72030] border-gray-300"
                                         style={{
                                             accentColor: "#C72030",
                                         }}
@@ -217,7 +521,7 @@ const CreateRoster = () => {
                                         name="dayType"
                                         checked={formData.dayType === "Recurring"}
                                         onChange={() => handleDayTypeChange("Recurring")}
-                                        className="w-4 h-4 text-[#C72030] border-gray-300 focus:ring-[#C72030] focus:ring-2"
+                                        className="w-4 h-4 text-[#C72030] border-gray-300 "
                                         style={{
                                             accentColor: "#C72030",
                                         }}
@@ -259,7 +563,7 @@ const CreateRoster = () => {
                                             <input
                                                 type="checkbox"
                                                 checked={formData.weekSelection.includes(week)}
-                                                // onChange={() => handleWeekToggle(week)}
+                                                onChange={() => handleWeekToggle(week)}
                                                 disabled={isSubmitting}
                                                 className="sr-only"
                                             />
@@ -274,8 +578,557 @@ const CreateRoster = () => {
                                 </div>
                             </div>
                         )}
+
+                        {formData.dayType === "Weekends" && (
+                            <div className="space-y-3 p-4 bg-[#f6f4ee] border border-[#D5DbDB]">
+                                <div className="flex items-center gap-2 mb-3">
+                                    <div className="text-sm font-medium text-[#C72030]">
+                                        Frequency:
+                                    </div>
+                                </div>
+                                <div className="flex flex-wrap gap-2">
+                                    {[
+                                        "1st Weekend",
+                                        "2nd Weekend",
+                                        "3rd Weekend",
+                                        "4th Weekend",
+                                        "5th Weekend",
+                                        "All",
+                                    ].map((weekend) => (
+                                        <label
+                                            key={weekend}
+                                            className={`
+                        flex items-center gap-2 px-3 py-1 border-2 cursor-pointer transition-all duration-200
+                        ${formData.weekSelection.includes(weekend)
+                                                    ? "border-[#C72030] bg-[#C72030] text-white"
+                                                    : "border-[#D5DbDB] bg-white text-[#1a1a1a] hover:border-[#C72030]"
+                                                }
+                        ${isSubmitting ? "opacity-50 cursor-not-allowed" : ""}
+                      `}
+                                        >
+                                            <input
+                                                type="checkbox"
+                                                checked={formData.weekSelection.includes(weekend)}
+                                                onChange={() => handleWeekToggle(weekend)}
+                                                disabled={isSubmitting}
+                                                className="sr-only"
+                                            />
+                                            <span className="text-xs font-medium">
+                                                {weekend === "All" ? "All Weekends" : weekend}
+                                            </span>
+                                        </label>
+                                    ))}
+                                </div>
+                                <div className="text-xs text-[#1a1a1a] opacity-70 mt-2">
+                                    Days: Sat, Sun
+                                </div>
+                            </div>
+                        )}
+
+                        {formData.dayType === "Recurring" && (
+                            <div className="space-y-4 p-4 bg-[#f6f4ee] border border-[#D5DbDB] rounded-lg">
+                                <div className="text-sm font-medium text-[#C72030] mb-3">
+                                    Custom Weekly Pattern
+                                </div>
+
+                                {[1, 2, 3, 4, 5].map((weekNum) => (
+                                    <div
+                                        key={weekNum}
+                                        className="bg-white border border-[#D5DbDB] rounded-lg p-3"
+                                    >
+                                        <div className="flex items-center justify-between mb-2">
+                                            <span className="text-sm font-medium">
+                                                Week {weekNum}
+                                            </span>
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    const allDaysForWeek = [
+                                                        "Mon",
+                                                        "Tue",
+                                                        "Wed",
+                                                        "Thu",
+                                                        "Fri",
+                                                        "Sat",
+                                                        "Sun",
+                                                    ].map((day) => `Week${weekNum}-${day}`);
+                                                    const hasAllDays = allDaysForWeek.every((dayKey) =>
+                                                        formData.selectedDays.includes(dayKey)
+                                                    );
+
+                                                    setFormData((prev) => ({
+                                                        ...prev,
+                                                        selectedDays: hasAllDays
+                                                            ? prev.selectedDays.filter(
+                                                                (d) => !allDaysForWeek.includes(d)
+                                                            )
+                                                            : [
+                                                                ...prev.selectedDays,
+                                                                ...allDaysForWeek.filter(
+                                                                    (d) => !prev.selectedDays.includes(d)
+                                                                ),
+                                                            ],
+                                                    }));
+                                                }}
+                                                disabled={isSubmitting}
+                                                className={`
+                          px-2 py-1 text-xs rounded transition-all duration-200
+                          ${[
+                                                        "Mon",
+                                                        "Tue",
+                                                        "Wed",
+                                                        "Thu",
+                                                        "Fri",
+                                                        "Sat",
+                                                        "Sun",
+                                                    ].every((day) =>
+                                                        formData.selectedDays.includes(
+                                                            `Week${weekNum}-${day}`
+                                                        )
+                                                    )
+                                                        ? "bg-[#C72030] text-white"
+                                                        : "bg-gray-100 text-gray-600 hover:bg-[#C72030] hover:text-white"
+                                                    }
+                        `}
+                                            >
+                                                All
+                                            </button>
+                                        </div>
+
+                                        <div className="grid grid-cols-7 gap-1">
+                                            {[
+                                                { short: "Mon", full: "Monday" },
+                                                { short: "Tue", full: "Tuesday" },
+                                                { short: "Wed", full: "Wednesday" },
+                                                { short: "Thu", full: "Thursday" },
+                                                { short: "Fri", full: "Friday" },
+                                                { short: "Sat", full: "Saturday" },
+                                                { short: "Sun", full: "Sunday" },
+                                            ].map((day) => {
+                                                const isSelected = formData.selectedDays.includes(
+                                                    `Week${weekNum}-${day.short}`
+                                                );
+                                                return (
+                                                    <button
+                                                        key={day.short}
+                                                        type="button"
+                                                        onClick={() =>
+                                                            handleRecurringDayToggle(
+                                                                day.short,
+                                                                `Week${weekNum}`
+                                                            )
+                                                        }
+                                                        disabled={isSubmitting}
+                                                        className={`
+                              w-full h-8 rounded text-xs font-medium transition-all duration-200
+                              ${isSelected
+                                                                ? "bg-[#C72030] text-white"
+                                                                : "bg-gray-100 text-gray-600 hover:bg-[#C72030] hover:text-white"
+                                                            }
+                            `}
+                                                        title={`${day.full} - Week ${weekNum}`}
+                                                    >
+                                                        {day.short}
+                                                    </button>
+                                                );
+                                            })}
+                                        </div>
+                                    </div>
+                                ))}
+
+                                <div className="text-xs text-[#1a1a1a] opacity-70">
+                                    {formData.selectedDays.length > 0
+                                        ? `${formData.selectedDays.length} days selected across all weeks`
+                                        : "No days selected yet"}
+                                </div>
+                            </div>
+                        )}
+
+                        {errors.selectedDays && (
+                            <p className="text-red-500 text-sm mt-1">
+                                {formData.dayType === "Recurring"
+                                    ? "Please select at least one working day"
+                                    : "Please select at least one frequency option"}
+                            </p>
+                        )}
                     </div>
                 </Section>
+
+                <Section
+                    title="Location & Department"
+                    icon={<MapPin className="w-4 h-4" />}
+                >
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div>
+                            <TextField
+                                label="Location"
+                                value={formData.location}
+                                disabled
+                                placeholder="Current site location"
+                                fullWidth
+                                variant="outlined"
+                                slotProps={{
+                                    inputLabel: {
+                                        shrink: true,
+                                    },
+                                }}
+                                InputProps={{
+                                    sx: { ...fieldStyles, backgroundColor: "#fff" },
+                                    startAdornment: (
+                                        <Building2 className="w-4 h-4 text-gray-400 mr-2" />
+                                    ),
+                                }}
+                            />
+                        </div>
+
+                        <div className="relative">
+                            <FormControl
+                                fullWidth
+                                variant="outlined"
+                                sx={{ "& .MuiInputBase-root": fieldStyles }}
+                            >
+                                <InputLabel shrink>Department <span className="text-red-500">*</span></InputLabel>
+                                <MuiSelect
+                                    multiple
+                                    value={formData.departments}
+                                    onChange={(e) =>
+                                        handleInputChange("departments", e.target.value)
+                                    }
+                                    input={<OutlinedInput notched label="Department *" />}
+                                    sx={{ backgroundColor: "#fff" }}
+                                    renderValue={(selected) => {
+                                        const selectedArray = selected;
+                                        if (selectedArray.length === 0) return "";
+                                        if (selectedArray.length === 1) {
+                                            const dept = departments.find((d) => d.id === selectedArray[0]);
+                                            return dept?.name || `ID: ${selectedArray[0]}`;
+                                        }
+                                        if (selectedArray.length <= 3) {
+                                            return selectedArray.map((value) => {
+                                                const dept = departments.find((d) => d.id === value);
+                                                return dept?.name || `ID: ${value}`;
+                                            }).join(", ");
+                                        }
+                                        return `${selectedArray.length} departments selected`;
+                                    }}
+                                    displayEmpty
+                                    disabled={loadingDepartments || isSubmitting}
+                                    error={errors.departments}
+                                    MenuProps={{
+                                        PaperProps: {
+                                            style: {
+                                                maxHeight: 300,
+                                                overflow: 'auto',
+                                            },
+                                        },
+                                    }}
+                                >
+                                    {departments.map((dept) => (
+                                        <MenuItem key={dept.id} value={dept.id}>
+                                            <Checkbox
+                                                checked={formData.departments.indexOf(dept.id) > -1}
+                                                sx={{
+                                                    color: "#D5DbDB",
+                                                    "&.Mui-checked": {
+                                                        color: "#C72030",
+                                                    },
+                                                }}
+                                            />
+                                            <ListItemText primary={dept.name} />
+                                        </MenuItem>
+                                    ))}
+                                </MuiSelect>
+                                {loadingDepartments && (
+                                    <div className="absolute right-8 top-1/2 transform -translate-y-1/2">
+                                        <CircularProgress size={16} />
+                                    </div>
+                                )}
+                            </FormControl>
+                            {errors.departments && (
+                                <p className="text-red-500 text-sm mt-1">
+                                    Please select at least one department
+                                </p>
+                            )}
+                        </div>
+                    </div>
+                </Section>
+
+                <Section title="Shift & Employees" icon={<Clock className="w-4 h-4" />}>
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div className="relative">
+                            <FormControl
+                                fullWidth
+                                variant="outlined"
+                                sx={{ "& .MuiInputBase-root": fieldStyles }}
+                            >
+                                <InputLabel shrink>Shift <span className="text-red-500">*</span></InputLabel>
+                                <MuiSelect
+                                    value={formData.shift || ""}
+                                    onChange={(e) =>
+                                        handleInputChange("shift", Number(e.target.value))
+                                    }
+                                    label="Shift *"
+                                    notched
+                                    displayEmpty
+                                    disabled={loadingShifts || isSubmitting}
+                                    error={errors.shift}
+                                >
+                                    <MenuItem value="">Select Shift</MenuItem>
+                                    {shifts.map((shift) => (
+                                        <MenuItem key={shift.id} value={shift.id}>
+                                            {shift.timings} ({shift.total_hour}h)
+                                        </MenuItem>
+                                    ))}
+                                </MuiSelect>
+                                {loadingShifts && (
+                                    <div className="absolute right-8 top-1/2 transform -translate-y-1/2">
+                                        <CircularProgress size={16} />
+                                    </div>
+                                )}
+                            </FormControl>
+                            {errors.shift && (
+                                <p className="text-red-500 text-sm mt-1">
+                                    Please select a shift
+                                </p>
+                            )}
+                        </div>
+                        {formData.departments.length > 0 && (
+                            <div className="relative">
+                                <FormControl
+                                    fullWidth
+                                    variant="outlined"
+                                    sx={{ "& .MuiInputBase-root": fieldStyles }}
+                                >
+                                    <InputLabel shrink>List Of Selected Employees <span className="text-red-500">*</span></InputLabel>
+                                    <MuiSelect
+                                        multiple
+                                        value={formData.selectedEmployees}
+                                        onChange={(e) =>
+                                            handleInputChange(
+                                                "selectedEmployees",
+                                                e.target.value
+                                            )
+                                        }
+                                        input={
+                                            <OutlinedInput
+                                                notched
+                                                label="List Of Selected Employees *"
+                                            />
+                                        }
+                                        renderValue={(selected) => {
+                                            const selectedArray = selected;
+                                            if (selectedArray.length === 0) return "";
+                                            if (selectedArray.length === 1) {
+                                                const user = filteredFMUsers.find((u) => u.id === selectedArray[0]);
+                                                return user?.name || `User ${selectedArray[0]}`;
+                                            }
+                                            if (selectedArray.length <= 3) {
+                                                return selectedArray.map((value) => {
+                                                    const user = filteredFMUsers.find((u) => u.id === value);
+                                                    return user?.name || `User ${value}`;
+                                                }).join(", ");
+                                            }
+                                            return `${selectedArray.length} employees selected`;
+                                        }}
+                                        displayEmpty
+                                        disabled={
+                                            loadingFilteredFMUsers ||
+                                            isSubmitting ||
+                                            formData.departments.length === 0
+                                        }
+                                        error={errors.selectedEmployees}
+                                        MenuProps={{
+                                            PaperProps: {
+                                                style: {
+                                                    maxHeight: 300,
+                                                    overflow: 'auto',
+                                                },
+                                            },
+                                        }}
+                                    >
+                                        {filteredFMUsers.length > 0 ? (
+                                            filteredFMUsers.map((user) => (
+                                                <MenuItem key={user.id} value={user.id}>
+                                                    <Checkbox
+                                                        checked={
+                                                            formData.selectedEmployees.indexOf(user.id) > -1
+                                                        }
+                                                        sx={{
+                                                            color: "#D5DbDB",
+                                                            "&.Mui-checked": {
+                                                                color: "#C72030",
+                                                            },
+                                                        }}
+                                                    />
+                                                    <ListItemText
+                                                        primary={user.name || "No name available"}
+                                                        secondary={user.email}
+                                                    />
+                                                </MenuItem>
+                                            ))
+                                        ) : (
+                                            <MenuItem disabled>
+                                                <ListItemText
+                                                    primary="No employees found for selected departments"
+                                                    sx={{ fontStyle: "italic", color: "#9ca3af" }}
+                                                />
+                                            </MenuItem>
+                                        )}
+                                    </MuiSelect>
+                                    {loadingFilteredFMUsers && (
+                                        <div className="absolute right-8 top-1/2 transform -translate-y-1/2">
+                                            <CircularProgress size={16} />
+                                        </div>
+                                    )}
+                                </FormControl>
+                                {errors.selectedEmployees && (
+                                    <p className="text-red-500 text-sm mt-1">
+                                        Please select at least one employee
+                                    </p>
+                                )}
+                                <p className="text-sm text-gray-500 mt-2">
+                                    Showing employees from selected departments:{" "}
+                                    {departments
+                                        .filter((dept) => formData.departments.includes(dept.id))
+                                        .map((dept) => dept.name)
+                                        .join(", ")}
+                                </p>
+                            </div>
+                        )}
+                    </div>
+                </Section>
+
+                {formData.departments.length === 0 && (
+                    <Section title="Employees" icon={<Users className="w-4 h-4" />}>
+                        <div className="text-center py-8">
+                            <Users className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                            <p className="text-gray-500 text-lg font-medium mb-2">
+                                Select Departments First
+                            </p>
+                            <p className="text-gray-400 text-sm">
+                                Please select at least one department to view and select
+                                employees
+                            </p>
+                        </div>
+                    </Section>
+                )}
+
+                <Section title="Select Period" icon={<Calendar className="w-4 h-4" />}>
+                    <div className="space-y-6">
+                        <div>
+                            <Label className="text-sm font-medium text-gray-700 mb-4 block">
+                                Roster Period <span className="text-red-500">*</span>
+                            </Label>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                {/* Start Date */}
+                                <div>
+                                    <Label className="text-sm font-medium text-gray-700 mb-2 block">
+                                        Start Date
+                                    </Label>
+                                    <input
+                                        type="date"
+                                        value={period.startDate ? period.startDate.toISOString().split('T')[0] : ''}
+                                        onChange={(e) => {
+                                            const newDate = e.target.value ? new Date(e.target.value) : null;
+                                            setPeriod(prev => ({ ...prev, startDate: newDate }));
+                                        }}
+                                        disabled={isSubmitting}
+                                        className="w-full px-3 py-2 border border-[#e1e5e9] rounded-md bg-[#fafbfc] 
+                             focus:outline-none
+                             disabled:opacity-50 disabled:cursor-not-allowed
+                             text-gray-900 text-sm"
+                                        style={{ height: '45px' }}
+                                    />
+                                </div>
+
+                                {/* End Date */}
+                                <div>
+                                    <Label className="text-sm font-medium text-gray-700 mb-2 block">
+                                        End Date
+                                    </Label>
+                                    <input
+                                        type="date"
+                                        value={period.endDate ? period.endDate.toISOString().split('T')[0] : ''}
+                                        onChange={(e) => {
+                                            const newDate = e.target.value ? new Date(e.target.value) : null;
+                                            setPeriod(prev => ({ ...prev, endDate: newDate }));
+                                        }}
+                                        disabled={isSubmitting}
+                                        min={period.startDate ? period.startDate.toISOString().split('T')[0] : ''}
+                                        className="w-full px-3 py-2 border border-[#e1e5e9] rounded-md bg-[#fafbfc] 
+                             focus:outline-none
+                             disabled:opacity-50 disabled:cursor-not-allowed
+                             text-gray-900 text-sm"
+                                        style={{ height: '45px' }}
+                                    />
+                                </div>
+                            </div>
+
+                            {/* Date Range Display */}
+                            <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                                <div className="flex items-center gap-2 text-sm text-blue-800">
+                                    <Calendar className="w-4 h-4" />
+                                    <span className="font-medium">Selected Period:</span>
+                                    {period.startDate && period.endDate ? (
+                                        <>
+                                            <span>
+                                                {period.startDate.toLocaleDateString('en-GB', {
+                                                    day: '2-digit',
+                                                    month: '2-digit',
+                                                    year: 'numeric'
+                                                })}
+                                            </span>
+                                            <span className="mx-1">→</span>
+                                            <span>
+                                                {period.endDate.toLocaleDateString('en-GB', {
+                                                    day: '2-digit',
+                                                    month: '2-digit',
+                                                    year: 'numeric'
+                                                })}
+                                            </span>
+                                            <span className="ml-2 text-blue-600">
+                                                ({Math.ceil((period.endDate.getTime() - period.startDate.getTime()) / (1000 * 60 * 60 * 24)) + 1} days)
+                                            </span>
+                                        </>
+                                    ) : (
+                                        <span className="text-gray-500 italic">
+                                            Please select start and end dates
+                                        </span>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </Section>
+            </div>
+
+            <div className="flex items-center gap-3 justify-center pt-2">
+                <Button
+                    variant="destructive"
+                    className="px-8 hover:bg-[#c72030]"
+                    onClick={handleSubmit}
+                    disabled={isSubmitting}
+                >
+                    {isSubmitting ? (
+                        <>
+                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                            Creating...
+                        </>
+                    ) : (
+                        <>
+                            <Save className="w-4 h-4 mr-2" />
+                            Create Template
+                        </>
+                    )}
+                </Button>
+                <Button
+                    variant="outline"
+                    className="px-8"
+                    onClick={() => navigate(-1)}
+                    disabled={isSubmitting}
+                >
+                    Cancel
+                </Button>
             </div>
         </div>
     )

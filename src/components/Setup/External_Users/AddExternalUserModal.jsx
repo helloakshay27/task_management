@@ -12,6 +12,7 @@ import {
 import toast from "react-hot-toast";
 import { Eye, EyeOff } from "lucide-react";
 import { fetchCompany } from "../../../redux/slices/companySlice";
+import { fetchDepartment } from "@/redux/slices/departmentSlice";
 
 const AddExternalUserModal = ({
   open,
@@ -36,6 +37,9 @@ const AddExternalUserModal = ({
   const { loading: editLoading } = useSelector(
     (state) => state.fetchUpdateUser || {}
   );
+  const { fetchDepartment: departments = [] } = useSelector(
+    (state) => state.fetchDepartment
+  );
 
   const [error, setError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -48,6 +52,7 @@ const AddExternalUserModal = ({
     password: "",
     role: null,
     company: null,
+    department: "",
   });
 
   useEffect(() => {
@@ -57,6 +62,7 @@ const AddExternalUserModal = ({
           await dispatch(fetchActiveRoles({ token })).unwrap();
           await dispatch(fetchOrganizations({ token })).unwrap();
           await dispatch(fetchCompany({ token })).unwrap();
+          await dispatch(fetchDepartment({ token })).unwrap();
         }
       } catch (error) {
         toast.error("Failed to load dropdown data");
@@ -87,6 +93,7 @@ const AddExternalUserModal = ({
         password: "",
         role: null,
         company: null,
+        department: "",
       });
     }
   }, [isEditMode, initialData, open]);
@@ -100,6 +107,7 @@ const AddExternalUserModal = ({
       password: "",
       role: null,
       company: null,
+      department: "",
     });
     setError("");
   };
@@ -135,6 +143,17 @@ const AddExternalUserModal = ({
 
     const payload = {
       user: {
+        registration_source: "Web",
+        lock_user_permissions_attributes: [
+          {
+            account_id: formData.company,
+            department_id: formData.department,
+            user_type: "pms_admin",
+            lock_role_id: formData.role,
+            access_level: "Site",
+            access_to: []
+          }
+        ],
         firstname,
         lastname,
         organization_id: formData.organisation,
@@ -142,7 +161,7 @@ const AddExternalUserModal = ({
         email: formData.email,
         password: formData.password,
         role_id: formData.role,
-        user_type: "external",
+        employee_type: "external",
         company_id: formData.company,
       },
     };
@@ -191,7 +210,7 @@ const AddExternalUserModal = ({
         </div>
 
         {/* Input Section */}
-        <div className="space-y-4 max-h-[calc(100vh-200px)] overflow-y-auto pb-4">
+        <div className="space-y-4 h-full overflow-y-auto pb-4">
           <div className="px-6">
             <label className="block text-[11px] text-[#1B1B1B] mb-1">
               Username<span className="text-red-500 ml-1">*</span>
@@ -303,6 +322,23 @@ const AddExternalUserModal = ({
               className="w-full"
               value={formData.company}
               onChange={(value) => setFormData({ ...formData, company: value })}
+            />
+          </div>
+
+          <div className="px-6">
+            <label className="block text-[11px] text-[#1B1B1B] mb-1">
+              Department<span className="text-red-500 ml-1">*</span>
+            </label>
+            <SelectBox
+              options={
+                departments ? departments.map((department) => ({
+                  value: department.id,
+                  label: department.name,
+                })) : []
+              }
+              value={formData.department}
+              onChange={(val) => setFormData({ ...formData, department: val })}
+              className="w-full"
             />
           </div>
 
