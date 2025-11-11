@@ -91,6 +91,10 @@ const TaskCard = ({ task, selectedDate }) => {
                     <Timer className="w-4 h-4" />
                     <CountdownTimer targetDate={task.target_date} />
                 </div>
+                <div className="flex items-center gap-1">
+                    <Timer className="w-4 h-4" />
+                    <span>{`${task.estimated_hour} Hrs`}</span>
+                </div>
             </div>
         </div>
     );
