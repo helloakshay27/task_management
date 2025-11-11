@@ -53,6 +53,7 @@ import Roster from "./pages/Setup/Roster";
 import CreateRoster from "./pages/Setup/CreateRoster";
 import Department from "./pages/Setup/Department";
 import Sites from "./pages/Setup/Sites";
+import Shift from "./pages/Setup/Shift";
 
 const App = () => {
   const token = localStorage.getItem("token");
@@ -189,6 +190,10 @@ const App = () => {
                   <Route
                     path="/setup/external-users"
                     element={<ExternalTable />}
+                  />
+                   <Route
+                    path="/setup/shift"
+                    element={<Shift/>}
                   />
                   <Route
                     path="/setup/roster"

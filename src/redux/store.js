@@ -17,6 +17,7 @@ import { createZoneReducer, updateZoneReducer, fetchZoneReducer, deleteZoneReduc
 import { createCountryReducer, updateCountryReducer, fetchCountryReducer, deleteCountryReducer } from './slices/countrySlice'
 import { createDepartmentReducer, updateDepartmentReducer, fetchDepartmentReducer, deleteDepartmentReducer } from './slices/departmentSlice'
 import { createSiteReducer, deleteSiteReducer, fetchSitesReducer, updateSiteReducer } from './slices/siteSlice'
+import { createShiftReducer, updateShiftReducer, fetchShiftReducer, deleteShiftReducer } from './slices/shiftSlice'
 
 export const store = configureStore({
   reducer: {
@@ -157,6 +158,12 @@ export const store = configureStore({
     createDepartment: createDepartmentReducer,
     updateDepartment: updateDepartmentReducer,
     deleteDepartment: deleteDepartmentReducer,
+
+    //Shift
+    fetchShift: fetchShiftReducer,
+    createShift: createShiftReducer,
+    updateShift: updateShiftReducer,
+    deleteShift: deleteShiftReducer,
 
     //Sites
     createSite: createSiteReducer,

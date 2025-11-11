@@ -116,6 +116,16 @@ const SetupSidebar = ({ isSidebarOpen, setIsSidebarOpen }) => {
                                         External Users
                                     </NavLink>
                                 </li>
+                                 <li className="text-[14px] ms-[60px] mb-4">
+                                    <NavLink
+                                        to="/setup/shift"
+                                        className={({ isActive }) =>
+                                            `${isActive ? "text-[#c72030]" : "text-gray-700"}`
+                                        }
+                                    >
+                                        Shift
+                                    </NavLink>
+                                </li>
                                 <li className="text-[14px] ms-[60px] mb-4">
                                     <NavLink
                                         to="/setup/roster"
