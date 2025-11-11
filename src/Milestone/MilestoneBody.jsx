@@ -437,6 +437,10 @@ const GanttChart = () => {
                 const linksData = [];
 
                 const taskIds = new Set();
+                // Map from original navigation id (API id) to array of generated gantt ids
+                const navigationIdToGanttIds = {};
+                // Pending predecessor relations to resolve after all tasks are created
+                const pendingPredecessors = [];
 
                 function formatDateDMYFromISO(dateStr) {
                     if (!dateStr) return "";
@@ -492,6 +496,12 @@ const GanttChart = () => {
                         open: true,
                     });
 
+                    // Map milestone navigation id to gantt id
+                    if (item.id) {
+                        navigationIdToGanttIds[item.id] = navigationIdToGanttIds[item.id] || [];
+                        navigationIdToGanttIds[item.id].push(milestoneId);
+                    }
+
                     if (item.depends_on_id) {
                         linksData.push({
                             id: `link-milestone-${item.id}`,
@@ -543,6 +553,33 @@ const GanttChart = () => {
                                 type: "task",
                             });
 
+                            // Map task navigation id to gantt id (there may be duplicates across milestones)
+                            if (task.id) {
+                                navigationIdToGanttIds[task.id] = navigationIdToGanttIds[task.id] || [];
+                                navigationIdToGanttIds[task.id].push(uniqueTaskId);
+                            }
+
+                            // Collect predecessor info (API may provide nested arrays like [[311]])
+                            if (task.predecessor_task) {
+                                try {
+                                    // flatten any nested arrays
+                                    const preds = Array.isArray(task.predecessor_task)
+                                        ? task.predecessor_task.flat(Infinity).filter(p => p != null)
+                                        : [];
+
+                                    preds.forEach(pred => {
+                                        // store to resolve later: pred is API id, target is current gantt id
+                                        pendingPredecessors.push({
+                                            predecessorNavId: pred,
+                                            targetGanttId: uniqueTaskId,
+                                            targetMilestoneId: item.id,
+                                        });
+                                    });
+                                } catch (e) {
+                                    console.warn('Failed to parse predecessor_task for task', task.id, e);
+                                }
+                            }
+
                             if (Array.isArray(task.sub_tasks_managements)) {
                                 task.sub_tasks_managements.forEach((subTask) => {
                                     const subTaskId = `subtask-${subTask.id}`;
@@ -575,10 +612,63 @@ const GanttChart = () => {
                                         parent: uniqueTaskId,
                                         type: "sub_task",
                                     });
+
+                                    // Map subtask navigation id to gantt id
+                                    if (subTask.id) {
+                                        navigationIdToGanttIds[subTask.id] = navigationIdToGanttIds[subTask.id] || [];
+                                        navigationIdToGanttIds[subTask.id].push(subTaskId);
+                                    }
+
+                                    // Collect predecessor info for subtask as well
+                                    if (subTask.predecessor_task) {
+                                        try {
+                                            const preds = Array.isArray(subTask.predecessor_task)
+                                                ? subTask.predecessor_task.flat(Infinity).filter(p => p != null)
+                                                : [];
+
+                                            preds.forEach(pred => {
+                                                pendingPredecessors.push({
+                                                    predecessorNavId: pred,
+                                                    targetGanttId: subTaskId,
+                                                    targetMilestoneId: item.id,
+                                                });
+                                            });
+                                        } catch (e) {
+                                            console.warn('Failed to parse predecessor_task for subtask', subTask.id, e);
+                                        }
+                                    }
                                 });
                             }
                         });
                     }
+                });
+
+                // Resolve pending predecessors into linksData after all tasks have been registered
+                pendingPredecessors.forEach(pred => {
+                    const possibleSources = navigationIdToGanttIds[pred.predecessorNavId] || [];
+
+                    if (possibleSources.length === 0) {
+                        console.warn('Predecessor not found for', pred.predecessorNavId, 'target', pred.targetGanttId);
+                        return;
+                    }
+
+                    // Prefer a source that belongs to the same milestone as the target (if available)
+                    let sourceGanttId = possibleSources.find(id => {
+                        return pred.targetMilestoneId && id.toString().includes(`milestone-${pred.targetMilestoneId}`);
+                    });
+
+                    if (!sourceGanttId) {
+                        // fallback to first available mapping
+                        sourceGanttId = possibleSources[0];
+                    }
+
+                    // create link (reversed: target -> predecessor) to flip arrow direction
+                    linksData.push({
+                        id: `link-${pred.targetGanttId}-${sourceGanttId}`,
+                        source: pred.targetGanttId,
+                        target: sourceGanttId,
+                        type: "0",
+                    });
                 });
 
                 // Calculate progress for milestones and tasks
