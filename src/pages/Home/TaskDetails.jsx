@@ -33,6 +33,12 @@ import { fetchActiveTags } from "../../redux/slices/tagsSlice";
 import { DeleteConfirmationModal } from "../../components/DeleteConfirmationModal";
 import axios from "axios";
 import { baseURL } from "../../../apiDomain";
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipProvider,
+    TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 const mapStatusToDisplay = (rawStatus) => {
     const statusMap = {
@@ -922,6 +928,13 @@ const TaskDetails = () => {
         }
     }, [tab, task?.parent_id]);
 
+    const getInitials = (name) =>
+        name
+            .split(" ")
+            .map((n) => n[0])
+            .join("")
+            .toUpperCase();
+
     return (
         <>
             <div className="m-4">
@@ -1104,26 +1117,45 @@ const TaskDetails = () => {
                                         <div className="text-right text-[12px] font-[500]">
                                             Duration:
                                         </div>
-                                        <CountdownTimer targetDate={task.target_date} />
+                                        <div className="text-left text-[12px]">
+                                            {task.estimated_hour} hours
+                                        </div>
                                     </div>
                                     <div className="w-1/2 flex items-center justify-start gap-3">
                                         <div className="text-right text-[12px] font-semibold">
                                             Observer:
                                         </div>
                                         <div className="text-left text-[12px] flex items-start">
-                                            {task.observers?.map((observer) => (
-                                                <div
-                                                    key={observer.id}
-                                                    className="border-2 border-[#c72030] rounded-full px-2 py-1 text-[12px] mx-[2px]"
-                                                >
-                                                    {observer.user_name}
+                                            <TooltipProvider>
+                                                <div className="flex items-center gap-1">
+                                                    {task.observers?.map((observer) => (
+                                                        <Tooltip key={observer.id}>
+                                                            <TooltipTrigger asChild>
+                                                                <div
+                                                                    className="border-2 border-[#c72030] bg-[#c72030]/10 text-[#c72030] rounded-full w-8 h-8 flex items-center justify-center text-xs font-semibold cursor-default"
+                                                                >
+                                                                    {getInitials(observer.user_name)}
+                                                                </div>
+                                                            </TooltipTrigger>
+
+                                                            <TooltipContent side="top" className="text-sm">
+                                                                {observer.user_name}
+                                                            </TooltipContent>
+                                                        </Tooltip>
+                                                    ))}
                                                 </div>
-                                            ))}
+                                            </TooltipProvider>
                                         </div>
                                     </div>
                                 </div>
                                 <span className="border h-[1px] inline-block w-full my-4"></span>
                                 <div className="flex items-center ml-36">
+                                    <div className="w-1/2 flex items-center justify-start gap-3">
+                                        <div className="text-right text-[12px] font-[500]">
+                                            Time Left:
+                                        </div>
+                                        <CountdownTimer targetDate={task.target_date} />
+                                    </div>
                                     <div className="w-1/2 flex items-center justify-start gap-3">
                                         <div className="text-right text-[12px] font-[500]">
                                             Workflow Status:
