@@ -7,14 +7,15 @@ import MilestoneList from '../components/MilestoneList';
 const MileStoneMain = () => {
     const [selectedType, setSelectedType] = useState(
         "Gantt");
+    const [searchQuery, setSearchQuery] = useState("")
     return (
         <div>
-            <MilestoneHeader selectedType={selectedType} setSelectedType={setSelectedType} />
+            <MilestoneHeader selectedType={selectedType} setSelectedType={setSelectedType} searchQuery={searchQuery} setSearchQuery={setSearchQuery} />
             {
                 selectedType === "Gantt" ? (
                     <MilestoneBody />
                 ) : selectedType === "List" ? (
-                    <MilestoneList />
+                    <MilestoneList searchQuery={searchQuery} />
                 ) : (
                     <MilestoneKanban />
                 )

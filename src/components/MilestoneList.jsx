@@ -887,7 +887,7 @@ const MilestoneList = ({ searchQuery }) => {
         );
     }
 
-    return <div className="milestone-list-wrapper p-4">{content}</div>;
+    return <div className="milestone-list-wrapper px-4 py-1">{content}</div>;
 };
 
 export default MilestoneList;

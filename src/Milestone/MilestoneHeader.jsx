@@ -4,7 +4,7 @@ import { useParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchProjectDetails } from "../redux/slices/projectSlice";
 
-const MilestoneHeader = ({ selectedType, setSelectedType }) => {
+const MilestoneHeader = ({ selectedType, setSelectedType, searchQuery, setSearchQuery }) => {
     const token = localStorage.getItem("token");
     const { id } = useParams();
     const dispatch = useDispatch();
@@ -20,7 +20,7 @@ const MilestoneHeader = ({ selectedType, setSelectedType }) => {
             <h3 className="text-[11px] text-gray-400 mx-6 my-4">{project.title} / Milestones</h3>
             <hr className="border border-gray-200" />
 
-            <TaskActions selectedType={selectedType} setSelectedType={setSelectedType} addType={"Milestone"} />
+            <TaskActions selectedType={selectedType} setSelectedType={setSelectedType} addType={"Milestone"} searchQuery={searchQuery} setSearchQuery={setSearchQuery} />
         </div>
     );
 };

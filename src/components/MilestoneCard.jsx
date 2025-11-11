@@ -88,7 +88,7 @@ const MilestoneCard = ({ milestone, toggleTaskCard, hasVisibleTasks, isExpanded 
             style={{ opacity: isDragging ? 0.5 : 1, cursor: "move" }}
             className="w-full h-max bg-white p-2 shadow-xl text-xs flex flex-col space-y-2 mb-2 rounded-sm"
         >
-            <p className="mb-2 truncate cursor-pointer" onClick={() => navigate(`/projects/${project.id}`)}>
+            <p className="mb-2 truncate cursor-pointer" onClick={() => navigate(`${milestone?.id}`)}>
                 <span className="text-blue-500">{milestone?.id}</span> {milestone?.title}
             </p>
 

@@ -1089,7 +1089,7 @@ const ProjectList = ({ searchQuery }) => {
         );
     }
 
-    return <div className="project-list-wrapper p-4">{content}</div>;
+    return <div className="project-list-wrapper px-4 py-1">{content}</div>;
 };
 
 export default ProjectList;
