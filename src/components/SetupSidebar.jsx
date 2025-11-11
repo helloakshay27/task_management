@@ -170,6 +170,18 @@ const SetupSidebar = ({ isSidebarOpen, setIsSidebarOpen }) => {
                                         Company
                                     </NavLink>
                                 </li>
+                                <li className="text-[14px] ms-[60px] mb-4 ">
+                                    <NavLink
+                                        to="/setup/department"
+                                        className={({ isActive }) =>
+                                            `${isActive ? "text-[#c72030]" : "text-gray-700"}`
+                                        }
+                                    >
+                                        Department
+                                    </NavLink>
+                                </li>
+
+
                                 <li className="text-[14px] ms-[60px] mb-4">
                                     <NavLink
                                         to="/setup/country"

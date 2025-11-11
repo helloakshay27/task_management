@@ -15,6 +15,7 @@ import { createCompanyReducer, editCompanyReducer, fetchCompanyReducer } from '.
 import { createRegionReducer, updateRegionReducer, fetchRegionReducer, deleteRegionReducer } from './slices/regionSlice'
 import { createZoneReducer, updateZoneReducer, fetchZoneReducer, deleteZoneReducer } from './slices/zoneSlice'
 import { createCountryReducer, updateCountryReducer, fetchCountryReducer, deleteCountryReducer } from './slices/countrySlice'
+import { createDepartmentReducer, updateDepartmentReducer, fetchDepartmentReducer, deleteDepartmentReducer } from './slices/departmentSlice'
 
 export const store = configureStore({
   reducer: {
@@ -149,6 +150,12 @@ export const store = configureStore({
     createCountry: createCountryReducer,
     updateCountry: updateCountryReducer,
     deleteCountry: deleteCountryReducer,
+
+    //Department
+    fetchDepartment: fetchDepartmentReducer,
+    createDepartment: createDepartmentReducer,
+    updateDepartment: updateDepartmentReducer,
+    deleteDepartment: deleteDepartmentReducer,
 
     //Spirints
     fetchSpirints: fetchSpirintsReducer,
