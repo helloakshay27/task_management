@@ -20,6 +20,10 @@ const AddShiftModel = ({
   const { loading: editLoading } = useSelector((state) => state.updateShift);
 
   const [error, setError] = useState("");
+  const [fieldErrors, setFieldErrors] = useState({
+    fromTime: "",
+    toTime: "",
+  });
   const [formData, setFormData] = useState({
     fromHour: "",
     fromMinute: "",
@@ -97,6 +101,7 @@ const AddShiftModel = ({
       });
     }
     setError("");
+    setFieldErrors({ fromTime: "", toTime: "" });
   }, [isEditMode, initialData]);
 
   const calculateTotalHours = () => {
@@ -131,6 +136,26 @@ const AddShiftModel = ({
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
+    setFieldErrors({ fromTime: "", toTime: "" });
+
+    // Validation
+    let hasError = false;
+    const errors = { fromTime: "", toTime: "" };
+
+    if (!formData.fromHour || !formData.fromMinute) {
+      errors.fromTime = "Please select Hour and Minute";
+      hasError = true;
+    }
+
+    if (!formData.toHour || !formData.toMinute) {
+      errors.toTime = "Please select Hour and Minute";
+      hasError = true;
+    }
+
+    if (hasError) {
+      setFieldErrors(errors);
+      return;
+    }
 
     // Convert to 24-hour format
     const start_hour_24 = convertTo24Hour(formData.fromHour, formData.fromPeriod);
@@ -146,6 +171,10 @@ const AddShiftModel = ({
         end_period: formData.toPeriod,
         hour_margin: formData.marginHours,
         min_margin: formData.marginMinutes,
+        break_start_hour: start_hour_24,
+        break_start_min: formData.fromMinute,
+        break_end_hour: end_hour_24,
+        break_end_min: formData.toMinute,
       },
       check_in_margin: formData.checkInMargin,
     };
@@ -245,7 +274,10 @@ const AddShiftModel = ({
                 <SelectBox
                   options={hours}
                   value={formData.fromHour}
-                  onChange={(value) => setFormData({ ...formData, fromHour: value })}
+                  onChange={(value) => {
+                    setFormData({ ...formData, fromHour: value });
+                    setFieldErrors({ ...fieldErrors, fromTime: "" });
+                  }}
                   placeholder="Hr"
                 />
               </div>
@@ -254,7 +286,10 @@ const AddShiftModel = ({
                 <SelectBox
                   options={minutes}
                   value={formData.fromMinute}
-                  onChange={(value) => setFormData({ ...formData, fromMinute: value })}
+                  onChange={(value) => {
+                    setFormData({ ...formData, fromMinute: value });
+                    setFieldErrors({ ...fieldErrors, fromTime: "" });
+                  }}
                   placeholder="mm"
                 />
               </div>
@@ -267,6 +302,9 @@ const AddShiftModel = ({
                 />
               </div>
             </div>
+            {fieldErrors.fromTime && (
+              <span className="text-red-500 text-[11px] mt-1 block">{fieldErrors.fromTime}</span>
+            )}
           </div>
 
           {/* Shift Timings To */}
@@ -279,7 +317,10 @@ const AddShiftModel = ({
                 <SelectBox
                   options={hours}
                   value={formData.toHour}
-                  onChange={(value) => setFormData({ ...formData, toHour: value })}
+                  onChange={(value) => {
+                    setFormData({ ...formData, toHour: value });
+                    setFieldErrors({ ...fieldErrors, toTime: "" });
+                  }}
                   placeholder="Hr"
                 />
               </div>
@@ -288,7 +329,10 @@ const AddShiftModel = ({
                 <SelectBox
                   options={minutes}
                   value={formData.toMinute}
-                  onChange={(value) => setFormData({ ...formData, toMinute: value })}
+                  onChange={(value) => {
+                    setFormData({ ...formData, toMinute: value });
+                    setFieldErrors({ ...fieldErrors, toTime: "" });
+                  }}
                   placeholder="mm"
                 />
               </div>
@@ -301,6 +345,9 @@ const AddShiftModel = ({
                 />
               </div>
             </div>
+            {fieldErrors.toTime && (
+              <span className="text-red-500 text-[11px] mt-1 block">{fieldErrors.toTime}</span>
+            )}
           </div>
 
           {/* Check In Margin */}
@@ -309,8 +356,17 @@ const AddShiftModel = ({
               <input
                 type="checkbox"
                 checked={formData.checkInMargin}
-                onChange={(e) => setFormData({ ...formData, checkInMargin: e.target.checked })}
-                className="w-4 h-4 text-red-600 border-gray-300 rounded focus:ring-red-500"
+                onChange={(e) => {
+                  const isChecked = e.target.checked;
+                  setFormData({ 
+                    ...formData, 
+                    checkInMargin: isChecked,
+                    // Reset margin values when unchecked
+                    marginHours: isChecked ? formData.marginHours : "0",
+                    marginMinutes: isChecked ? formData.marginMinutes : "00",
+                  });
+                }}
+                className="w-4 h-4 accent-[#C72030] border-gray-300 rounded focus:ring-[#C72030]"
               />
               <span className="text-[12px] text-[#1B1B1B]">Check In Margin</span>
             </label>

@@ -70,6 +70,10 @@ export const updateShift = createAsyncThunk(
 export const deleteShift = createAsyncThunk(
   "deleteShift",
   async ({ token, id }, { rejectWithValue }) => {
+    console.log('Delete Shift - ID received:', id);
+    console.log('Delete Shift - Token:', token ? 'Present' : 'Missing');
+    console.log('Delete Shift - Full URL:', `${baseURL}/user_shifts/${id}.json`);
+    
     try {
       const response = await axios.delete(`${baseURL}/user_shifts/${id}.json`, {
         headers: {
@@ -77,8 +81,11 @@ export const deleteShift = createAsyncThunk(
           Authorization: `Bearer ${token}`,
         },
       });
+      console.log('Delete Shift - Success response:', response.data);
       return response.data;
     } catch (error) {
+      console.error('Delete Shift - Error:', error);
+      console.error('Delete Shift - Error response:', error.response?.data);
       return rejectWithValue(
         error.response?.data?.message || "Failed to delete shift"
       );
