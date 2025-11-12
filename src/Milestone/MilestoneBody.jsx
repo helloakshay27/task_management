@@ -1174,7 +1174,7 @@ const ganttStyles = `
     .gantt_grid_scale .gantt_grid_head_cell {
         background-color: #f8f9fa !important;
         border-right: 1px solid #e0e0e0 !important;
-        font-size: 11px !important;
+        font-size: 14px !important;
         padding: 4px 8px !important;
     }
     
