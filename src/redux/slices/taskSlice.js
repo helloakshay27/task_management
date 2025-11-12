@@ -75,20 +75,36 @@ export const createSubTask = createAsyncThunk('createSubTask', async ({ token, p
 });
 
 
-export const fetchTasks = createAsyncThunk('fetchTasks', async ({ token, id, page }) => {
+export const fetchTasks = createAsyncThunk('fetchTasks', async ({ token, id, page, search }) => {
     try {
-        const response = await axios.get(`${baseURL}/task_managements.json?q[milestone_id_eq]=${id}&page=${page}`, {
+        // Build query params so we can optionally include search by title
+        const params = new URLSearchParams();
+        // milestone filter (if id is provided and non-empty)
+        if (id !== undefined && id !== null && String(id) !== "") {
+            params.append('q[milestone_id_eq]', id);
+        }
+        // optional title contains search
+        if (search !== undefined && search !== null && String(search).trim() !== "") {
+            params.append('q[title_cont]', search.trim());
+        }
+        // pagination
+        if (page !== undefined && page !== null) {
+            params.append('page', page);
+        }
+
+        const url = `${baseURL}/task_managements.json?${params.toString()}`;
+
+        const response = await axios.get(url, {
             headers: {
                 Authorization: `Bearer ${token}`,
             }
         });
 
-
         return response.data;
     }
     catch (error) {
         console.log(error);
-        return error.response.data;
+        return error.response?.data || { error: error.message };
     }
 });
 

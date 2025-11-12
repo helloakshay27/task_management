@@ -18,6 +18,14 @@ const Tasks = ({ setIsSidebarOpen }) => {
     );
 
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [searchQuery, setSearchQuery] = useState("")
+    // debouncedSearchQuery updates after a short delay to avoid firing API calls on every keystroke
+    const [debouncedSearchQuery, setDebouncedSearchQuery] = useState(searchQuery);
+
+    useEffect(() => {
+        const handler = setTimeout(() => setDebouncedSearchQuery(searchQuery), 300);
+        return () => clearTimeout(handler);
+    }, [searchQuery]);
 
     useEffect(() => {
         dispatch(fetchProjectDetails({ token, id }))
@@ -45,13 +53,15 @@ const Tasks = ({ setIsSidebarOpen }) => {
                 context="Tasks"
                 isModalOpen={isModalOpen}
                 setIsModalOpen={setIsModalOpen}
+                searchQuery={searchQuery}
+                setSearchQuery={setSearchQuery}
             />
 
             {
                 selectedType === "Kanban" ? (
                     <BoardsSection section={"Tasks"} />
                 ) : selectedType === "List" ? (
-                    <TasksList isModalOpen={isModalOpen} />
+                    <TasksList isModalOpen={isModalOpen} searchQuery={debouncedSearchQuery} />
                 ) : <></>
             }
         </div>

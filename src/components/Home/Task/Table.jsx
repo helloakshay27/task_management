@@ -256,7 +256,7 @@ const processTaskData = (task) => {
   };
 };
 
-const TaskTable = ({ isModalOpen }) => {
+const TaskTable = ({ isModalOpen, searchQuery }) => {
   const token = localStorage.getItem("token");
   const { id, mid } = useParams();
   const dispatch = useDispatch();
@@ -290,6 +290,7 @@ const TaskTable = ({ isModalOpen }) => {
   const isFetchingRef = useRef(false);
   const lastFetchedPageRef = useRef(null);
   const lastFetchedPathRef = useRef(location.pathname);
+  const lastSearchRef = useRef(null);
   const [data, setData] = useState([]);
   const [expanded, setExpanded] = useState({});
   const [isAddingNewTask, setIsAddingNewTask] = useState(false);
@@ -357,10 +358,10 @@ const TaskTable = ({ isModalOpen }) => {
       return;
     }
     if (mid != undefined && mid != null) {
-      await dispatch(fetchTasks({ token, id: mid, page })).unwrap();
+      await dispatch(fetchTasks({ token, id: mid, page, search: searchQuery })).unwrap();
     } else {
       if (myTasks === "false") {
-        await dispatch(fetchTasks({ token, id: "", page })).unwrap();
+        await dispatch(fetchTasks({ token, id: "", page, search: searchQuery })).unwrap();
       } else {
         await dispatch(fetchMyTasks({ token, page })).unwrap();
       }
@@ -503,7 +504,7 @@ const TaskTable = ({ isModalOpen }) => {
     const fetch = async () => {
       if (isCreatingTask || isUpdatingTask || isFetchingRef.current) return;
 
-      // Reset pagination when route changes
+      // Reset pagination when route changes or search query changes
       if (location.pathname !== lastFetchedPathRef.current) {
         setPagination(prev => ({
           ...prev,
@@ -512,6 +513,16 @@ const TaskTable = ({ isModalOpen }) => {
         }));
         lastFetchedPathRef.current = location.pathname;
         lastFetchedPageRef.current = null;
+        lastSearchRef.current = searchQuery;
+      } else if (searchQuery !== lastSearchRef.current) {
+        // New search term, reset to first page
+        setPagination(prev => ({
+          ...prev,
+          pageIndex: 0,
+          currentPage: 1
+        }));
+        lastFetchedPageRef.current = null;
+        lastSearchRef.current = searchQuery;
       }
 
       const pageToFetch = pagination.pageIndex + 1;
