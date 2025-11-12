@@ -42,17 +42,18 @@ const TaskCard = ({ task, toggleSubCard, handleLink, iconColor = "#323232", coun
         const interval = setInterval(() => {
             const now = new Date();
             const end = new Date(task.target_date);
-            const endMidnight = new Date(end.getFullYear(), end.getMonth(), end.getDate() + 1);
+            // use end of day for display (23:59:59.999)
+            const endOfDay = new Date(end.getFullYear(), end.getMonth(), end.getDate(), 23, 59, 59, 999);
 
-            const diff = endMidnight - now;
+            const diff = endOfDay - now;
 
             if (diff <= 0 && task.status !== "completed") {
+                // mark overdue and update display
                 dispatch(changeTaskStatus({ token, id: task.id, payload: { status: "overdue" } }));
+                setCountdown("Overdue");
                 clearInterval(interval);
             } else {
-                const endOfDay = new Date(end.getFullYear(), end.getMonth(), end.getDate(), 23, 59, 59, 999);
-                const displayDiff = endOfDay - now;
-                setCountdown(formatCountdown(displayDiff));
+                setCountdown(formatCountdown(diff));
             }
         }, 1000);
 
@@ -60,11 +61,21 @@ const TaskCard = ({ task, toggleSubCard, handleLink, iconColor = "#323232", coun
     }, [task.target_date, task.status, task.id, token, dispatch]);
 
     const formatCountdown = (ms) => {
-        const absMs = Math.abs(ms); // Handle negative values for overdue display
-        const hours = Math.floor(absMs / (1000 * 60 * 60));
-        const minutes = Math.floor((absMs % (1000 * 60 * 60)) / (1000 * 60));
-        const seconds = Math.floor((absMs % (1000 * 60)) / 1000);
-        return ms <= 0 ? `Overdued` : `${hours}h ${minutes}m ${seconds}s`;
+        // Format milliseconds into dd:hh:mm:ss
+        const totalSeconds = Math.max(0, Math.floor(ms / 1000));
+        const seconds = totalSeconds % 60;
+        const totalMinutes = Math.floor(totalSeconds / 60);
+        const minutes = totalMinutes % 60;
+        const totalHours = Math.floor(totalMinutes / 60);
+        const hours = totalHours % 24;
+        const days = Math.floor(totalHours / 24);
+
+        const dd = String(days);
+        const hh = String(hours);
+        const mm = String(minutes);
+        const ss = String(seconds);
+
+        return `${dd}d:${hh}h:${mm}m:${ss}s`;
     };
 
     return (
