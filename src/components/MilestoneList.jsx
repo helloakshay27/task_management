@@ -286,11 +286,11 @@ const MilestoneList = ({ searchQuery }) => {
                         milestone.status.slice(1)
                         : "Unknown",
                     owner: milestone.owner_name || "Unassigned",
-                    total_task_count: Number(milestone.total_task_count || 0),
-                    completed_task_count: Number(milestone.completed_task_count || 0),
+                    total_task_count: Number(milestone.total_tasks || 0),
+                    completed_task_count: Number(milestone.completed_tasks || 0),
                     tasks: (() => {
-                        const totalCount = Number(milestone.total_task_count);
-                        const completedCount = Number(milestone.completed_task_count);
+                        const totalCount = Number(milestone.total_tasks);
+                        const completedCount = Number(milestone.completed_tasks);
 
                         if (!totalCount || totalCount === 0) return 0;
 

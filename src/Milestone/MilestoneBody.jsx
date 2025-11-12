@@ -1561,7 +1561,6 @@ const GanttChart = () => {
             gantt.templates.task_text = function (start, end, task) {
                 return task.text;
             };
-
             gantt.templates.rightside_text = function (start, end, task) {
                 return "";
             };
