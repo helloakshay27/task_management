@@ -7,6 +7,8 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { fetchDepartment } from "@/redux/slices/departmentSlice";
+import { fetchShift } from "@/redux/slices/shiftSlice";
+import toast from "react-hot-toast";
 
 const Section = ({ title, icon, children }) => (
     <section className="bg-card border border-border shadow-sm">
@@ -47,10 +49,10 @@ const CreateRoster = () => {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [loadingDepartments, setLoadingDepartments] = useState(false);
     const [departments, setDepartments] = useState([]);
-    const [loadingFilteredFMUsers, setLoadingFilteredFMUsers] = useState(false);
+    const [loadingFilteredUsers, setLoadingFilteredUsers] = useState(false);
     const [loadingShifts, setLoadingShifts] = useState(false);
     const [shifts, setShifts] = useState([]);
-    const [filteredFMUsers, setFilteredFMUsers] = useState([]);
+    const [filteredUsers, setFilteredUsers] = useState([]);
     const [period, setPeriod] = useState({
         startDate: null,
         endDate: null
@@ -76,6 +78,84 @@ const CreateRoster = () => {
         selectedEmployees: false,
     });
 
+    const selectedSite = {
+        id: 2189,
+        name: "Site 1",
+    }
+
+    const fetchFilteredUsers = async (departmentIds) => {
+        if (!departmentIds || departmentIds.length === 0) {
+            setFilteredUsers([]);
+            return;
+        }
+        setLoadingFilteredUsers(true);
+        try {
+            const idsParam = departmentIds.join(",");
+            const apiUrl = `${baseURL}/user_roasters/department_roasters.json?department_id=${idsParam}`;
+            const response = await fetch(apiUrl, {
+                method: "GET",
+                headers: {
+                    "Content-Type": "application/json",
+                    Accept: "application/json",
+                    Authorization: `Bearer ${token}`,
+                },
+            });
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            const data = await response.json();
+            // Adapt response to FMUser[]
+            const users = data;
+            setFilteredUsers(
+                users.map((user) => ({
+                    id: user.id,
+                    name:
+                        user.name ||
+                        user.full_name ||
+                        `${user.firstname || ""} ${user.lastname || ""}`.trim(),
+                    email: user.email,
+                    department: user.department
+                        ? user.department.department_name
+                        : undefined,
+                }))
+            );
+        } catch (error) {
+            console.error("Error fetching filtered FM users:", error);
+            toast.error("Failed to load employees for selected departments");
+            setFilteredUsers([]);
+        } finally {
+            setLoadingFilteredUsers(false);
+        }
+    };
+
+    const fetchShifts = async () => {
+        setLoadingShifts(true);
+        try {
+            const response = await dispatch(fetchShift({ token })).unwrap();
+            console.log("Shifts API Response:", response);
+
+            // Adapt the response to our expected format
+            const shiftsData = response.user_shifts
+            setShifts(
+                shiftsData.map((shift) => ({
+                    id: shift.id,
+                    start_hour: shift.start_hour,
+                    start_min: shift.start_min,
+                    end_hour: shift.end_hour,
+                    end_min: shift.end_min,
+                    timings: shift.timings,
+                    total_hour: shift.total_hour,
+                }))
+            );
+        } catch (error) {
+            console.error("Error fetching shifts:", error);
+            toast.error("Failed to load shifts");
+            setShifts([]);
+        } finally {
+            setLoadingShifts(false);
+        }
+    };
+
     const fetchDepartments = async () => {
         setLoadingDepartments(true);
         try {
@@ -94,6 +174,7 @@ const CreateRoster = () => {
 
     useEffect(() => {
         fetchDepartments();
+        fetchShifts();
     }, []);
 
     const handleInputChange = (field, value) => {
@@ -106,7 +187,7 @@ const CreateRoster = () => {
 
         // If department selection changes, fetch filtered employees
         if (field === "departments") {
-            fetchFilteredFMUsers(value);
+            fetchFilteredUsers(value);
             // Clear selected employees when departments change
             setFormData((prev) => ({
                 ...prev,
@@ -386,7 +467,7 @@ const CreateRoster = () => {
             if (!response.ok) throw new Error("API error");
 
             toast.success("Roster template created successfully!");
-            navigate("/roster");
+            navigate("/setup/roster");
         } catch (error) {
             console.error("Error creating roster template:", error);
             toast.error("Failed to create roster template. Please try again.");
@@ -919,12 +1000,12 @@ const CreateRoster = () => {
                                             const selectedArray = selected;
                                             if (selectedArray.length === 0) return "";
                                             if (selectedArray.length === 1) {
-                                                const user = filteredFMUsers.find((u) => u.id === selectedArray[0]);
+                                                const user = filteredUsers.find((u) => u.id === selectedArray[0]);
                                                 return user?.name || `User ${selectedArray[0]}`;
                                             }
                                             if (selectedArray.length <= 3) {
                                                 return selectedArray.map((value) => {
-                                                    const user = filteredFMUsers.find((u) => u.id === value);
+                                                    const user = filteredUsers.find((u) => u.id === value);
                                                     return user?.name || `User ${value}`;
                                                 }).join(", ");
                                             }
@@ -932,7 +1013,7 @@ const CreateRoster = () => {
                                         }}
                                         displayEmpty
                                         disabled={
-                                            loadingFilteredFMUsers ||
+                                            loadingFilteredUsers ||
                                             isSubmitting ||
                                             formData.departments.length === 0
                                         }
@@ -946,8 +1027,8 @@ const CreateRoster = () => {
                                             },
                                         }}
                                     >
-                                        {filteredFMUsers.length > 0 ? (
-                                            filteredFMUsers.map((user) => (
+                                        {filteredUsers.length > 0 ? (
+                                            filteredUsers.map((user) => (
                                                 <MenuItem key={user.id} value={user.id}>
                                                     <Checkbox
                                                         checked={
@@ -975,7 +1056,7 @@ const CreateRoster = () => {
                                             </MenuItem>
                                         )}
                                     </MuiSelect>
-                                    {loadingFilteredFMUsers && (
+                                    {loadingFilteredUsers && (
                                         <div className="absolute right-8 top-1/2 transform -translate-y-1/2">
                                             <CircularProgress size={16} />
                                         </div>

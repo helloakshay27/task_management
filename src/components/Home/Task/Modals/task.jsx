@@ -3,6 +3,7 @@ import { useDispatch, useSelector } from "react-redux";
 import {
   fetchUserAvailability,
   fetchUsers,
+  fetchUserShift,
   removeUserFromProject,
 } from "../../../../redux/slices/userSlice";
 import { fetchTags } from "../../../../redux/slices/tagsSlice";
@@ -60,6 +61,9 @@ const TaskForm = ({
 }) => {
   const { fetchUserAvailability: userAvailability } = useSelector(
     (state) => state.fetchUserAvailability
+  );
+  const { fetchUserShift: shift } = useSelector(
+    (state) => state.fetchUserShift
   );
 
   const [showDatePicker, setShowDatePicker] = useState(false);
@@ -411,6 +415,7 @@ const TaskForm = ({
               });
               if (!isReadOnly && value) {
                 dispatch(fetchUserAvailability({ token, id: value }));
+                dispatch(fetchUserShift({ token, id: value }));
               }
             }}
             disabled={isReadOnly}
@@ -444,6 +449,7 @@ const TaskForm = ({
             resposiblePerson={formData.responsiblePersonName}
             totalWorkingHours={totalWorkingHours}
             setTotalWorkingHours={setTotalWorkingHours}
+            shift={shift}
           />
         </div>
       </div>

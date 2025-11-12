@@ -145,7 +145,7 @@ export const taskDetails = createAsyncThunk('taskDetails', async ({ token, id })
 
 export const fetchTargetDateTasks = createAsyncThunk('fetchTargetDateTasks', async ({ token, id, date }) => {
     try {
-        const response = await axios.get(`${baseURL}/task_managements/filtered_tasks.json?target_date=${date}&responsible_person_id=${id}`, {
+        const response = await axios.get(`${baseURL}/task_managements/filtered_tasks.json?allocation_date=${date}&responsible_person_id=${id}`, {
             headers: {
                 Authorization: `Bearer ${token}`,
             }

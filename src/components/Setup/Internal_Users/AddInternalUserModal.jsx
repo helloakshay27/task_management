@@ -123,6 +123,7 @@ const AddInternalUser = ({
                 employee_type: "internal",
                 report_to_id: formData.reportTo,
                 company_id: formData.company,
+                department_id: formData.department,
             },
         };
 

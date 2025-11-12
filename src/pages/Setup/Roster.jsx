@@ -1,19 +1,33 @@
 import CustomTable from '@/components/Setup/CustomTable';
-import React, { useMemo } from 'react'
+import { baseURL } from '../../../apiDomain';
+import axios from 'axios';
+import React, { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom';
 
 const Roster = () => {
+    const [rosters, setRosters] = useState([])
     const navigate = useNavigate();
-    const formatToDDMMYYYY = (dateString) => {
-        const date = new Date(dateString);
-        return `${String(date.getDate()).padStart(2, "0")}/${String(
-            date.getMonth() + 1
-        ).padStart(2, "0")}/${date.getFullYear()}`;
-    };
+
+    useEffect(() => {
+        const getRosters = async () => {
+            try {
+                const response = await axios.get(`${baseURL}/user_roasters.json`, {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    }
+                })
+                setRosters(response.data)
+            } catch (error) {
+                console.error('Failed to fetch rosters:', error);
+            }
+        }
+
+        getRosters()
+    }, [])
 
     const columns = useMemo(() => [
         {
-            accessorKey: "template",
+            accessorKey: "name",
             header: "Template",
             size: 250,
             cell: ({ getValue }) => getValue(),
@@ -37,28 +51,23 @@ const Roster = () => {
             cell: ({ getValue }) => getValue(),
         },
         {
-            accessorKey: "roster_type",
+            accessorKey: "roaster_type",
             header: "Roster Type",
             size: 250,
             cell: ({ getValue }) => getValue(),
         },
         {
-            accessorKey: "created_at",
+            accessorKey: "created_on",
             header: "Created On",
             size: 100,
-            cell: ({ getValue }) => {
-                const date = getValue();
-                return date ? (
-                    <div className="flex justify-center">{formatToDDMMYYYY(date)}</div>
-                ) : null;
-            },
+            cell: ({ getValue }) => getValue(),
         },
     ], []);
 
     return (
         <div className="flex flex-col gap-2 text-[14px]">
             <CustomTable
-                data={[]}
+                data={rosters}
                 columns={columns}
                 title="Roster Management"
                 buttonText="Add"

@@ -23,6 +23,7 @@ export const DurationPicker = ({
     resposiblePerson = "Unassigned",
     totalWorkingHours,
     setTotalWorkingHours,
+    shift = {},
 }) => {
     const [isOpen, setIsOpen] = useState(false);
     const [taskType, setTaskType] = useState("standard");
@@ -83,6 +84,28 @@ export const DurationPicker = ({
         ).padStart(2, "0")}`;
     };
 
+    let hoursPerDay = 8;
+
+    if (!Array.isArray(shift) && shift?.shift) {
+        const [startTime, endTime] = shift.shift?.split(" to ");
+
+        const parseTime = (timeStr) => {
+            const [time, modifier] = timeStr.split(" ");
+            let [hours, minutes] = time.split(":").map(Number);
+
+            if (modifier === "PM" && hours !== 12) hours += 12;
+            if (modifier === "AM" && hours === 12) hours = 0;
+
+            return hours + minutes / 60;
+        };
+
+        const start = parseTime(startTime);
+        const end = parseTime(endTime);
+
+        // total hours minus 1 hour for lunch break
+        hoursPerDay = Math.max(end - start - 1, 0);
+    }
+
     /** ✅ When start/end changes */
     useEffect(() => {
         if (taskType === "standard") {
@@ -105,6 +128,8 @@ export const DurationPicker = ({
                 }
 
                 setDaysList(allDays);
+            } else if (startDate || endDate) {
+                setTotalWorkingHours(hoursPerDay);
             } else {
                 setDaysList([]);
                 if (onChange) onChange(0);
@@ -318,7 +343,7 @@ export const DurationPicker = ({
                                             {resposiblePerson || "Unassigned"}
                                         </TableCell>
                                         <TableCell className="bg-white">Standard Business Hours</TableCell>
-                                        <TableCell className="!px-2 bg-white">8:00 hr/day (100% day)</TableCell>
+                                        <TableCell className="!px-2 bg-white">{hoursPerDay} hr/day (100% day)</TableCell>
                                         <TableCell className="bg-white">
                                             {daysList.length > 0
                                                 ? `${daysList.filter((d) => !d.isWeekend).length}d`
