@@ -94,7 +94,7 @@ const AddProjectTemplate = ({ isModalOpen, setIsModalOpen }) => {
 
             <hr className="border" />
 
-            <div className="flex flex-col p-4 gap-4">
+            <div className="flex flex-col p-4 gap-4 h-[80vh] overflow-y-auto">
               <div className="relative border-2 border-gray-300">
                 <SearchOutlinedIcon className="text-[red] absolute top-2 left-3" />
                 <input
