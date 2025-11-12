@@ -402,9 +402,24 @@ export const DurationPicker = ({
                         <button
                             onClick={() => {
                                 if (taskType === "standard") {
-                                    setTotalWorkingHours(8)
+                                    // Set total using calculated hoursPerDay instead of hard-coded 8
+                                    setTotalWorkingHours(hoursPerDay);
+                                    if (onChange) onChange(hoursPerDay);
+
+                                    // If a date range exists, send date-wise hours as well
+                                    if (onDateWiseHoursChange && startDate && endDate) {
+                                        const allDays = getAllDays(startDate, endDate);
+                                        const workingDays = allDays.filter((d) => !d.isWeekend);
+                                        const perDayDecimal = parseHours(formatTotalHours(hoursPerDay));
+                                        const dateWise = workingDays.map((d) => ({
+                                            hours: perDayDecimal,
+                                            minutes: 0,
+                                            date: formatLocalDate(d.date),
+                                        }));
+                                        onDateWiseHoursChange(dateWise);
+                                    }
                                 }
-                                setIsOpen(false)
+                                setIsOpen(false);
                             }}
                             className="flex-1 px-4 py-2 bg-[#c72030] text-white rounded-lg transition-colors font-medium"
                             type="button"
