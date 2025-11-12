@@ -351,7 +351,7 @@ const TaskActions = ({
                     {
                         (addType === "Project" || addType === "Milestone" || addType === "Task") && selectedType === "List" && (
                             <>
-                                <input value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} type="text" className="border border-gray-300 ps-10 pe-2 py-2 w-[400px] focus:outline-none" placeholder="Search by title or id..." />
+                                <input value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} type="text" className="border border-gray-300 ps-10 pe-2 py-2 w-[400px] focus:outline-none" placeholder="Search by Title..." />
                                 <Search className="absolute left-2 top-2 text-gray-400" size={20} color="#C72030" />
                             </>
                         )
