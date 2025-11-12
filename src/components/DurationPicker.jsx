@@ -85,25 +85,48 @@ export const DurationPicker = ({
     };
 
     let hoursPerDay = 8;
-
     if (!Array.isArray(shift) && shift?.shift) {
-        const [startTime, endTime] = shift.shift?.split(" to ");
+        const [startTime, endTime] = shift.shift.split(" to ");
 
-        const parseTime = (timeStr) => {
-            const [time, modifier] = timeStr.split(" ");
-            let [hours, minutes] = time.split(":").map(Number);
+        // If split didn't produce valid start/end, keep default hoursPerDay
+        if (!startTime || !endTime) {
+            hoursPerDay = 8;
+        } else {
+            const parseTime = (timeStr) => {
+                const [time, modifier] = timeStr.split(" ");
+                const [hoursRaw, minutesRaw] = (time || "0:0").split(":").map(Number);
+                let hours = Number.isFinite(hoursRaw) ? hoursRaw : 0;
+                const minutes = Number.isFinite(minutesRaw) ? minutesRaw : 0;
 
-            if (modifier === "PM" && hours !== 12) hours += 12;
-            if (modifier === "AM" && hours === 12) hours = 0;
+                if (modifier === "PM" && hours !== 12) hours += 12;
+                if (modifier === "AM" && hours === 12) hours = 0;
 
-            return hours + minutes / 60;
-        };
+                return hours + minutes / 60;
+            };
 
-        const start = parseTime(startTime);
-        const end = parseTime(endTime);
+            const start = parseTime(startTime);
+            const end = parseTime(endTime);
 
-        // total hours minus 1 hour for lunch break
-        hoursPerDay = Math.max(end - start - 1, 0);
+            let breakDuration = 1; // hours
+            if (shift.user_shift && (shift.user_shift.break_start_hour != null || shift.user_shift.break_end_hour != null)) {
+                const bsH = Number(shift.user_shift.break_start_hour) || 0;
+                const bsM = Number(shift.user_shift.break_start_min) || 0;
+                const beH = Number(shift.user_shift.break_end_hour) || 0;
+                const beM = Number(shift.user_shift.break_end_min) || 0;
+
+                const breakStart = bsH + bsM / 60;
+                const breakEnd = beH + beM / 60;
+
+                // Ensure non-negative; if breakEnd < breakStart treat as 0
+                breakDuration = Math.max(breakEnd - breakStart, 0);
+
+                // Clamp break to not exceed shift length
+                const shiftLength = Math.max(end - start, 0);
+                breakDuration = Math.min(breakDuration, shiftLength);
+            }
+
+            hoursPerDay = Math.max(end - start - breakDuration, 0);
+        }
     }
 
     /** ✅ When start/end changes */
@@ -112,15 +135,16 @@ export const DurationPicker = ({
             if (startDate && endDate) {
                 const allDays = getAllDays(startDate, endDate);
                 const workingDays = allDays.filter((d) => !d.isWeekend);
-                const hrs = workingDays.length * 8;
+                const hrs = workingDays.length * hoursPerDay;
 
                 setTotalWorkingHours(hrs);
                 if (onChange) onChange(hrs);
 
-                // ✅ Send 8h per working day
+                // ✅ Send hoursPerDay per working day (as decimal hours)
                 if (onDateWiseHoursChange) {
+                    const perDayDecimal = parseHours(formatTotalHours(hoursPerDay));
                     const dateWise = workingDays.map((d) => ({
-                        hours: 8,
+                        hours: perDayDecimal,
                         minutes: 0,
                         date: formatLocalDate(d.date),
                     }));
@@ -140,7 +164,7 @@ export const DurationPicker = ({
             if (endDate) {
                 const allDays = getAllDays(startDate, endDate);
                 setDaysList(allDays);
-                const defaultHours = allDays.map((d) => (d.isWeekend ? "" : "8:00"));
+                const defaultHours = allDays.map((d) => (d.isWeekend ? "" : formatTotalHours(hoursPerDay)));
                 setDailyHours(defaultHours);
 
                 const total = defaultHours.reduce((sum, h) => sum + parseHours(h), 0);
@@ -303,7 +327,7 @@ export const DurationPicker = ({
                                                             }`}
                                                     />
                                                     <div className="text-xs text-gray-500 mt-1">
-                                                        {((parseHours(dailyHours[idx]) / 8) * 100).toFixed(2)}%
+                                                        {hoursPerDay > 0 ? ((parseHours(dailyHours[idx]) / hoursPerDay) * 100).toFixed(2) : "0.00"}%
                                                     </div>
                                                 </TableCell>
                                             ))}
@@ -343,7 +367,7 @@ export const DurationPicker = ({
                                             {resposiblePerson || "Unassigned"}
                                         </TableCell>
                                         <TableCell className="bg-white">Standard Business Hours</TableCell>
-                                        <TableCell className="!px-2 bg-white">{hoursPerDay} hr/day (100% day)</TableCell>
+                                        <TableCell className="!px-2 bg-white">{formatTotalHours(hoursPerDay)} hr/day (100% day)</TableCell>
                                         <TableCell className="bg-white">
                                             {daysList.length > 0
                                                 ? `${daysList.filter((d) => !d.isWeekend).length}d`
