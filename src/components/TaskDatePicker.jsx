@@ -10,11 +10,9 @@ export const TaskDatePicker = ({
 }) => {
     const today = new Date();
 
-    // Fix: Properly convert startDate object to Date instance
     const getDateFromObject = (dateObj) => {
         if (!dateObj) return null;
         if (dateObj instanceof Date) return dateObj;
-        // If it's an object with date, month, year properties
         if (dateObj.year && typeof dateObj.month === 'number' && dateObj.date) {
             return new Date(dateObj.year, dateObj.month, dateObj.date);
         }
@@ -32,7 +30,6 @@ export const TaskDatePicker = ({
         'July', 'August', 'September', 'October', 'November', 'December'
     ];
 
-    // When startDate prop changes after mount, move calendar focus to that week
     useEffect(() => {
         if (startDate) {
             const sd = getDateFromObject(startDate);
@@ -43,19 +40,17 @@ export const TaskDatePicker = ({
         }
     }, [startDate]);
 
-    // --- Week-only logic ---
     const getWeekDates = () => {
-        // Fix: Use the converted Date object
-        const baseDate = startDate ? getDateFromObject(startDate) : new Date();
-        const dayOfWeek = baseDate.getDay(); // 0 = Sunday
-        const sunday = new Date(baseDate);
-        sunday.setDate(baseDate.getDate() - dayOfWeek);
+        const rawBase = startDate ? getDateFromObject(startDate) : new Date();
+        if (!rawBase) return [];
+
+        const baseDate = new Date(rawBase.getFullYear(), rawBase.getMonth(), rawBase.getDate());
 
         const weekDates = [];
 
         for (let i = 0; i < 7; i++) {
-            const d = new Date(sunday);
-            d.setDate(sunday.getDate() + i);
+            const d = new Date(baseDate);
+            d.setDate(baseDate.getDate() + i);
 
             const formattedDate = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 
