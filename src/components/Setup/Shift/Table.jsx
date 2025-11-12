@@ -164,7 +164,7 @@ const ShiftTable = ({ openModal, setOpenModal, editMode, setEditMode }) => {
       },
       {
         accessorKey: 'check_in_margin',
-        header: 'Check-in Margin',
+        header: 'Check In Margin',
         size: 150,
         cell: ({ row, getValue }) => {
           if (!row.original) return null;
