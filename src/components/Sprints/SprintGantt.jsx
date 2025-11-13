@@ -21,8 +21,7 @@ const ganttStyles = `
     }
     
     .gantt_task_content {
-        color: white !important;
-        font-weight: bold !important;
+        color: black !important;
     }
     
     .gantt_grid_data .gantt_cell {
@@ -51,7 +50,7 @@ const SprintGantt = () => {
 
     useEffect(() => {
         console.log("Sprint Gantt useEffect started, scale:", scale);
-        
+
         // Columns
         gantt.config.columns = [
             {
@@ -170,11 +169,11 @@ const SprintGantt = () => {
         gantt.config.show_progress = true;
         gantt.config.grid_resize = true;
         gantt.config.autofit_columns = true;
-        
+
         // Ensure dates are parsed correctly
         gantt.config.date_format = "%d-%m-%Y";
         gantt.config.xml_date = "%d-%m-%Y";
-        
+
         // Enable auto-scheduling and proper display
         gantt.config.auto_scheduling = true;
         gantt.config.auto_scheduling_strict = true;
@@ -253,11 +252,11 @@ const SprintGantt = () => {
 
                 rawData.forEach((item) => {
                     const milestoneId = `milestone-${item.id}`;
-                    const formattedStart = item.start_date 
-                        ? formatDateDMYFromISO(item.start_date) 
+                    const formattedStart = item.start_date
+                        ? formatDateDMYFromISO(item.start_date)
                         : formatDateDMYFromISO(new Date().toISOString()); // Default to today
-                    const formattedEnd = item.end_date 
-                        ? formatDateDMYFromISO(item.end_date) 
+                    const formattedEnd = item.end_date
+                        ? formatDateDMYFromISO(item.end_date)
                         : formatDateDMYFromISO(new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()); // Default to 7 days from now
 
                     tasksData.push({
@@ -365,7 +364,7 @@ const SprintGantt = () => {
 
                 console.log("Parsed tasks data:", tasksData);
                 console.log("Links data:", linksData);
-                
+
                 const tasks = {
                     data: tasksData,
                     links: linksData,
@@ -378,7 +377,7 @@ const SprintGantt = () => {
                     const today = new Date();
                     const tomorrow = new Date(today);
                     tomorrow.setDate(today.getDate() + 1);
-                    
+
                     tasksData.push({
                         id: "sample-sprint",
                         text: "Sample Sprint",
@@ -395,7 +394,7 @@ const SprintGantt = () => {
 
                 // Clear and parse new data
                 gantt.clearAll();
-                
+
                 // Add validation before parsing
                 const validTasks = tasksData.filter(task => {
                     if (!task.id || !task.text) {
@@ -406,21 +405,21 @@ const SprintGantt = () => {
                 });
 
                 console.log("Valid tasks to render:", validTasks.length);
-                
+
                 try {
                     gantt.parse({
                         data: validTasks,
                         links: linksData,
                     });
-                    
+
                     // Force refresh and fit to screen
                     gantt.render();
-                    
+
                     // Auto-fit timeline to show all tasks
                     setTimeout(() => {
                         gantt.render();
                     }, 100);
-                    
+
                     console.log("Sprint Gantt chart rendered successfully");
                 } catch (error) {
                     console.error("Error parsing sprint gantt data:", error);
@@ -494,8 +493,8 @@ const SprintGantt = () => {
             </div>
             <div
                 ref={ganttContainer}
-                style={{ 
-                    minWidth: "1200px", 
+                style={{
+                    minWidth: "1200px",
                     height: "600px",
                     position: "relative",
                     overflow: "hidden"

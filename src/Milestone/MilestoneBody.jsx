@@ -1137,14 +1137,28 @@ const ganttStyles = `
     .milestone-task .gantt_task_line {
         height: 16px !important;
     }
+
+    .milestone-task .gantt_task_progress_wrapper{
+        background-color: #bc977c !important;
+    }
     
     .sub-task .gantt_task_line {
         height: 16px !important;
     }
+
+    .sub-task .gantt_task_progress_wrapper{
+        background-color: #bc977c !important;
+    }
     
     /* Remove text from inside bars */
     .gantt_task_content {
-        display: none !important;
+        width: max-content !important;
+        font-size: 9px !important;
+        background-color: transparent !important;
+        margin-top: -19px !important;
+        margin-left: 4px !important;
+        height: 20px !important;
+        text-align: left !important;
     }
 
     .gantt_task_progress_wrapper {
@@ -1559,7 +1573,17 @@ const GanttChart = () => {
         if (ganttContainer.current) {
             // Show task text outside bars (above them)
             gantt.templates.task_text = function (start, end, task) {
-                return task.text;
+                console.log(task)
+                function formatDateRange(start, end) {
+                    const startDate = new Date(start);
+                    const endDate = new Date(end);
+
+                    const month = endDate.toLocaleString("en-US", { month: "short" }); // "Nov"
+                    const year = endDate.getFullYear();
+
+                    return `${startDate.getDate()} - ${endDate.getDate()} ${month} ${year}`;
+                }
+                return `${formatDateRange(task.start_date, task.end_date)} | ${task.owner}`;
             };
             gantt.templates.rightside_text = function (start, end, task) {
                 return "";
@@ -1622,7 +1646,7 @@ const GanttChart = () => {
                     const formattedEnd = item.end_date
                         ? formatDateDMYFromISO(item.end_date)
                         : formatDateDMYFromISO(new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString());
-
+                    console.log(item)
                     tasksData.push({
                         navigationid: item.id,
                         id: milestoneId,
@@ -1640,7 +1664,7 @@ const GanttChart = () => {
                             ? `milestone-${item.depends_on_id}`
                             : null,
                         type: "milestone",
-                        owner: item.owner_id,
+                        owner: item.owner_name,
                         parent: 0,
                         open: true,
                     });
