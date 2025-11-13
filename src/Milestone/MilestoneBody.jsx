@@ -1502,6 +1502,27 @@ const GanttChart = () => {
         gantt.config.smart_rendering = true;
         gantt.config.smart_scales = true;
 
+        gantt.config.layout = {
+            css: "gantt_container",
+            cols: [
+                {
+                    width: 500,            // Initial width of the left grid
+                    min_width: 400,        // Optional: prevent collapsing too much
+                    rows: [
+                        { view: "grid", scrollX: "scrollHor", scrollY: "scrollVer" }
+                    ]
+                },
+                { resizer: true, width: 1 }, // 👈 enables draggable separator
+                {
+                    rows: [
+                        { view: "timeline", scrollX: "scrollHor", scrollY: "scrollVer" },
+                        { view: "scrollbar", id: "scrollHor" }
+                    ]
+                },
+                { view: "scrollbar", id: "scrollVer" }
+            ]
+        };
+
         if (scale === "week") {
             gantt.config.scales = [
                 { unit: "month", step: 1, format: "%F %Y" },
