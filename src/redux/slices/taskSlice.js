@@ -108,20 +108,27 @@ export const fetchTasks = createAsyncThunk('fetchTasks', async ({ token, id, pag
     }
 });
 
-export const fetchMyTasks = createAsyncThunk('fetchMyTasks', async ({ token, page }) => {
+export const fetchMyTasks = createAsyncThunk('fetchMyTasks', async ({ token, page, search }) => {
     try {
-        const response = await axios.get(`${baseURL}/task_managements/my_tasks.json?page=${page}`, {
+        const params = new URLSearchParams();
+        if (page !== undefined && page !== null) params.append('page', page);
+        if (search !== undefined && search !== null && String(search).trim() !== '') {
+            params.append('q[title_cont]', search.trim());
+        }
+
+        const url = `${baseURL}/task_managements/my_tasks.json?${params.toString()}`;
+
+        const response = await axios.get(url, {
             headers: {
                 Authorization: `Bearer ${token}`,
             }
         });
 
-
         return response.data;
     }
     catch (error) {
         console.log(error);
-        return error.response.data;
+        return error.response?.data || { error: error.message };
     }
 });
 

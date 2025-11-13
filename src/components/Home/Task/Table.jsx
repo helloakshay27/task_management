@@ -363,7 +363,8 @@ const TaskTable = ({ isModalOpen, searchQuery }) => {
       if (myTasks === "false") {
         await dispatch(fetchTasks({ token, id: "", page, search: searchQuery })).unwrap();
       } else {
-        await dispatch(fetchMyTasks({ token, page })).unwrap();
+        // Include searchQuery when fetching "My Tasks" so user search works for their tasks
+        await dispatch(fetchMyTasks({ token, page, search: searchQuery })).unwrap();
       }
     }
   };
