@@ -48,7 +48,7 @@ export const TaskDatePicker = ({
 
         const weekDates = [];
 
-        for (let i = 0; i < 7; i++) {
+        for (let i = 0; i < 12; i++) {
             const d = new Date(baseDate);
             d.setDate(baseDate.getDate() + i);
 
@@ -75,13 +75,13 @@ export const TaskDatePicker = ({
 
     return (
         <div className="w-full max-w-4xl bg-white rounded-lg shadow-lg py-6 relative">
-            <div className="flex justify-end items-center mb-4 px-6">
+            <div className="flex justify-end items-center mb-1 px-6">
                 <span className="text-sm font-semibold text-gray-700">
                     {monthNames[currentMonth]}, {currentYear}
                 </span>
             </div>
 
-            <div className="flex justify-center gap-4 px-6">
+            <div className="flex justify-center px-6">
                 {allDates.map((dateItem) => {
                     const isSelected = selectedDate?.date === dateItem.date &&
                         selectedDate?.month === dateItem.month &&
@@ -114,8 +114,8 @@ export const TaskDatePicker = ({
                                 {dateItem.date.toString().padStart(2, '0')}
                             </span>
                             <span className={`w-full h-[2px] my-1 ${(dateItem.hours / 8 * 100).toFixed(2) < 33 ? "bg-[#1FCFB3]" : (dateItem.hours / 8 * 100).toFixed(2) < 66 ? "bg-[#ED9017]" : "bg-[#C72030]"}`}></span>
-                            <span className={`flex flex-col items-center ${isCurrentMonth ? 'text-gray-500' : 'text-gray-400'}`}>
-                                <span className='text-base'>{dateItem.hours}</span>
+                            <span className={`flex flex-col border rounded-sm px-2 items-center ${isCurrentMonth ? 'text-gray-500' : 'text-gray-400'}`}>
+                                <span className='text-base font-medium text-black'>{dateItem.hours}</span>
                                 <span className='!text-[10px]'>hrs</span>
                             </span>
                         </button>

@@ -1497,7 +1497,6 @@ const GanttChart = () => {
 
         gantt.config.scale_offset_minimal = true;
         gantt.config.fit_tasks = false;
-        gantt.config.min_column_width = 80;
         gantt.config.show_chart = true;
         gantt.config.scroll_size = 20;
         gantt.config.smart_rendering = true;
@@ -1518,20 +1517,30 @@ const GanttChart = () => {
                 { unit: "day", step: 1, format: "%j" }
             ];
             gantt.config.scale_height = 90;
+            gantt.config.min_column_width = 25;
         } else if (scale === "month") {
             gantt.config.scales = [
                 { unit: "year", step: 1, format: "%Y" },
                 { unit: "month", step: 1, format: "%F" },
+                // {
+                //     unit: "week",
+                //     step: 1,
+                //     format: function (date) {
+                //         const start = gantt.date.week_start(new Date(date));
+                //         return "W" + gantt.date.date_to_str("%W")(start);
+                //     }
+                // }
                 {
                     unit: "week",
                     step: 1,
                     format: function (date) {
                         const start = gantt.date.week_start(new Date(date));
-                        return "W" + gantt.date.date_to_str("%W")(start);
+                        return start.getDate();
                     }
                 }
             ];
             gantt.config.scale_height = 90;
+            gantt.config.min_column_width = 40;
         } else if (scale === "year") {
             gantt.config.scales = [
                 { unit: "year", step: 1, format: "%Y" },
@@ -1544,6 +1553,7 @@ const GanttChart = () => {
                 { unit: "month", step: 1, format: "%M" }
             ];
             gantt.config.scale_height = 90;
+            gantt.config.min_column_width = 40;
         }
 
         const setDateRange = () => {
@@ -1573,7 +1583,6 @@ const GanttChart = () => {
         if (ganttContainer.current) {
             // Show task text outside bars (above them)
             gantt.templates.task_text = function (start, end, task) {
-                console.log(task)
                 function formatDateRange(start, end) {
                     const startDate = new Date(start);
                     const endDate = new Date(end);
@@ -1646,7 +1655,6 @@ const GanttChart = () => {
                     const formattedEnd = item.end_date
                         ? formatDateDMYFromISO(item.end_date)
                         : formatDateDMYFromISO(new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString());
-                    console.log(item)
                     tasksData.push({
                         navigationid: item.id,
                         id: milestoneId,
