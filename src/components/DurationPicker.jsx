@@ -31,7 +31,6 @@ export const DurationPicker = ({
     const [daysList, setDaysList] = useState([]);
     const pickerRef = useRef(null);
 
-    /** ✅ Parse input like "7", "7.5", "7:30" into decimal hours */
     const parseHours = (val) => {
         if (!val) return 0;
         if (typeof val === "number") return val;
@@ -44,7 +43,6 @@ export const DurationPicker = ({
         return isNaN(num) ? 0 : num;
     };
 
-    /** ✅ Format total hours into HH:MM */
     const formatTotalHours = (total) => {
         const totalMinutes = Math.round(total * 60);
         const hours = Math.floor(totalMinutes / 60);
@@ -52,8 +50,61 @@ export const DurationPicker = ({
         return `${hours}:${String(minutes).padStart(2, "0")}`;
     };
 
-    /** ✅ Generate all days (inclusive, including weekends) */
-    const getAllDays = (startDate, endDate) => {
+    const parseShiftNoOfDays = (shift) => {
+        if (!shift || !shift.no_of_days) return null;
+
+        const roasterType = (shift.roaster_type || shift.roasterType || "").toString();
+
+        if (roasterType === "Recurring") {
+            let obj = null;
+            if (Array.isArray(shift.no_of_days) && typeof shift.no_of_days[0] === "object") {
+                obj = shift.no_of_days[0] || {};
+            } else if (typeof shift.no_of_days === "object") {
+                obj = shift.no_of_days;
+            }
+            if (!obj) return { roasterType };
+
+            const recurring = {};
+            Object.keys(obj).forEach((k) => {
+                const arr = Array.isArray(obj[k]) ? obj[k] : [];
+                recurring[k] = arr.map((v) => Number(v)).filter(Boolean);
+            });
+
+            return { roasterType: "Recurring", recurring };
+        }
+
+        const arr = Array.isArray(shift.no_of_days) ? shift.no_of_days : [];
+        const working = arr.map((v) => Number(v)).filter(Boolean);
+        return { roasterType: roasterType || "Weekdays/Weekends", working };
+    };
+
+    const getWeekOfMonth = (date) => {
+        const day = date.getDate();
+        return Math.floor((day - 1) / 7) + 1;
+    };
+
+    const isDateWorking = (date, shift) => {
+        const parsed = parseShiftNoOfDays(shift);
+        if (!parsed) {
+            const jsDay = date.getDay();
+            return jsDay !== 0 && jsDay !== 6;
+        }
+
+        const jsDay = date.getDay();
+        const dayNumber = jsDay === 0 ? 7 : jsDay;
+
+        if (parsed.roasterType === "Recurring") {
+            const week = String(getWeekOfMonth(date));
+            const arr = parsed.recurring[week] || [];
+            return arr.includes(dayNumber);
+        }
+
+        // Weekdays/Weekends mode
+        return parsed.working.includes(dayNumber);
+    };
+
+    /** Generate all days (inclusive) using shift rules to mark working days */
+    const getAllDays = (startDate, endDate, shiftInfo) => {
         if (!endDate) return [];
 
         const start = new Date(startDate?.year, startDate?.month, startDate?.date, 23, 59, 59, 999);
@@ -64,12 +115,12 @@ export const DurationPicker = ({
         const current = new Date(start);
 
         while (current <= end) {
-            const dayOfWeek = current.getDay();
             const formatted = current.toLocaleDateString("en-GB").replace(/\//g, "-");
+            const working = isDateWorking(current, shiftInfo);
             days.push({
                 date: new Date(current),
                 formatted,
-                isWeekend: dayOfWeek === 0 || dayOfWeek === 6,
+                isWorking: working,
             });
             current.setDate(current.getDate() + 1);
         }
@@ -133,8 +184,8 @@ export const DurationPicker = ({
     useEffect(() => {
         if (taskType === "standard") {
             if (startDate && endDate) {
-                const allDays = getAllDays(startDate, endDate);
-                const workingDays = allDays.filter((d) => !d.isWeekend);
+                const allDays = getAllDays(startDate, endDate, shift);
+                const workingDays = allDays.filter((d) => d.isWorking);
                 const hrs = workingDays.length * hoursPerDay;
 
                 setTotalWorkingHours(hrs);
@@ -162,9 +213,9 @@ export const DurationPicker = ({
         } else {
             // ✅ Flexible logic
             if (endDate) {
-                const allDays = getAllDays(startDate, endDate);
+                const allDays = getAllDays(startDate, endDate, shift);
                 setDaysList(allDays);
-                const defaultHours = allDays.map((d) => (d.isWeekend ? "" : formatTotalHours(hoursPerDay)));
+                const defaultHours = allDays.map((d) => (d.isWorking ? formatTotalHours(hoursPerDay) : ""));
                 setDailyHours(defaultHours);
 
                 const total = defaultHours.reduce((sum, h) => sum + parseHours(h), 0);
@@ -187,7 +238,7 @@ export const DurationPicker = ({
                 if (onDateWiseHoursChange) onDateWiseHoursChange([]);
             }
         }
-    }, [startDate, endDate, taskType]);
+    }, [startDate, endDate, taskType, shift]);
 
     /** ✅ Update total & date-wise data when flexible hours change */
     useEffect(() => {
@@ -284,7 +335,7 @@ export const DurationPicker = ({
                                             {daysList.map((d, i) => (
                                                 <TableHead
                                                     key={i}
-                                                    className={`min-w-[120px] text-center ${d.isWeekend ? "bg-gray-100 text-gray-500" : "bg-white"
+                                                    className={`min-w-[120px] text-center ${!d.isWorking ? "bg-gray-100 text-gray-500" : "bg-white"
                                                         }`}
                                                 >
                                                     {d.formatted}
@@ -308,7 +359,7 @@ export const DurationPicker = ({
                                             {daysList.map((d, idx) => (
                                                 <TableCell
                                                     key={idx}
-                                                    className={`text-center bg-white ${d.isWeekend ? "bg-gray-100" : ""
+                                                    className={`text-center bg-white ${!d.isWorking ? "bg-gray-100" : ""
                                                         }`}
                                                 >
                                                     <input
@@ -320,8 +371,8 @@ export const DurationPicker = ({
                                                             newHours[idx] = input;
                                                             setDailyHours(newHours);
                                                         }}
-                                                        disabled={d.isWeekend}
-                                                        className={`w-16 border rounded-md text-center py-1 text-sm ${d.isWeekend
+                                                        disabled={!d.isWorking}
+                                                        className={`w-16 border rounded-md text-center py-1 text-sm ${!d.isWorking
                                                             ? "bg-gray-100 text-gray-400 cursor-not-allowed"
                                                             : ""
                                                             }`}
@@ -370,7 +421,7 @@ export const DurationPicker = ({
                                         <TableCell className="!px-2 bg-white">{formatTotalHours(hoursPerDay)} hr/day (100% day)</TableCell>
                                         <TableCell className="bg-white">
                                             {daysList.length > 0
-                                                ? `${daysList.filter((d) => !d.isWeekend).length}d`
+                                                ? `${daysList.filter((d) => d.isWorking).length}d`
                                                 : "--"}
                                         </TableCell>
                                         <TableCell className="text-right sticky right-0 bg-white border-l">
@@ -402,14 +453,12 @@ export const DurationPicker = ({
                         <button
                             onClick={() => {
                                 if (taskType === "standard") {
-                                    // Set total using calculated hoursPerDay instead of hard-coded 8
                                     setTotalWorkingHours(hoursPerDay);
                                     if (onChange) onChange(hoursPerDay);
 
-                                    // If a date range exists, send date-wise hours as well
                                     if (onDateWiseHoursChange && startDate && endDate) {
-                                        const allDays = getAllDays(startDate, endDate);
-                                        const workingDays = allDays.filter((d) => !d.isWeekend);
+                                        const allDays = getAllDays(startDate, endDate, shift);
+                                        const workingDays = allDays.filter((d) => d.isWorking);
                                         const perDayDecimal = parseHours(formatTotalHours(hoursPerDay));
                                         const dateWise = workingDays.map((d) => ({
                                             hours: perDayDecimal,
