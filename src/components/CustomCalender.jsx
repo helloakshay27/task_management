@@ -27,8 +27,8 @@ export const CustomCalender = forwardRef(({
 
     const [selectedDate, setSelectedDate] = useState(getDateFromObject(propSelectedDate) || { date: today.getDate(), month: today.getMonth(), year: today.getFullYear() });
 
-    // Use the same weekday/month labels as TaskDatePicker.jsx
-    const daysOfWeek = ['M', 'T', 'W', 'Th', 'F', 'S', 'S'];
+    // Weekday labels (start week on Sunday)
+    const daysOfWeek = ['Su', 'M', 'T', 'W', 'Th', 'F', 'Sa'];
 
     const monthNames = [
         'January', 'February', 'March', 'April', 'May', 'June',
@@ -44,8 +44,7 @@ export const CustomCalender = forwardRef(({
     };
 
     const getFirstDayOfMonth = (date) => {
-        const firstDay = new Date(date.getFullYear(), date.getMonth(), 1).getDay();
-        return firstDay === 0 ? 6 : firstDay - 1; // Adjust to start week on Monday
+        return new Date(date.getFullYear(), date.getMonth(), 1).getDay();
     };
 
     // Accept either a Date or an object {date, month, year} for selected date
@@ -225,20 +224,20 @@ export const CustomCalender = forwardRef(({
                             key={index}
                             onClick={() => handleDateClick(dayObj)}
                             className={`
-                                relative flex flex-col items-center justify-center rounded-md text-xs font-medium transition-all py-1 px-2 mx-2 min-h-[56px] bg-gray-50 hover:bg-blue-100
+                                relative flex flex-col items-center justify-center rounded-md text-xs font-medium transition-all py-1 px-2 mx-2 min-h-[56px] bg-gray-50
                                 ${!dayObj.isCurrentMonth ? 'text-gray-300' : 'text-gray-900'}
-                                ${isSelected ? 'border-[#c72030] bg-red-50 text-red-600' : 'hover:bg-gray-50'}
+                                ${isSelected ? 'border-[#c72030] bg-red-100' : 'hover:bg-gray-100'}
                                 ${isToday && !isSelected ? 'border border-red-300' : ''}
                             `}
                         >
-                            <span className={`text-sm font-semibold ${isSelected ? 'text-red-600' : isCurrentMonth ? 'text-gray-800' : 'text-gray-400'}`}>
+                            <span className={`text-sm font-semibold ${isSelected ? 'text-gray-800' : isCurrentMonth ? 'text-gray-800' : 'text-gray-400'}`}>
                                 {dayObj.day.toString().padStart(2, '0')}
                             </span>
 
                             <span className={`w-full h-[2px] my-1 ${taskData.percentage < 33 ? 'bg-[#1FCFB3]' : taskData.percentage < 66 ? 'bg-[#ED9017]' : 'bg-[#C72030]'}`}></span>
 
                             <span className={`flex flex-col items-center ${isCurrentMonth ? 'text-gray-500' : 'text-gray-400'}`}>
-                                <span className={`text-sm font-medium ${isSelected ? 'text-red-600' : isCurrentMonth ? 'text-gray-800' : 'text-gray-400'}`}>{taskData.hours}</span>
+                                <span className={`text-sm font-medium ${isSelected ? 'text-gray-800' : isCurrentMonth ? 'text-gray-800' : 'text-gray-400'}`}>{taskData.hours}</span>
                                 <span className='!text-[10px]'>hrs</span>
                             </span>
                         </button>
