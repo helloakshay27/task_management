@@ -114,7 +114,7 @@ export const TaskDatePicker = ({
                                 {dateItem.date.toString().padStart(2, '0')}
                             </span>
                             <span className={`w-full h-[2px] my-1 ${(dateItem.hours / 8 * 100).toFixed(2) < 33 ? "bg-[#1FCFB3]" : (dateItem.hours / 8 * 100).toFixed(2) < 66 ? "bg-[#ED9017]" : "bg-[#C72030]"}`}></span>
-                            <span className={`flex flex-col border rounded-sm px-2 items-center ${isCurrentMonth ? 'text-gray-500' : 'text-gray-400'}`}>
+                            <span className={`flex flex-col items-center ${isCurrentMonth ? 'text-gray-500' : 'text-gray-400'}`}>
                                 <span className='text-base font-medium text-black'>{dateItem.hours}</span>
                                 <span className='!text-[10px]'>hrs</span>
                             </span>

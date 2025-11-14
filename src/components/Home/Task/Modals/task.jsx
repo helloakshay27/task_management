@@ -66,6 +66,9 @@ const TaskForm = ({
     (state) => state.fetchUserShift
   );
 
+  const startDateRef = useRef(null);
+  const endDateRef = useRef(null);
+
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showStartDatePicker, setShowStartDatePicker] = useState(false);
   const [startDateTasks, setStartDateTasks] = useState([]);
@@ -466,6 +469,7 @@ const TaskForm = ({
               }
               setShowStartDatePicker(!showStartDatePicker);
             }}
+            ref={startDateRef}
           >
             {startDate ? (
               <div className="text-black flex items-center justify-between w-full">
@@ -497,6 +501,7 @@ const TaskForm = ({
               }
               setShowDatePicker(!showDatePicker);
             }}
+            ref={endDateRef}
           >
             {endDate ? (
               <div className="text-black flex items-center justify-between w-full">
@@ -528,6 +533,7 @@ const TaskForm = ({
               onDateSelect={setStartDate}
               selectedDate={startDate}
               taskHoursData={calendarTaskHours}
+              ref={startDateRef}
             />
           ) : (
             <TaskDatePicker
@@ -560,6 +566,7 @@ const TaskForm = ({
               onDateSelect={setEndDate}
               selectedDate={endDate}
               taskHoursData={calendarTaskHours}
+              ref={endDateRef}
             />
           ) : (
             <TaskDatePicker

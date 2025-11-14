@@ -1,27 +1,41 @@
-import React, { useState } from 'react';
+import React, { useState, forwardRef } from 'react';
 import { ChevronLeft, ChevronRight, ChevronUp } from 'lucide-react';
 
-export const CustomCalender = ({
+export const CustomCalender = forwardRef(({
     initialDate = new Date(), // Default to current month
     selectedDate: propSelectedDate, // Optional external selected date
     eventDates = [],
     taskHoursData = [],
     onDateSelect = () => { },
     onMonthChange = () => { },
-    setShowCalender
-}) => {
+    setShowCalender,
+}, forwardedRef) => {
     const today = new Date();
 
     // Default to current month and today as selected
     const [currentDate, setCurrentDate] = useState(initialDate || today);
-    const [selectedDate, setSelectedDate] = useState(propSelectedDate || today);
 
-    const daysOfWeek = ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'];
+    // Normalize selectedDate to an object shape { date, month, year }
+    const getDateFromObject = (dateObj) => {
+        if (!dateObj) return null;
+        if (dateObj instanceof Date) return { date: dateObj.getDate(), month: dateObj.getMonth(), year: dateObj.getFullYear() };
+        if (dateObj.year !== undefined && typeof dateObj.month === 'number' && dateObj.date !== undefined) {
+            return { date: dateObj.date, month: dateObj.month, year: dateObj.year };
+        }
+        return null;
+    };
+
+    const [selectedDate, setSelectedDate] = useState(getDateFromObject(propSelectedDate) || { date: today.getDate(), month: today.getMonth(), year: today.getFullYear() });
+
+    // Use the same weekday/month labels as TaskDatePicker.jsx
+    const daysOfWeek = ['M', 'T', 'W', 'Th', 'F', 'S', 'S'];
 
     const monthNames = [
-        'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-        'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+        'January', 'February', 'March', 'April', 'May', 'June',
+        'July', 'August', 'September', 'October', 'November', 'December'
     ];
+
+
 
     const getDaysInMonth = (date) => {
         const year = date.getFullYear();
@@ -34,11 +48,15 @@ export const CustomCalender = ({
         return firstDay === 0 ? 6 : firstDay - 1; // Adjust to start week on Monday
     };
 
+    // Accept either a Date or an object {date, month, year} for selected date
     const isSameDay = (date1, date2) => {
+        if (!date1 || !date2) return false;
+        const d1 = date1 instanceof Date ? date1 : new Date(date1.year, date1.month, date1.date);
+        const d2 = date2 instanceof Date ? date2 : new Date(date2.year, date2.month, date2.date);
         return (
-            date1.getDate() === date2.getDate() &&
-            date1.getMonth() === date2.getMonth() &&
-            date1.getFullYear() === date2.getFullYear()
+            d1.getDate() === d2.getDate() &&
+            d1.getMonth() === d2.getMonth() &&
+            d1.getFullYear() === d2.getFullYear()
         );
     };
 
@@ -50,7 +68,8 @@ export const CustomCalender = ({
         );
     };
 
-    const getTaskHoursIndicator = (day, month, year) => {
+    // Return hours (padded), percentage and color for a given date using taskHoursData
+    const getTaskHoursForDate = (day, month, year) => {
         const formattedDate = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
 
         const matchingData = taskHoursData.find(data => {
@@ -58,14 +77,15 @@ export const CustomCalender = ({
             return dataDate === formattedDate;
         });
 
-        if (!matchingData) return null;
+        if (!matchingData) return { hours: '00', percentage: 0, color: null };
 
-        const hours = matchingData.hours;
-        const percentage = ((hours / 8) * 100);
+        const hoursNum = Number(matchingData.hours) || 0;
+        const percentage = (hoursNum / 8) * 100;
+        let color = '#c72030';
+        if (percentage <= 33) color = '#1FCFB3';
+        else if (percentage <= 66) color = '#ED9017';
 
-        if (percentage <= 33) return '#1FCFB3';
-        if (percentage <= 66) return '#ED9017';
-        return '#c72030';
+        return { hours: String(hoursNum).padStart(2, '0'), percentage, color };
     };
 
     const generateCalendarDays = () => {
@@ -129,16 +149,31 @@ export const CustomCalender = ({
             date: dayObj.day,
             month: dayObj.month,
             year: dayObj.year
-        }
+        };
         setSelectedDate(clickedDate);
         onDateSelect(clickedDate);
-        setShowCalender(false)
+        // Close calendar first
+        setShowCalender(false);
+
+        // Smooth-scroll to the provided forwardedRef (if available).
+        // Delay slightly so any closing animation/DOM changes can happen first.
+        try {
+            const target = forwardedRef && forwardedRef.current ? forwardedRef.current : null;
+            if (target && typeof target.scrollIntoView === 'function') {
+                setTimeout(() => {
+                    target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }, 100);
+            }
+        } catch (e) {
+            // noop - scrolling is optional
+        }
+
     };
 
     const calendarDays = generateCalendarDays();
 
     return (
-        <div className="w-full max-w-xs mx-auto bg-white rounded-2xl shadow-lg p-4 my-3">
+        <div className="w-[90%] mx-auto bg-white rounded-2xl shadow-lg p-4 my-3">
             {/* Header */}
             <div className="flex items-center justify-between mb-3">
                 <button
@@ -174,12 +209,15 @@ export const CustomCalender = ({
             </div>
 
             {/* Calendar Grid */}
-            <div className="grid grid-cols-7 gap-1">
+            <div className="grid grid-cols-7 space-y-2">
                 {calendarDays.map((dayObj, index) => {
                     const dateObj = new Date(dayObj.year, dayObj.month, dayObj.day);
-                    const isSelected = isSameDay(dateObj, selectedDate);
+                    const selectedObj = selectedDate;
+                    const isSelected = isSameDay(dateObj, selectedObj);
                     const isToday = isSameDay(dateObj, today);
-                    const taskIndicator = getTaskHoursIndicator(dayObj.day, dayObj.month, dayObj.year);
+                    const taskData = getTaskHoursForDate(dayObj.day, dayObj.month, dayObj.year);
+
+                    const isCurrentMonth = dayObj.month === currentDate.getMonth() && dayObj.year === currentDate.getFullYear();
 
                     return (
                         <button
@@ -187,18 +225,22 @@ export const CustomCalender = ({
                             key={index}
                             onClick={() => handleDateClick(dayObj)}
                             className={`
-                                relative aspect-square flex flex-col items-center justify-center rounded-full text-xs font-medium transition-all
+                                relative flex flex-col items-center justify-center rounded-md text-xs font-medium transition-all py-1 px-2 mx-2 min-h-[56px] bg-gray-50 hover:bg-blue-100
                                 ${!dayObj.isCurrentMonth ? 'text-gray-300' : 'text-gray-900'}
-                                ${isSelected ? 'bg-red-100 text-red-500' : 'hover:bg-gray-100'}
+                                ${isSelected ? 'border-[#c72030] bg-red-50 text-red-600' : 'hover:bg-gray-50'}
                                 ${isToday && !isSelected ? 'border border-red-300' : ''}
                             `}
                         >
-                            {dayObj.day.toString().padStart(2, '0')}
-                            {taskIndicator && (
-                                <div className="absolute bottom-1 flex gap-0.5">
-                                    <div className={`w-1 h-1 rounded-full bg-[${taskIndicator}]`} />
-                                </div>
-                            )}
+                            <span className={`text-sm font-semibold ${isSelected ? 'text-red-600' : isCurrentMonth ? 'text-gray-800' : 'text-gray-400'}`}>
+                                {dayObj.day.toString().padStart(2, '0')}
+                            </span>
+
+                            <span className={`w-full h-[2px] my-1 ${taskData.percentage < 33 ? 'bg-[#1FCFB3]' : taskData.percentage < 66 ? 'bg-[#ED9017]' : 'bg-[#C72030]'}`}></span>
+
+                            <span className={`flex flex-col items-center ${isCurrentMonth ? 'text-gray-500' : 'text-gray-400'}`}>
+                                <span className={`text-sm font-medium ${isSelected ? 'text-red-600' : isCurrentMonth ? 'text-gray-800' : 'text-gray-400'}`}>{taskData.hours}</span>
+                                <span className='!text-[10px]'>hrs</span>
+                            </span>
                         </button>
                     );
                 })}
@@ -216,4 +258,4 @@ export const CustomCalender = ({
             </div>
         </div>
     );
-};
+});
