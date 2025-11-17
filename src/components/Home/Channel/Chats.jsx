@@ -417,7 +417,7 @@ const Chats = ({ messages, onReply, bottomRef }) => {
                             onMouseLeave={handleMouseLeave}
                         >
                             <div
-                                className={`text-xs text-gray-500 mb-2 ${isMe ? "mr-12" : "ml-12"
+                                className={`text-xs text-gray-500 mb-2 ${isMe ? "mr-12" : "ml-[60px]"
                                     }`}
                             >
                                 {message.created_at &&
