@@ -465,7 +465,7 @@ const Chats = ({ messages, onReply, bottomRef }) => {
                                                 </div>
                                             )}
                                             {message.is_forwarded && (
-                                                <div className="flex items-center gap-1 text-gray-500 text-xs mb-1 italic">
+                                                <div className="flex items-center gap-1 text-gray-500 text-[10px] mb-1 italic">
                                                     <CornerDownRight className="w-3 h-3" />
                                                     <span>Forwarded</span>
                                                 </div>
