@@ -48,7 +48,7 @@ export const TaskDatePicker = ({
 
         const weekDates = [];
 
-        for (let i = 0; i < 12; i++) {
+        for (let i = 0; i < 11; i++) {
             const d = new Date(baseDate);
             d.setDate(baseDate.getDate() + i);
 
@@ -75,7 +75,7 @@ export const TaskDatePicker = ({
 
     return (
         <div className="w-full max-w-4xl bg-white rounded-lg shadow-lg py-6 relative">
-            <div className="flex justify-end items-center mb-1 px-6">
+            <div className="flex justify-end items-center mb-1">
                 <span className="text-sm font-semibold text-gray-700">
                     {monthNames[currentMonth]}, {currentYear}
                 </span>

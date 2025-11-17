@@ -400,8 +400,8 @@ export const DurationPicker = ({
                                             Owner
                                         </TableHead>
                                         <TableHead className="min-w-[150px] bg-white">Business Hours</TableHead>
-                                        <TableHead className="min-w-[180px] bg-white">Work Hours Per Day</TableHead>
-                                        <TableHead className="min-w-[100px] bg-white">Duration</TableHead>
+                                        <TableHead className="min-w-[150px] bg-white">Work Hours Per Day</TableHead>
+                                        <TableHead className="min-w-[40px] bg-white">Duration</TableHead>
                                         <TableHead className="sticky right-0 z-20 bg-white border-l">
                                             Total Hours
                                         </TableHead>

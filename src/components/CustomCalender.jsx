@@ -1,4 +1,4 @@
-import React, { useState, forwardRef } from 'react';
+import React, { useState, forwardRef, useEffect, useRef } from 'react';
 import { ChevronLeft, ChevronRight, ChevronUp } from 'lucide-react';
 
 export const CustomCalender = forwardRef(({
@@ -11,6 +11,16 @@ export const CustomCalender = forwardRef(({
     setShowCalender,
 }, forwardedRef) => {
     const today = new Date();
+    const calendarRef = useRef(null);
+
+    // Scroll to top when calendar is visible
+    useEffect(() => {
+        if (calendarRef.current) {
+            setTimeout(() => {
+                calendarRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }, 0);
+        }
+    }, []);
 
     // Default to current month and today as selected
     const [currentDate, setCurrentDate] = useState(initialDate || today);
@@ -143,7 +153,18 @@ export const CustomCalender = forwardRef(({
         onMonthChange(newDate);
     };
 
+    const isDateBeforeToday = (day, month, year) => {
+        const checkDate = new Date(year, month, day);
+        const todayDate = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+        return checkDate < todayDate;
+    };
+
     const handleDateClick = (dayObj) => {
+        // Prevent selecting dates before today
+        if (isDateBeforeToday(dayObj.day, dayObj.month, dayObj.year)) {
+            return;
+        }
+
         const clickedDate = {
             date: dayObj.day,
             month: dayObj.month,
@@ -172,19 +193,19 @@ export const CustomCalender = forwardRef(({
     const calendarDays = generateCalendarDays();
 
     return (
-        <div className="w-[90%] mx-auto bg-white rounded-2xl shadow-lg p-4 my-3">
+        <div ref={calendarRef} className="w-full mx-auto bg-white rounded-2xl shadow-lg py-4 my-3">
             {/* Header */}
-            <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center justify-end gap-1 mb-3">
                 <button
                     type='button'
                     onClick={handlePrevMonth}
                     className="p-1 hover:bg-gray-100 rounded-full transition-colors"
                     aria-label="Previous month"
                 >
-                    <ChevronLeft className="w-5 h-5" />
+                    <ChevronLeft className="w-4 h-4" />
                 </button>
 
-                <h2 className="text-base font-semibold">
+                <h2 className="text-sm font-medium">
                     {`${monthNames[currentDate.getMonth()]} ${currentDate.getFullYear()}`}
                 </h2>
 
@@ -194,14 +215,14 @@ export const CustomCalender = forwardRef(({
                     className="p-1 hover:bg-gray-100 rounded-full transition-colors"
                     aria-label="Next month"
                 >
-                    <ChevronRight className="w-5 h-5" />
+                    <ChevronRight className="w-4 h-4" />
                 </button>
             </div>
 
             {/* Week Days */}
             <div className="grid grid-cols-7 gap-1 mb-2">
                 {daysOfWeek.map(day => (
-                    <div key={day} className="text-center font-medium text-gray-700 text-xs py-1">
+                    <div key={day} className="text-center font-medium text-gray-700 text-[15px] py-1">
                         {day}
                     </div>
                 ))}
@@ -214,6 +235,7 @@ export const CustomCalender = forwardRef(({
                     const selectedObj = selectedDate;
                     const isSelected = isSameDay(dateObj, selectedObj);
                     const isToday = isSameDay(dateObj, today);
+                    const isDisabled = isDateBeforeToday(dayObj.day, dayObj.month, dayObj.year);
                     const taskData = getTaskHoursForDate(dayObj.day, dayObj.month, dayObj.year);
 
                     const isCurrentMonth = dayObj.month === currentDate.getMonth() && dayObj.year === currentDate.getFullYear();
@@ -223,20 +245,21 @@ export const CustomCalender = forwardRef(({
                             type='button'
                             key={index}
                             onClick={() => handleDateClick(dayObj)}
+                            disabled={isDisabled}
                             className={`
-                                relative flex flex-col items-center justify-center rounded-md text-xs font-medium transition-all py-1 px-2 mx-2 min-h-[56px] bg-gray-50
+                                relative flex flex-col items-center justify-center rounded-md text-xs font-medium transition-all py-1 mx-2 min-h-[56px]
                                 ${!dayObj.isCurrentMonth ? 'text-gray-300' : 'text-gray-900'}
-                                ${isSelected ? 'border-[#c72030] bg-red-100' : 'hover:bg-gray-100'}
-                                ${isToday && !isSelected ? 'border border-red-300' : ''}
+                                ${isDisabled ? 'opacity-50 cursor-not-allowed text-gray-400' : isSelected ? 'border-[#c72030] bg-red-50' : 'hover:bg-gray-100'}
+                                ${isToday && !isSelected && !isDisabled ? 'border border-red-300' : ''}
                             `}
                         >
                             <span className={`text-sm font-semibold ${isSelected ? 'text-gray-800' : isCurrentMonth ? 'text-gray-800' : 'text-gray-400'}`}>
                                 {dayObj.day.toString().padStart(2, '0')}
                             </span>
 
-                            <span className={`w-full h-[2px] my-1 ${taskData.percentage < 33 ? 'bg-[#1FCFB3]' : taskData.percentage < 66 ? 'bg-[#ED9017]' : 'bg-[#C72030]'}`}></span>
+                            <span className={`w-[50%] h-[2px] my-1 ${taskData.percentage < 33 ? 'bg-[#1FCFB3]' : taskData.percentage < 66 ? 'bg-[#ED9017]' : 'bg-[#C72030]'}`}></span>
 
-                            <span className={`flex flex-col items-center ${isCurrentMonth ? 'text-gray-500' : 'text-gray-400'}`}>
+                            <span className={`flex flex-col border rounded-sm ${isSelected ? 'border-gray-400' : 'border-gray-300'} px-2 items-center ${isCurrentMonth ? 'text-gray-500' : 'text-gray-400'}`}>
                                 <span className={`text-sm font-medium ${isSelected ? 'text-gray-800' : isCurrentMonth ? 'text-gray-800' : 'text-gray-400'}`}>{taskData.hours}</span>
                                 <span className='!text-[10px]'>hrs</span>
                             </span>
