@@ -369,7 +369,7 @@ const Chats = ({ messages, onReply, bottomRef }) => {
         if (!parentMessage) return null;
 
         return (
-            <div className={`mb-2 border-l-4 ${isMe ? 'border-gray-400 bg-gray-50' : 'border-[#C72030] bg-red-50'} rounded p-2`}>
+            <div className={`mb-2 border-l-4 ${isMe ? 'border-gray-400 bg-gray-50' : 'border-[#C72030] bg-red-50'} rounded p-2`} onClick={() => scrollToMessage(parentMessage.id)}>
                 <div className="text-xs font-semibold text-gray-700 mb-1">
                     {parentMessage.user_name}
                 </div>
@@ -411,7 +411,6 @@ const Chats = ({ messages, onReply, bottomRef }) => {
                     return (
                         <div
                             key={index}
-                            ref={(el) => messageRefs.current[message.id] = el}
                             className={`mb-6 flex flex-col transition-colors duration-300 ${isMe ? "items-end" : "items-start"
                                 }`}
                             onMouseEnter={() => handleMouseEnter(index)}
@@ -458,6 +457,7 @@ const Chats = ({ messages, onReply, bottomRef }) => {
                                         )}
                                         <div
                                             className={`rounded-2xl px-4 py-2 text-sm shadow max-w-xs bg-white relative`}
+                                            ref={(el) => messageRefs.current[message.id] = el}
                                         >
                                             {message.is_pinned && (
                                                 <div className="absolute -top-2 -right-2 bg-[#C72030] rounded-full p-1">
