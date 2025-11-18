@@ -434,14 +434,6 @@ const GanttChart = () => {
             gantt.config.scales = [
                 { unit: "year", step: 1, format: "%Y" },
                 { unit: "month", step: 1, format: "%F" },
-                // {
-                //     unit: "week",
-                //     step: 1,
-                //     format: function (date) {
-                //         const start = gantt.date.week_start(new Date(date));
-                //         return "W" + gantt.date.date_to_str("%W")(start);
-                //     }
-                // }
                 {
                     unit: "week",
                     step: 1,
