@@ -498,13 +498,15 @@ const GanttChart = () => {
                 function formatDateRange(start, end) {
                     const startDate = new Date(start);
                     const endDate = new Date(end);
+                    // Subtract 1 day from end date since we added 1 day for display purposes in Gantt
+                    endDate.setDate(endDate.getDate() - 1);
 
                     const month = endDate.toLocaleString("en-US", { month: "short" }); // "Nov"
                     const year = endDate.getFullYear();
 
                     return `${startDate.getDate()} - ${endDate.getDate()} ${month} ${year}`;
                 }
-                return `${formatDateRange(task.start_date, task.end_date)} | ${task.owner}`;
+                return `${formatDateRange(start, end)} | ${task.owner}`;
             };
             gantt.templates.rightside_text = function (start, end, task) {
                 return "";
@@ -545,6 +547,18 @@ const GanttChart = () => {
                     return `${day}-${month}-${year}`;
                 }
 
+                function formatEndDateDMYFromISO(dateStr) {
+                    if (!dateStr) return "";
+                    const date = new Date(dateStr);
+                    // Add 1 day to include the end date in the Gantt display
+                    // Gantt's end_date is exclusive, so we need to add 1 day to make it inclusive
+                    date.setDate(date.getDate() + 1);
+                    const day = String(date.getDate()).padStart(2, "0");
+                    const month = String(date.getMonth() + 1).padStart(2, "0");
+                    const year = date.getFullYear();
+                    return `${day}-${month}-${year}`;
+                }
+
                 function calculateDuration(startStr, endStr) {
                     if (!startStr || !endStr) return 1;
                     const startParts = startStr.split("-");
@@ -555,7 +569,8 @@ const GanttChart = () => {
                     const end = new Date(`${endParts[2]}-${endParts[1]}-${endParts[0]}`);
                     if (isNaN(start.getTime()) || isNaN(end.getTime())) return 1;
                     const diffTime = end.getTime() - start.getTime();
-                    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24)) + 1;
+                    // Since end date is already adjusted by +1 day, we just calculate the difference
+                    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
                     return diffDays > 0 ? diffDays : 1;
                 }
 
@@ -565,9 +580,8 @@ const GanttChart = () => {
                         ? formatDateDMYFromISO(item.start_date)
                         : formatDateDMYFromISO(new Date().toISOString());
                     const formattedEnd = item.end_date
-                        ? formatDateDMYFromISO(item.end_date)
-                        : formatDateDMYFromISO(new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString());
-                    console.log(calculateDuration(formattedStart, formattedEnd))
+                        ? formatEndDateDMYFromISO(item.end_date)
+                        : formatEndDateDMYFromISO(new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString());
                     tasksData.push({
                         navigationid: item.id,
                         id: milestoneId,
@@ -616,12 +630,12 @@ const GanttChart = () => {
                             }
                             taskIds.add(uniqueTaskId);
 
-                            const formattedStartTask = task.started_at
-                                ? formatDateDMYFromISO(task.started_at)
+                            const formattedStartTask = task.expected_start_date
+                                ? formatDateDMYFromISO(task.expected_start_date)
                                 : formattedStart;
 
                             const formattedEndTask = task.target_date
-                                ? formatDateDMYFromISO(task.target_date)
+                                ? formatEndDateDMYFromISO(task.target_date)
                                 : formattedEnd;
 
                             const taskDuration = formattedStartTask && formattedEndTask
@@ -674,12 +688,12 @@ const GanttChart = () => {
                             if (Array.isArray(task.sub_tasks_managements)) {
                                 task.sub_tasks_managements.forEach((subTask) => {
                                     const subTaskId = `subtask-${subTask.id}`;
-                                    const formattedStartSubTask = subTask.started_at
-                                        ? formatDateDMYFromISO(subTask.started_at)
+                                    const formattedStartSubTask = subTask.expected_start_date
+                                        ? formatDateDMYFromISO(subTask.expected_start_date)
                                         : formattedStartTask;
 
                                     const formattedEndSubTask = subTask.target_date
-                                        ? formatDateDMYFromISO(subTask.target_date)
+                                        ? formatEndDateDMYFromISO(subTask.target_date)
                                         : formattedEndTask;
 
                                     const subTaskDuration = formattedStartSubTask && formattedEndSubTask
@@ -865,6 +879,17 @@ const GanttChart = () => {
             return `${year}-${month}-${day}`;
         }
 
+        function formatEndDateToISO(date) {
+            if (!date) return null;
+            const d = new Date(date);
+            // Subtract 1 day since we added 1 day for display purposes
+            d.setDate(d.getDate() - 1);
+            const year = d.getFullYear();
+            const month = String(d.getMonth() + 1).padStart(2, '0');
+            const day = String(d.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+
         function updateParentMilestoneStatus(milestoneId) {
             const allTasks = [];
             gantt.eachTask((task) => {
@@ -935,7 +960,7 @@ const GanttChart = () => {
                     milestone: {
                         title: task.text,
                         start_date: formatDateToISO(task.start_date),
-                        end_date: formatDateToISO(task.end_date),
+                        end_date: formatEndDateToISO(task.end_date),
                         duration: task.duration,
                         project_management_id: parseInt(id),
                         status: task.status,
@@ -985,7 +1010,7 @@ const GanttChart = () => {
                     task_management: {
                         title: task.text,
                         started_at: formatDateToISO(task.start_date),
-                        target_date: formatDateToISO(task.end_date),
+                        target_date: formatEndDateToISO(task.end_date),
                         status: task.status || 'Open',
                     }
                 };
