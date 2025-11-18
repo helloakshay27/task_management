@@ -334,6 +334,7 @@ const SubtaskTable = ({ projectId }) => {
 
   const [data, setData] = useState([]);
   const [parentTaskForSubtasks, setParentTaskForSubtasks] = useState(null);
+  console.log(parentTaskForSubtasks)
   const [parentTaskLookupStatus, setParentTaskLookupStatus] = useState("idle");
 
   const [isAddingNewSubtask, setIsAddingNewSubtask] = useState(false);
@@ -495,8 +496,8 @@ const SubtaskTable = ({ projectId }) => {
               status: sub.status || "open",
               responsiblePerson: sub.responsible_person_name || "Unassigned",
               responsiblePersonId: sub.responsible_person_id || null,
-              startDate: sub.started_at
-                ? new Date(sub.started_at).toLocaleDateString("en-CA")
+              startDate: sub.expected_start_date
+                ? new Date(sub.expected_start_date).toLocaleDateString("en-CA")
                 : null,
               endDate: sub.target_date
                 ? new Date(sub.target_date).toLocaleDateString("en-CA")
@@ -570,8 +571,8 @@ const SubtaskTable = ({ projectId }) => {
 
     const start = new Date(newSubtaskStartDate);
     const end = new Date(newSubtaskEndDate);
-    const parentStart = parentTaskForSubtasks?.started_at
-      ? new Date(parentTaskForSubtasks.started_at)
+    const parentStart = parentTaskForSubtasks?.expected_start_date
+      ? new Date(parentTaskForSubtasks.expected_start_date)
       : new Date();
     const parentEnd = parentTaskForSubtasks?.target_date
       ? new Date(parentTaskForSubtasks.target_date)
@@ -793,11 +794,11 @@ const SubtaskTable = ({ projectId }) => {
           <DateEditor
             value={getValue()}
             onUpdate={(date) =>
-              handleOnChange(row.original.id, "started_at", date)
+              handleOnChange(row.original.id, "expected_start_date", date)
             }
             min={
-              parentTaskForSubtasks?.started_at
-                ? new Date(parentTaskForSubtasks.started_at)
+              parentTaskForSubtasks?.expected_start_date
+                ? new Date(parentTaskForSubtasks.expected_start_date)
                   .toISOString()
                   .split("T")[0]
                 : new Date().toISOString().split("T")[0]

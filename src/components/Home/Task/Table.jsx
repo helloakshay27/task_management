@@ -688,26 +688,26 @@ const TaskTable = ({ isModalOpen, searchQuery }) => {
     const end = new Date(newTaskEndDate);
     const milestoneStart = milestone?.start_date ? new Date(milestone.start_date) : new Date();
     const milestoneEnd = milestone?.end_date ? new Date(milestone.end_date) : null;
-    if (start < milestoneStart) {
-      setLocalError("Start date cannot be before milestone start date");
-      setValidator(true);
-      return;
-    }
-    if (milestoneEnd && start > milestoneEnd) {
-      setLocalError("Start date cannot be after milestone end date");
-      setValidator(true);
-      return;
-    }
+    // if (start < milestoneStart) {
+    //   setLocalError("Start date cannot be before milestone start date");
+    //   setValidator(true);
+    //   return;
+    // }
+    // if (milestoneEnd && start > milestoneEnd) {
+    //   setLocalError("Start date cannot be after milestone end date");
+    //   setValidator(true);
+    //   return;
+    // }
     if (end < start) {
       setLocalError("End date cannot be before start date");
       setValidator(true);
       return;
     }
-    if (milestoneEnd && end > milestoneEnd) {
-      setLocalError("End date cannot be after milestone end date");
-      setValidator(true);
-      return;
-    }
+    // if (milestoneEnd && end > milestoneEnd) {
+    //   setLocalError("End date cannot be after milestone end date");
+    //   setValidator(true);
+    //   return;
+    // }
     setLocalError(null);
     setValidator(false);
     const taskAttributes = {

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { ChevronDown } from 'lucide-react';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchDependentMilestone, updateMilestone, createMilestone } from '../redux/slices/milestoneSlice';
@@ -11,6 +11,7 @@ const MilestoneDependencyTable = () => {
     const { id, mid } = useParams();
     const dispatch = useDispatch();
     const token = localStorage.getItem('token');
+    const tableRef = useRef(null);
 
     const { fetchProjectDetails: projectDetail } = useSelector(
         (state) => state.fetchProjectDetails
@@ -31,10 +32,40 @@ const MilestoneDependencyTable = () => {
     const [userOptions, setUserOptions] = useState([]);
     const [isAddingNew, setIsAddingNew] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
+    const [newMilestone, setNewMilestone] = useState({
+        title: '',
+        status: 'Open',
+        owner_name: '',
+        owner_id: '',
+        start_date: '',
+        end_date: ''
+    });
 
     useEffect(() => {
         dispatch(fetchProjectDetails({ token, id: id }));
     }, [])
+
+    // Handle clicks outside the table
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (tableRef.current && !tableRef.current.contains(event.target)) {
+                // Save editing row if there's one in progress
+                if (editingId) {
+                    saveEditing();
+                }
+                // Save new milestone if being added
+                if (isAddingNew) {
+                    handleAddMilestone();
+                }
+                // Close dropdowns
+                setOpenDropdown(null);
+                setOpenOwnerDropdown(null);
+            }
+        };
+
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, [editingId, isAddingNew, editData, newMilestone, isSaving]);
 
     // 🔥 Live countdown trigger
     const [currentTime, setCurrentTime] = useState(Date.now());
@@ -44,15 +75,6 @@ const MilestoneDependencyTable = () => {
     }, []);
 
     const statusOptions = ['Open', 'In Progress', 'Completed', 'On Hold'];
-
-    const [newMilestone, setNewMilestone] = useState({
-        title: '',
-        status: 'Open',
-        owner_name: '',
-        owner_id: '',
-        start_date: '',
-        end_date: ''
-    });
 
     useEffect(() => {
         getDependentMilestones();
@@ -228,7 +250,7 @@ const MilestoneDependencyTable = () => {
 
     return (
         <div className="w-full">
-            <div className="bg-white shadow-sm overflow-x-auto overflow-y-hidden">
+            <div ref={tableRef} className="bg-white shadow-sm overflow-x-auto overflow-y-auto">
                 <table className="w-full">
                     <thead>
                         <tr className="bg-gray-200">
