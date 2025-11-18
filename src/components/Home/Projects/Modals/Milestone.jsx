@@ -178,7 +178,15 @@ const AddMilestoneModal = ({
         <div className="w-1/2 flex flex-col justify-between">
           <label className="block mb-2">Depends On</label>
           <SelectBox
-            options={Array.isArray(milestoneOptions) ? milestoneOptions.map((m) => ({ label: m.title, value: m.id })) : []}
+            options={[
+              { label: "Select Dependency", value: "" },
+              ...(Array.isArray(milestoneOptions)
+                ? milestoneOptions.map((m) => ({
+                  label: m.title,
+                  value: m.id
+                }))
+                : [])
+            ]}
             style={{ border: "1px solid #b3b2b2" }}
             onChange={(value) => handleSelectChange("dependsOnId", value)}
             value={formData.dependsOnId || null}

@@ -228,7 +228,7 @@ const MilestoneDependencyTable = () => {
 
     return (
         <div className="w-full">
-            <div className="bg-white shadow-sm overflow-x-auto">
+            <div className="bg-white shadow-sm overflow-x-auto overflow-y-hidden">
                 <table className="w-full">
                     <thead>
                         <tr className="bg-gray-200">

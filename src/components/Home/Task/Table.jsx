@@ -133,8 +133,8 @@ const DateEditor = ({
       onClick={handleInputClick}
       className={`${isInvalid ? "border border-red-400" : "border-none"} w-full focus:outline-none bg-transparent rounded text-[12px] p-1 ${className || ""}`}
       placeholder={placeholder}
-      min={formatDate(min)}
-      max={formatDate(max)}
+      min={min}
+      max={max}
     />
   );
 };
@@ -286,6 +286,7 @@ const TaskTable = ({ isModalOpen, searchQuery }) => {
     success: filterSuccess,
   } = useSelector((state) => state.filterTask);
   const { fetchMilestoneById: milestone } = useSelector((state) => state.fetchMilestoneById);
+  console.log(milestone)
   const userFetchInitiatedRef = useRef(false);
   const isFetchingRef = useRef(false);
   const lastFetchedPageRef = useRef(null);
@@ -869,6 +870,8 @@ const TaskTable = ({ isModalOpen, searchQuery }) => {
           value={getValue()}
           onUpdate={(date) => handleUpdateTaskFieldCell(row.original.id, "expected_start_date", date, row)}
           className="text-[12px]"
+          min={row.original.startDate}
+          max={row.original.endDate}
         />
       ),
     },
@@ -1141,8 +1144,8 @@ const TaskTable = ({ isModalOpen, searchQuery }) => {
                           (!newTaskEndDate || start <= new Date(newTaskEndDate))
                         );
                       }}
-                      min={milestone?.start_date ? milestone.start_date : new Date().toISOString().split("T")[0]}
-                      max={milestone?.end_date || undefined}
+                      min={milestone?.start_date ? milestone.start_date.split("T")[0] : new Date().toISOString().split("T")[0]}
+                      max={milestone?.end_date.split("T")[0] || undefined}
                     />
                   </td>
                   <td className="p-0 align-middle border-r-2">
@@ -1159,8 +1162,8 @@ const TaskTable = ({ isModalOpen, searchQuery }) => {
                         const milestoneEnd = milestone?.end_date ? new Date(milestone.end_date) : null;
                         return (!start || end >= start) && (!milestoneEnd || end <= milestoneEnd);
                       }}
-                      min={newTaskStartDate}
-                      max={milestone?.end_date || undefined}
+                      min={newTaskStartDate || milestone?.start_date?.split("T")[0]}
+                      max={milestone?.end_date?.split("T")[0] || undefined}
                     />
                   </td>
                   <td className="p-0 align-middle border-r-2 text-xs">

@@ -164,7 +164,7 @@ const NewSubtaskTextField = ({
       onChange={onChange}
       onKeyDown={handleKeyDown}
       className={`w-full p-1 ${validator ? "border border-red-500" : "border border-gray-300"
-        } focus:outline-none rounded text-sm`}
+        } outline-none border-none hover:bg-gray-50 focus:outline-none rounded text-sm`}
     />
   );
 };
@@ -479,6 +479,7 @@ const SubtaskTable = ({ projectId }) => {
       const foundTask = allTasksFromStore.find(
         (task) => String(task.id) === String(parentId)
       );
+      console.log(foundTask)
       if (foundTask) {
         setParentTaskForSubtasks(foundTask);
         setParentTaskLookupStatus("found");
@@ -612,7 +613,7 @@ const SubtaskTable = ({ projectId }) => {
       status: newSubtaskStatus,
       responsible_person_id: newSubtaskResponsiblePersonId,
       project_management_id: parentTaskForSubtasks?.project_management_id || 2,
-      started_at: newSubtaskStartDate || null,
+      expected_start_date: newSubtaskStartDate || null,
       target_date: newSubtaskEndDate || null,
       priority: newSubtaskPriority,
       task_tag_ids: selectedTagIds,
@@ -1031,8 +1032,8 @@ const SubtaskTable = ({ projectId }) => {
                       validator={(date) => {
                         if (!date) return false;
                         const start = new Date(date);
-                        const parentStart = parentTaskForSubtasks?.started_at
-                          ? new Date(parentTaskForSubtasks.started_at)
+                        const parentStart = parentTaskForSubtasks?.expected_start_date
+                          ? new Date(parentTaskForSubtasks.expected_start_date)
                           : new Date();
                         const parentEnd = parentTaskForSubtasks?.target_date
                           ? new Date(parentTaskForSubtasks.target_date)
@@ -1045,8 +1046,8 @@ const SubtaskTable = ({ projectId }) => {
                         );
                       }}
                       min={
-                        parentTaskForSubtasks?.started_at
-                          ? new Date(parentTaskForSubtasks.started_at)
+                        parentTaskForSubtasks?.expected_start_date
+                          ? new Date(parentTaskForSubtasks.expected_start_date)
                             .toISOString()
                             .split("T")[0]
                           : new Date().toISOString().split("T")[0]
@@ -1079,7 +1080,7 @@ const SubtaskTable = ({ projectId }) => {
                           (!parentEnd || end <= parentEnd)
                         );
                       }}
-                      min={newSubtaskStartDate}
+                      min={newSubtaskStartDate || parentTaskForSubtasks.expected_start_date}
                       max={
                         parentTaskForSubtasks?.target_date
                           ? new Date(parentTaskForSubtasks.target_date)

@@ -4,11 +4,13 @@ import { X } from "lucide-react";
 import gsap from "gsap";
 import { useDispatch, useSelector } from "react-redux";
 import toast from "react-hot-toast";
-import { fetchMilestoneById, updateMilestone } from "../redux/slices/milestoneSlice";
+import { fetchMilestone, fetchMilestoneById, updateMilestone } from "../redux/slices/milestoneSlice";
 import { fetchUsers } from "../redux/slices/userSlice";
 import SelectBox from "./SelectBox";
+import { useParams } from "react-router-dom";
 
 const EditMilestoneModal = ({ isModalOpen, setIsModalOpen, milestoneId }) => {
+    const { id } = useParams()
     const token = localStorage.getItem("token");
     const dispatch = useDispatch();
     const addTaskModalRef = useRef(null);
@@ -24,6 +26,18 @@ const EditMilestoneModal = ({ isModalOpen, setIsModalOpen, milestoneId }) => {
         dependsOnId: null,
     });
     const [isLoading, setIsLoading] = useState(true);
+
+    useEffect(() => {
+        const getMilestones = async () => {
+            try {
+                await dispatch(fetchMilestone({ token, id })).unwrap();
+            } catch (error) {
+                console.log(error)
+            }
+        }
+
+        getMilestones();
+    }, [])
 
     useEffect(() => {
         const loadMilestoneData = async () => {
@@ -245,10 +259,14 @@ const EditMilestoneModal = ({ isModalOpen, setIsModalOpen, milestoneId }) => {
                             <div className="space-y-2">
                                 <label className="block text-[12px]">Depends On</label>
                                 <SelectBox
-                                    options={availableMilestones.map((m) => ({
-                                        label: m.title,
-                                        value: m.id,
-                                    }))}
+                                    options={
+                                        [
+                                            { label: "Select Dependency", value: "" },
+                                            ...availableMilestones.map((m) => ({
+                                                label: m.title,
+                                                value: m.id,
+                                            }))
+                                        ]}
                                     style={{ border: "1px solid #b3b2b2" }}
                                     onChange={(value) => handleSelectChange("dependsOnId", value)}
                                     value={formData.dependsOnId}

@@ -868,9 +868,10 @@ const IssuesTable = () => {
           ).unwrap();
         } else {
           await dispatch(
-            createIssue({
+            updateIssue({
               token,
-              payload: { issue: { id: issueId, comment: newComment } },
+              id: issueId,
+              payload: { comment: newComment },
             })
           ).unwrap();
         }

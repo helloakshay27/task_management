@@ -39,6 +39,7 @@ import {
     TooltipProvider,
     TooltipTrigger,
 } from "@/components/ui/tooltip";
+import EditSubtaskModal from "@/components/Home/Task/EditSubtaskModal";
 
 const mapStatusToDisplay = (rawStatus) => {
     const statusMap = {
@@ -89,32 +90,51 @@ const calculateTaskStatus = (subtasks) => {
     return "open";
 };
 
-const calculateDuration = (end) => {
+const calculateDuration = (start, end) => {
     const now = new Date();
+    const startDate = new Date(start);
     const endDate = new Date(end);
+
+    // Set end date to end of the day
     endDate.setHours(23, 59, 59, 999);
+
+    // Check if task hasn't started yet
+    if (now < startDate) {
+        return "Not started";
+    }
+
+    // Check if task has already ended
     const diffMs = endDate - now;
     if (diffMs <= 0) return "0s";
+
+    // Calculate time differences
     const seconds = Math.floor(diffMs / 1000);
     const minutes = Math.floor(seconds / 60);
     const hours = Math.floor(minutes / 60);
     const days = Math.floor(hours / 24);
+
     const remainingHours = hours % 24;
     const remainingMinutes = minutes % 60;
     const remainingSeconds = seconds % 60;
-    return `${days > 0 ? days + "d " : ""}${remainingHours > 0 ? remainingHours + "h " : ""}${remainingMinutes > 0 ? remainingMinutes + "m " : ""}${remainingSeconds}s`;
+
+    return `${days > 0 ? days + "d " : ""}${remainingHours > 0 ? remainingHours + "h " : ""}${remainingMinutes > 0 ? remainingMinutes + "m " : ""
+        }${remainingSeconds}s`;
 };
 
-const CountdownTimer = ({ targetDate }) => {
-    const [countdown, setCountdown] = useState(calculateDuration(targetDate));
+// Live Timer Component that updates every second
+const CountdownTimer = ({ startDate, targetDate }) => {
+    const [countdown, setCountdown] = useState(calculateDuration(startDate, targetDate));
+
     useEffect(() => {
         const interval = setInterval(() => {
-            setCountdown(calculateDuration(targetDate));
+            setCountdown(calculateDuration(startDate, targetDate));
         }, 1000);
+
         return () => clearInterval(interval);
     }, [targetDate]);
+
     return (
-        <div className="text-left text-[#029464] text-[12px]">{countdown}</div>
+        <div className="text-left text-[12px]">{countdown}</div>
     );
 };
 
@@ -1020,13 +1040,13 @@ const TaskDetails = () => {
                     <div className="border rounded-md shadow-custom p-5 mb-4 text-[14px]">
                         <div
                             className="font-[600] text-[16px] flex items-center gap-4"
-                            onClick={toggleFirstCollapse}
                         >
                             <ChevronDownCircle
                                 color="#E95420"
                                 size={30}
                                 className={`${isFirstCollapsed ? "rotate-180" : "rotate-0"
-                                    } transition-transform`}
+                                    } transition-transform cursor-pointer`}
+                                onClick={toggleFirstCollapse}
                             />{" "}
                             Description
                         </div>
@@ -1037,13 +1057,13 @@ const TaskDetails = () => {
                     <div className="border rounded-md shadow-custom p-5 mb-4">
                         <div
                             className="font-[600] text-[16px] flex items-center gap-4"
-                            onClick={toggleSecondCollapse}
                         >
                             <ChevronDownCircle
                                 color="#E95420"
                                 size={30}
                                 className={`${isSecondCollapsed ? "rotate-180" : "rotate-0"
-                                    } transition-transform`}
+                                    } transition-transform cursor-pointer`}
+                                onClick={toggleSecondCollapse}
                             />{" "}
                             Details
                         </div>
@@ -1118,7 +1138,7 @@ const TaskDetails = () => {
                                             Duration:
                                         </div>
                                         <div className="text-left text-[12px]">
-                                            {task.estimated_hour} hours
+                                            {task.estimated_hour && task.estimated_hour + "hours"}
                                         </div>
                                     </div>
                                     <div className="w-1/2 flex items-center justify-start gap-3">
@@ -1154,7 +1174,7 @@ const TaskDetails = () => {
                                         <div className="text-right text-[12px] font-[500]">
                                             Time Left:
                                         </div>
-                                        <CountdownTimer targetDate={task.target_date} />
+                                        <CountdownTimer startDate={task.expected_start_date} targetDate={task.target_date} />
                                     </div>
                                     <div className="w-1/2 flex items-center justify-start gap-3">
                                         <div className="text-right text-[12px] font-[500]">
@@ -1272,12 +1292,19 @@ const TaskDetails = () => {
                     </div>
                 </div>
             </div>
-            {isEditModalOpen && (
+            {isEditModalOpen && !task.parent_id && (
                 <AddTaskModal
                     isModalOpen={isEditModalOpen}
                     setIsModalOpen={setIsEditModalOpen}
                     title={"Edit Task"}
                     isEdit={true}
+                />
+            )}
+            {isEditModalOpen && task.parent_id && (
+                <EditSubtaskModal
+                    isModalOpen={isEditModalOpen}
+                    setIsModalOpen={setIsEditModalOpen}
+                    title={"Edit Subtask"}
                 />
             )}
 
