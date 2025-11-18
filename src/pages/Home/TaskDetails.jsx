@@ -42,6 +42,7 @@ import {
 } from "@/components/ui/tooltip";
 import EditSubtaskModal from "@/components/Home/Task/EditSubtaskModal";
 import AddSubtaskModal from "@/components/AddSubtaskModal";
+import { fetchProjectTeamMembers } from "@/redux/slices/projectSlice";
 
 const mapStatusToDisplay = (rawStatus) => {
     const statusMap = {
@@ -823,6 +824,20 @@ const TaskDetails = () => {
             }
         }
     };
+
+    useEffect(() => {
+        const fetchMembers = async () => {
+            try {
+                await dispatch(fetchProjectTeamMembers({ token, id: task.project_management_id })).unwrap();
+            } catch (error) {
+                console.error("Failed to fetch team members:", error);
+            }
+        };
+
+        if (task.project_management_id) {
+            fetchMembers();
+        }
+    }, [dispatch, token, task.project_management_id]);
 
     useEffect(() => {
         if (task?.status) setSelectedOption(mapStatusToDisplay(task.status));

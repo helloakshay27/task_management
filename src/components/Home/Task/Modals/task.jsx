@@ -395,7 +395,7 @@ const TaskForm = ({
           </label>
           <SelectBox
             options={users.map((user) => ({
-              label: user?.user?.name || user.firstname + " " + user.lastname,
+              label: user?.user?.name || user.name,
               value: user.user_id || user.id,
             }))}
             placeholder="Select Person"
@@ -671,6 +671,7 @@ const Tasks = ({ isEdit, onCloseModal }) => {
   const [dateWiseHours, setDateWiseHours] = useState([]);
   const [startDate, setStartDate] = useState(null);
   const [endDate, setEndDate] = useState(null);
+  const [members, setMembers] = useState([])
   const [formData, setFormData] = useState({
     project: "",
     milestone: "",
@@ -705,6 +706,19 @@ const Tasks = ({ isEdit, onCloseModal }) => {
     (id) => tags.find((t) => t.id === id)?.name || "",
     [tags]
   );
+
+  useEffect(() => {
+    if (project?.project_team) {
+      const members = []
+
+      project?.project_team?.project_team_members.map((member) => {
+        members.push(member.user)
+      })
+      members.push(project?.project_team.team_lead)
+
+      setMembers(members)
+    }
+  }, [project?.project_team])
 
   useEffect(() => {
     if (isEdit && task) {
@@ -917,7 +931,7 @@ const Tasks = ({ isEdit, onCloseModal }) => {
             isReadOnly={true}
             project={project}
             milestone={milestone}
-            users={project?.project_team?.project_team_members || users}
+            users={members || users}
             tags={tags}
             prevTags={prevTags}
             setPrevTags={setPrevTags}
@@ -948,7 +962,7 @@ const Tasks = ({ isEdit, onCloseModal }) => {
             isReadOnly={false}
             project={project}
             milestone={milestone}
-            users={project?.project_team?.project_team_members || users}
+            users={members || users}
             tags={tags}
             prevTags={prevTags}
             setPrevTags={setPrevTags}

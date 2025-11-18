@@ -149,15 +149,16 @@ const calculateDuration = (start, end) => {
 
   // Check if task hasn't started yet
   if (now < startDate) {
-    return "Not started";
+    return { text: "Not started", isOverdue: false };
   }
 
-  // Check if task has already ended
+  // Calculate time differences (use absolute value to show overdue time)
   const diffMs = endDate - now;
-  if (diffMs <= 0) return "0s";
+  const absDiffMs = Math.abs(diffMs);
+  const isOverdue = diffMs <= 0;
 
   // Calculate time differences
-  const seconds = Math.floor(diffMs / 1000);
+  const seconds = Math.floor(absDiffMs / 1000);
   const minutes = Math.floor(seconds / 60);
   const hours = Math.floor(minutes / 60);
   const days = Math.floor(hours / 24);
@@ -166,8 +167,12 @@ const calculateDuration = (start, end) => {
   const remainingMinutes = minutes % 60;
   const remainingSeconds = seconds % 60;
 
-  return `${days > 0 ? days + "d " : ""}${remainingHours > 0 ? remainingHours + "h " : ""}${remainingMinutes > 0 ? remainingMinutes + "m " : ""
-    }${remainingSeconds}s`;
+  const timeStr = `${days > 0 ? days + "d " : "0d "}${remainingHours > 0 ? remainingHours + "h " : "0h "}${remainingMinutes > 0 ? remainingMinutes + "m " : "0m"}`;
+
+  return {
+    text: isOverdue ? `${timeStr}` : timeStr,
+    isOverdue: isOverdue,
+  };
 };
 
 // Live Timer Component that updates every second
@@ -183,7 +188,9 @@ const CountdownTimer = ({ startDate, targetDate }) => {
   }, [targetDate]);
 
   return (
-    <div className="text-left text-[12px]">{countdown}</div>
+    <div className={`text-left text-[12px] ${countdown.isOverdue ? "text-red-600 font-medium" : ""}`}>
+      {countdown.text}
+    </div>
   );
 };
 
@@ -1168,7 +1175,7 @@ const TaskTable = ({ isModalOpen, searchQuery }) => {
                   </td>
                   <td className="p-0 align-middle border-r-2 text-xs">
                     <div className="h-full w-full flex items-center px-2">
-                      {calculateDuration(newTaskStartDate, newTaskEndDate)}
+                      {calculateDuration(newTaskStartDate, newTaskEndDate).text}
                     </div>
                   </td>
                   <td className="p-0 pl-2 align-middle border-r-2">

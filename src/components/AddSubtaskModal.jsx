@@ -16,56 +16,6 @@ import { TaskDatePicker } from "./TaskDatePicker";
 import TasksOfDate from "./TasksOfDate";
 import { DurationPicker } from "./DurationPicker";
 
-const calculateDuration = (startDate, endDate) => {
-    if (!startDate || !endDate) return "";
-
-    const start = new Date(startDate);
-    const end = new Date(endDate);
-
-    const now = new Date();
-    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    const startDay = new Date(start.getFullYear(), start.getMonth(), start.getDate());
-    const endDay = new Date(end.getFullYear(), end.getMonth(), end.getDate());
-
-    // If start date is today
-    if (startDay.getTime() === today.getTime()) {
-        // If end date is also today
-        if (endDay.getTime() === today.getTime()) {
-            // Calculate from now to end of today (11:59:59 PM)
-            const endOfToday = new Date(today);
-            endOfToday.setHours(23, 59, 59, 999);
-
-            const msToEnd = endOfToday - now;
-            const totalMins = Math.floor(msToEnd / (1000 * 60));
-            const hrs = Math.floor(totalMins / 60);
-            const mins = totalMins % 60;
-            return `0d : ${hrs}h : ${mins}m`;
-        } else {
-            // End date is in the future
-            if (endDay < startDay) return "Invalid: End date before start date";
-
-            const daysDiff = Math.floor((endDay - today) / (1000 * 60 * 60 * 24));
-
-            // Calculate remaining hours and minutes from now to end of today (midnight)
-            const endOfToday = new Date(today);
-            endOfToday.setHours(23, 59, 59, 999);
-
-            const msToday = endOfToday - now;
-            const totalMinutes = Math.floor(msToday / (1000 * 60));
-            const hours = Math.floor(totalMinutes / 60);
-            const minutes = totalMinutes % 60;
-
-            return `${daysDiff}d : ${hours}h : ${minutes}m`;
-        }
-    } else {
-        // For future dates, calculate days only
-        if (endDay < startDay) return "Invalid: End date before start date";
-
-        const days = Math.floor((endDay - startDay) / (1000 * 60 * 60 * 24)) + 1;
-        return `${days}d : 0h : 0m`;
-    }
-};
-
 const monthNames = [
     "Jan",
     "Feb",
@@ -92,7 +42,6 @@ const AddSubtaskModal = ({ isModalOpen, setIsModalOpen, title }) => {
     const startDateRef = useRef(null);
     const endDateRef = useRef(null);
 
-    const { fetchUsers: users = [] } = useSelector((state) => state.fetchUsers);
     const { fetchTags: tags = [] } = useSelector((state) => state.fetchTags);
     const { fetchUserAvailability: userAvailability } = useSelector((state) => state.fetchUserAvailability);
     const { fetchUserShift: shift } = useSelector((state) => state.fetchUserShift);
@@ -115,6 +64,7 @@ const AddSubtaskModal = ({ isModalOpen, setIsModalOpen, title }) => {
     const [members, setMembers] = useState([])
     const [formData, setFormData] = useState({
         title: "",
+        description: "",
         responsiblePerson: "",
         responsiblePersonName: "",
         duration: "",
@@ -193,11 +143,6 @@ const AddSubtaskModal = ({ isModalOpen, setIsModalOpen, title }) => {
         }
     }, [showStartDatePicker]);
 
-    const getTagName = useCallback(
-        (id) => tags.find((t) => t.id === id)?.name || "",
-        [tags]
-    );
-
     useEffect(() => {
         const getStartDateTasks = async () => {
             if (!startDate) return;
@@ -224,6 +169,39 @@ const AddSubtaskModal = ({ isModalOpen, setIsModalOpen, title }) => {
             getStartDateTasks();
         }
     }, [formData.responsiblePerson, startDate]);
+
+    useEffect(() => {
+        const getTargetDateTasks = async () => {
+            const formattedEndDate = `${endDate.year}-${String(
+                endDate.month + 1
+            ).padStart(2, "0")}-${String(endDate.date).padStart(2, "0")}`;
+            try {
+                const response = await dispatch(
+                    fetchTargetDateTasks({
+                        token,
+                        id: formData.responsiblePerson,
+                        date: formattedEndDate,
+                    })
+                ).unwrap();
+                setTargetDateTasks(response);
+            } catch (error) {
+                console.log(error);
+            }
+        };
+        if (formData.responsiblePerson && endDate) {
+            getTargetDateTasks();
+        }
+    }, [formData.responsiblePerson, endDate]);
+
+    useEffect(() => {
+        if (userAvailability.length > 0) {
+            const formattedHours = userAvailability.map((dayData) => ({
+                date: dayData.date,
+                hours: dayData.allocated_hours,
+            }));
+            setCalendarTaskHours(formattedHours);
+        }
+    }, [userAvailability]);
 
     useGSAP(() => {
         if (isModalOpen) {
@@ -301,6 +279,7 @@ const AddSubtaskModal = ({ isModalOpen, setIsModalOpen, title }) => {
         const payload = {
             parent_id: tid,
             title: formData.title,
+            description: formData.description,
             responsible_person_id: formData.responsiblePerson,
             expected_start_date: formatedStartDate,
             target_date: formatedEndDate,
@@ -361,6 +340,17 @@ const AddSubtaskModal = ({ isModalOpen, setIsModalOpen, title }) => {
                                         onChange={handleInputChange}
                                     />
                                 </div>
+                            </div>
+                            <div className="mt-4 space-y-2 h-[100px]">
+                                <label className="block">Description</label>
+                                <textarea
+                                    name="description"
+                                    rows={5}
+                                    placeholder="Enter Description"
+                                    className="w-full border outline-none border-gray-300 p-2 text-[13px] h-[80px] overflow-y-auto resize-none"
+                                    value={formData.description}
+                                    onChange={handleInputChange}
+                                />
                             </div>
                             <div className="mt-4 space-y-2 w-full">
                                 <label className="block">

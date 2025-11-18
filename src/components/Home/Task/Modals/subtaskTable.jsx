@@ -34,7 +34,6 @@ import {
 } from "../../../../redux/slices/taskSlice";
 import { fetchUsers } from "../../../../redux/slices/userSlice";
 import { fetchTags } from "../../../../redux/slices/tagsSlice";
-import { fetchProjectTeamMembers } from "../../../../redux/slices/projectSlice";
 
 const UserCustomDropdownMultiple = ({
   options = [],
@@ -277,8 +276,8 @@ const calculateDuration = (start, end) => {
   const remainingMinutes = minutes % 60;
   const remainingSeconds = seconds % 60;
 
-  return `${days > 0 ? days + "d " : ""}${remainingHours > 0 ? remainingHours + "h " : ""}${remainingMinutes > 0 ? remainingMinutes + "m " : ""
-    }${remainingSeconds}s`;
+  return `${days > 0 ? days + "d " : "0d "}${remainingHours > 0 ? remainingHours + "h " : "0h "}${remainingMinutes > 0 ? remainingMinutes + "m " : "0m"
+    }`;
 };
 
 // Live Timer Component that updates every second
@@ -369,19 +368,19 @@ const SubtaskTable = ({ projectId }) => {
 
   console.log(members)
 
-  useEffect(() => {
-    const fetchMembers = async () => {
-      try {
-        await dispatch(fetchProjectTeamMembers({ token, id: projectId })).unwrap();
-      } catch (error) {
-        console.error("Failed to fetch team members:", error);
-      }
-    };
+  // useEffect(() => {
+  //   const fetchMembers = async () => {
+  //     try {
+  //       await dispatch(fetchProjectTeamMembers({ token, id: projectId })).unwrap();
+  //     } catch (error) {
+  //       console.error("Failed to fetch team members:", error);
+  //     }
+  //   };
 
-    if (projectId) {
-      fetchMembers();
-    }
-  }, [dispatch, token, projectId]);
+  //   if (projectId) {
+  //     fetchMembers();
+  //   }
+  // }, [dispatch, token, projectId]);
 
 
   const handleOnChange = useCallback(
@@ -852,7 +851,9 @@ const SubtaskTable = ({ projectId }) => {
         accessorKey: "duration",
         header: "Duration",
         size: 100,
-        cell: (info) => <CountdownTimer startDate={info.row.original.startDate} endDate={info.row.original.endDate} />
+        cell: (info) => {
+          return <CountdownTimer startDate={info.row.original.startDate} targetDate={info.row.original.endDate} />
+        }
       },
       {
         accessorKey: "priority",
