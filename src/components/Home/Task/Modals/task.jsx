@@ -475,7 +475,7 @@ const TaskForm = ({
               <div className="text-black flex items-center justify-between w-full">
                 <CalendarIcon className="w-4 h-4" />
                 <div>
-                  Start Date : {startDate.date.toString().padStart(2, "0")}{" "}
+                  Start Date : {startDate?.date?.toString().padStart(2, "0")}{" "}
                   {monthNames[startDate.month]}
                 </div>
                 <X className="w-4 h-4" onClick={() => setStartDate(null)} />
@@ -733,6 +733,16 @@ const Tasks = ({ isEdit, onCloseModal }) => {
         observer: mappedObservers,
         tags: mappedTags,
       });
+      setStartDate({
+        date: new Date(task.expected_start_date).getDate(),
+        month: new Date(task.expected_start_date).getMonth(),
+        year: new Date(task.expected_start_date).getFullYear(),
+      })
+      setEndDate({
+        date: new Date(task.target_date).getDate(),
+        month: new Date(task.target_date).getMonth(),
+        year: new Date(task.target_date).getFullYear(),
+      })
 
       setPrevTags(mappedTags);
       setPrevObservers(mappedObservers);
@@ -885,6 +895,8 @@ const Tasks = ({ isEdit, onCloseModal }) => {
     } catch (error) {
       console.error(`Error ${isEdit ? "updating" : "creating"} task:`, error);
       toast.error(`Error ${isEdit ? "updating" : "creating"} task.`);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
