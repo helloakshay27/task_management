@@ -91,7 +91,7 @@ const ProjectTemplates = () => {
                 size: 200,
                 cell: ({ row }) => {
                     const members = row.original?.project_team?.project_team_members;
-                    return <span>{Array.isArray(members) ? members.length : 0}</span>;
+                    return <span>{Array.isArray(members) ? members.length + 1 : 0}</span>;
                 },
             },
             {
