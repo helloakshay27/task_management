@@ -509,7 +509,7 @@ export const fetchProjectTeamMembers = createAsyncThunk('fetchProjectTeamMembers
                 Authorization: `Bearer ${token}`,
             },
         })
-        return response.data[0]?.project_team_members;
+        return response.data[0];
     }
     catch (error) {
         console.log(error)

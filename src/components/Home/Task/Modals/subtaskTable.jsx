@@ -250,56 +250,52 @@ const DateEditor = ({
 const globalPriorityOptions = ["None", "Low", "Medium", "High", "Urgent"];
 const globalStatusOptions = ["open", "in_progress", "completed", "on_hold"];
 
-const calculateDuration = (startDateStr, endDateStr) => {
-  if (!startDateStr || !endDateStr) {
-    return "0d:0h:0m";
-  }
-
-  const start = new Date(startDateStr);
-  const end = new Date(endDateStr);
-
+const calculateDuration = (start, end) => {
   const now = new Date();
-  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  const startDay = new Date(start.getFullYear(), start.getMonth(), start.getDate());
-  const endDay = new Date(end.getFullYear(), end.getMonth(), end.getDate());
+  const startDate = new Date(start);
+  const endDate = new Date(end);
 
-  // If start date is today
-  if (startDay.getTime() === today.getTime()) {
-    // If end date is also today
-    if (endDay.getTime() === today.getTime()) {
-      // Calculate from now to end of today (11:59:59 PM)
-      const endOfToday = new Date(today);
-      endOfToday.setHours(23, 59, 59, 999);
+  // Set end date to end of the day
+  endDate.setHours(23, 59, 59, 999);
 
-      const msToEnd = endOfToday - now;
-      const totalMins = Math.floor(msToEnd / (1000 * 60));
-      const hrs = Math.floor(totalMins / 60);
-      const mins = totalMins % 60;
-      return `0d : ${hrs}h : ${mins}m`;
-    } else {
-      // End date is in the future
-      if (endDay < startDay) return "Invalid: End date before start date";
-
-      const daysDiff = Math.floor((endDay - today) / (1000 * 60 * 60 * 24));
-
-      // Calculate remaining hours and minutes from now to end of today (midnight)
-      const endOfToday = new Date(today);
-      endOfToday.setHours(23, 59, 59, 999);
-
-      const msToday = endOfToday - now;
-      const totalMinutes = Math.floor(msToday / (1000 * 60));
-      const hours = Math.floor(totalMinutes / 60);
-      const minutes = totalMinutes % 60;
-
-      return `${daysDiff}d : ${hours}h : ${minutes}m`;
-    }
-  } else {
-    // For future dates, calculate days only
-    if (endDay < startDay) return "Invalid: End date before start date";
-
-    const days = Math.floor((endDay - startDay) / (1000 * 60 * 60 * 24)) + 1;
-    return `${days}d : 0h : 0m`;
+  // Check if task hasn't started yet
+  if (now < startDate) {
+    return "Not started";
   }
+
+  // Check if task has already ended
+  const diffMs = endDate - now;
+  if (diffMs <= 0) return "0s";
+
+  // Calculate time differences
+  const seconds = Math.floor(diffMs / 1000);
+  const minutes = Math.floor(seconds / 60);
+  const hours = Math.floor(minutes / 60);
+  const days = Math.floor(hours / 24);
+
+  const remainingHours = hours % 24;
+  const remainingMinutes = minutes % 60;
+  const remainingSeconds = seconds % 60;
+
+  return `${days > 0 ? days + "d " : ""}${remainingHours > 0 ? remainingHours + "h " : ""}${remainingMinutes > 0 ? remainingMinutes + "m " : ""
+    }${remainingSeconds}s`;
+};
+
+// Live Timer Component that updates every second
+const CountdownTimer = ({ startDate, targetDate }) => {
+  const [countdown, setCountdown] = useState(calculateDuration(startDate, targetDate));
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCountdown(calculateDuration(startDate, targetDate));
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [targetDate]);
+
+  return (
+    <div className="text-left text-[12px]">{countdown}</div>
+  );
 };
 
 const SubtaskTable = ({ projectId }) => {
@@ -350,12 +346,28 @@ const SubtaskTable = ({ projectId }) => {
   const [isUpdatingTask, setIsUpdatingTask] = useState(false);
   const [localError, setLocalError] = useState(null);
   const [validator, setValidator] = useState(false);
+  const [members, setMembers] = useState([])
 
   const newSubtaskTitleInputRef = useRef(null);
   const newTaskFormRowRef = useRef(null);
   const userFetchInitiatedRef = useRef(false);
   const allTasksFetchInitiatedRef = useRef(false);
   const tagsFetchInitiatedRef = useRef(false);
+
+  useEffect(() => {
+    if (projectTeamMembers) {
+      const members = []
+
+      projectTeamMembers?.project_team_members?.map((member) => {
+        members.push(member.user)
+      })
+      members.push(projectTeamMembers.team_lead)
+
+      setMembers(members)
+    }
+  }, [projectTeamMembers])
+
+  console.log(members)
 
   useEffect(() => {
     const fetchMembers = async () => {
@@ -494,19 +506,19 @@ const SubtaskTable = ({ projectId }) => {
               id: sub.id,
               taskTitle: sub.title || "Unnamed Subtask",
               status: sub.status || "open",
-              responsiblePerson: sub.responsible_person_name || "Unassigned",
-              responsiblePersonId: sub.responsible_person_id || null,
+              responsiblePerson: sub?.responsible_person_name || "Unassigned",
+              responsiblePersonId: sub?.responsible_person_id || null,
               startDate: sub.expected_start_date
                 ? new Date(sub.expected_start_date).toLocaleDateString("en-CA")
                 : null,
               endDate: sub.target_date
                 ? new Date(sub.target_date).toLocaleDateString("en-CA")
                 : null,
-              duration: calculateDuration(sub.started_at, sub.target_date),
               priority: sub.priority || "None",
               tags: (sub.task_tags || []).map((tag) => tag.company_tag.name),
             })
           );
+          console.log(processedSubtasks)
           setData(processedSubtasks);
         } else {
           setData([]);
@@ -708,10 +720,10 @@ const SubtaskTable = ({ projectId }) => {
 
   const userOptionsForSelectBox = useMemo(
     () =>
-      Array.isArray(projectTeamMembers) && projectTeamMembers.length > 0
-        ? projectTeamMembers.map((u) => ({
-          value: u.user_id,
-          label: u?.user?.name || "Unknown User",
+      Array.isArray(members) && members.length > 0
+        ? members.map((u) => ({
+          value: u?.id,
+          label: u?.name || "Unknown User",
         }))
         : Array.isArray(users)
           ? users.map((u) => ({
@@ -721,6 +733,8 @@ const SubtaskTable = ({ projectId }) => {
           : [],
     [projectTeamMembers, users]
   );
+
+  console.log(userOptionsForSelectBox)
 
   const tagNamesForDropdown = useMemo(() => {
     return Array.isArray(tagList) ? tagList.map((tag) => tag.name) : [];
@@ -838,7 +852,7 @@ const SubtaskTable = ({ projectId }) => {
         accessorKey: "duration",
         header: "Duration",
         size: 100,
-        cell: (info) => <span className="text-xs p-1">{info.getValue()}</span>,
+        cell: (info) => <CountdownTimer startDate={info.row.original.startDate} endDate={info.row.original.endDate} />
       },
       {
         accessorKey: "priority",

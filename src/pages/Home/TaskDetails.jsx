@@ -3,6 +3,7 @@ import {
     ChevronDown,
     ChevronDownCircle,
     PencilIcon,
+    Plus,
     Trash2,
 } from "lucide-react";
 import { Fragment, useEffect, useRef, useState } from "react";
@@ -40,6 +41,7 @@ import {
     TooltipTrigger,
 } from "@/components/ui/tooltip";
 import EditSubtaskModal from "@/components/Home/Task/EditSubtaskModal";
+import AddSubtaskModal from "@/components/AddSubtaskModal";
 
 const mapStatusToDisplay = (rawStatus) => {
     const statusMap = {
@@ -777,6 +779,7 @@ const TaskDetails = () => {
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [bgBTN, setBgBTN] = useState();
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+    const [isSubtaskModalOpen, setIsSubtaskModalOpen] = useState(false)
 
     const firstContentRef = useRef(null);
     const secondContentRef = useRef(null);
@@ -1025,14 +1028,25 @@ const TaskDetails = () => {
                                 className="cursor-pointer flex items-center gap-1"
                                 onClick={() => setIsEditModalOpen(true)}
                             >
-                                <PencilIcon className="mx-1" size={15} /> Edit Task
+                                <PencilIcon className="mx-1" size={15} /> {task.parent_id ? "Edit Subtask" : "Edit Task"}
                             </span>
+                            {!task.parent_id && (
+                                <>
+                                    <span className="h-6 w-[1px] border border-gray-300"></span>
+                                    <span
+                                        className="cursor-pointer flex items-center gap-1"
+                                        onClick={() => setIsSubtaskModalOpen(true)}
+                                    >
+                                        <Plus className="mx-1" size={15} /> Add Subtask
+                                    </span>
+                                </>
+                            )}
                             <span className="h-6 w-[1px] border border-gray-300"></span>
                             <span
                                 className="cursor-pointer flex items-center gap-1"
                                 onClick={() => setIsDeleteModalOpen(true)}
                             >
-                                <Trash2 className="mx-1" size={15} /> Delete Task
+                                <Trash2 className="mx-1" size={15} /> {task.parent_id ? "Delete Subtask" : "Delete Task"}
                             </span>
                         </div>
                     </div>
@@ -1305,6 +1319,14 @@ const TaskDetails = () => {
                     isModalOpen={isEditModalOpen}
                     setIsModalOpen={setIsEditModalOpen}
                     title={"Edit Subtask"}
+                />
+            )}
+
+            {isSubtaskModalOpen && (
+                <AddSubtaskModal
+                    isModalOpen={isSubtaskModalOpen}
+                    setIsModalOpen={setIsSubtaskModalOpen}
+                    title={"Add Subtask"}
                 />
             )}
 
