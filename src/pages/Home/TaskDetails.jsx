@@ -66,6 +66,14 @@ const mapDisplayToApiStatus = (displayStatus) => {
     return reverseStatusMap[displayStatus] || "open";
 };
 
+const STATUS_COLORS = {
+    open: "bg-[#E4636A] text-white",
+    "in_progress": "bg-[#08AEEA] text-white",
+    "on_hold": "bg-[#7BD2B5] text-black",
+    overdue: "bg-[#FF2733] text-white",
+    completed: "bg-[#83D17A] text-white",
+};
+
 // Helper function to calculate task status based on subtasks
 const calculateTaskStatus = (subtasks) => {
     if (!subtasks || subtasks.length === 0) {
@@ -887,16 +895,17 @@ const TaskDetails = () => {
         "Completed",
     ];
 
-    const handleOptionSelect = (option) => {
+    const handleOptionSelect = async (option) => {
         setSelectedOption(option);
         setOpenDropdown(false);
-        dispatch(
+        await dispatch(
             changeTaskStatus({
                 token,
                 id: tid,
                 payload: { status: mapDisplayToApiStatus(option) },
             })
-        );
+        ).unwrap();
+        toast.success("Task status updated successfully.");
     };
 
     const handleWorkflowOptionSelect = (option) => {
@@ -992,7 +1001,7 @@ const TaskDetails = () => {
                                 Created On: {formatToDDMMYYYY_AMPM(task.created_at)}
                             </span>
                             <span className="h-6 w-[1px] border border-gray-300"></span>
-                            <span className="flex relative items-center gap-2 cursor-pointer px-2 py-1 w-[150px] rounded-md text-sm text-white bg-[#C85E68]">
+                            <span className={`flex relative items-center gap-2 cursor-pointer px-2 py-1 rounded-md text-sm ${STATUS_COLORS[mapDisplayToApiStatus(selectedOption).toLowerCase()] || "bg-gray-400 text-white"}`}>
                                 <div className="relative w-full" ref={dropdownRef}>
                                     <div
                                         className="flex items-center justify-between gap-1 cursor-pointer px-2 py-1"

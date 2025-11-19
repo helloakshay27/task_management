@@ -53,11 +53,11 @@ const Members = ({ allNames, projectOwner }) => {
 };
 
 const STATUS_COLORS = {
-    active: "bg-[#88D760] text-white",
-    "in progress": "bg-[#88D760] text-white",
-    "on hold": "bg-[#FFC107] text-black",
-    overdue: "bg-[#FF5B5B] text-white",
-    completed: "bg-[#D6D6D6] text-black",
+    active: "bg-[#E4636A] text-white",
+    "in_progress": "bg-[#08AEEA] text-white",
+    "on_hold": "bg-[#7BD2B5] text-black",
+    overdue: "bg-[#FF2733] text-white",
+    completed: "bg-[#83D17A] text-black",
 };
 
 const formatDuration = (ms) => {
@@ -451,7 +451,7 @@ const ProjectDetails = () => {
                         <span className="h-6 w-[1px] border border-gray-300"></span>
 
                         {/* Status Dropdown */}
-                        <span className="flex items-center gap-2 cursor-pointer px-2 py-1 rounded-md text-sm text-white bg-[#9CE463]">
+                        <span className={`flex items-center gap-2 cursor-pointer px-2 py-1 rounded-md text-sm ${STATUS_COLORS[mapDisplayToApiStatus(selectedOption).toLowerCase()] || "bg-gray-400 text-white"}`}>
                             <div className="relative" ref={dropdownRef}>
                                 <div
                                     className="flex items-center gap-1 cursor-pointer px-2 py-1"
