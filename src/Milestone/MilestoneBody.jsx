@@ -462,8 +462,8 @@ const GanttChart = () => {
 
         const setDateRange = () => {
             const today = new Date();
-            const minDate = new Date(today.getFullYear() - 2, 0, 1);
-            const maxDate = new Date(today.getFullYear() + 2, 11, 31);
+            const minDate = new Date(today.getFullYear() - 10, 0, 1);
+            const maxDate = new Date(today.getFullYear() + 10, 11, 31);
 
             gantt.config.start_date = minDate;
             gantt.config.end_date = maxDate;

@@ -961,7 +961,7 @@ const SubtaskTable = ({ projectId }) => {
         {localError && isAddingNewSubtask && (
           <div className="my-2 p-2 text-red-700 text-sm">{localError}</div>
         )}
-        <div className="overflow-x-auto h-[400px]">
+        <div className="overflow-x-auto">
           <table className="w-full border-collapse border text-sm bg-white">
             <thead className="bg-gray-100">
               {table.getHeaderGroups().map((headerGroup) => (

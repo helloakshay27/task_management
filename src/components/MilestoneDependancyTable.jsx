@@ -12,6 +12,7 @@ const MilestoneDependencyTable = () => {
     const dispatch = useDispatch();
     const token = localStorage.getItem('token');
     const tableRef = useRef(null);
+    const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0 });
 
     const { fetchProjectDetails: projectDetail } = useSelector(
         (state) => state.fetchProjectDetails
@@ -248,9 +249,19 @@ const MilestoneDependencyTable = () => {
         }
     };
 
+    const getDropdownPosition = (event) => {
+        if (!event.currentTarget) return { top: 0, left: 0 };
+        const rect = event.currentTarget.getBoundingClientRect();
+        return {
+            top: rect.bottom + window.scrollY,
+            left: rect.left + window.scrollX,
+            width: rect.width
+        };
+    };
+
     return (
         <div className="w-full">
-            <div ref={tableRef} className="bg-white shadow-sm overflow-x-auto overflow-y-auto">
+            <div ref={tableRef} className="bg-white shadow-sm overflow-x-auto">
                 <table className="w-full">
                     <thead>
                         <tr className="bg-gray-200">
@@ -290,7 +301,11 @@ const MilestoneDependencyTable = () => {
                                         <td className="px-6 py-4">
                                             <div className="relative">
                                                 <button
-                                                    onClick={() => setOpenDropdown(openDropdown === milestone.id ? null : milestone.id)}
+                                                    onClick={(e) => {
+                                                        const pos = getDropdownPosition(e);
+                                                        setDropdownPos(pos);
+                                                        setOpenDropdown(openDropdown === milestone.id ? null : milestone.id);
+                                                    }}
                                                     disabled={isSaving}
                                                     className="flex items-center gap-2 text-sm hover:bg-gray-100 px-2 py-1 rounded disabled:opacity-50"
                                                 >
@@ -299,7 +314,7 @@ const MilestoneDependencyTable = () => {
                                                     <ChevronDown className="w-4 h-4 text-gray-400" />
                                                 </button>
                                                 {openDropdown === milestone.id && (
-                                                    <div className="absolute top-full left-0 mt-1 bg-white border border-gray-200 rounded shadow-lg z-10 min-w-[150px]">
+                                                    <div className="fixed bg-white border border-gray-200 rounded shadow-lg z-50 min-w-[150px]" style={{ top: dropdownPos.top, left: dropdownPos.left }}>
                                                         {statusOptions.map(status => (
                                                             <button
                                                                 key={status}
@@ -320,7 +335,11 @@ const MilestoneDependencyTable = () => {
                                         <td className="!px-6 py-4">
                                             <div className="relative">
                                                 <button
-                                                    onClick={() => setOpenOwnerDropdown(openOwnerDropdown === milestone.id ? null : milestone.id)}
+                                                    onClick={(e) => {
+                                                        const pos = getDropdownPosition(e);
+                                                        setDropdownPos(pos);
+                                                        setOpenOwnerDropdown(openOwnerDropdown === milestone.id ? null : milestone.id);
+                                                    }}
                                                     disabled={isSaving}
                                                     className="flex items-center gap-2 text-sm hover:bg-gray-100 px-2 py-1 rounded border border-gray-300 bg-white w-full justify-between disabled:opacity-50"
                                                 >
@@ -328,7 +347,7 @@ const MilestoneDependencyTable = () => {
                                                     <ChevronDown className="w-4 h-4 text-gray-400" />
                                                 </button>
                                                 {openOwnerDropdown === milestone.id && (
-                                                    <div className="absolute top-full left-0 mt-1 bg-white border border-gray-200 rounded shadow-lg z-10 w-full flex flex-col max-h-[150px] overflow-y-auto">
+                                                    <div className="fixed bg-white border border-gray-200 rounded shadow-lg z-50 flex flex-col max-h-[150px] overflow-y-auto" style={{ top: dropdownPos.top, left: dropdownPos.left, width: dropdownPos.width }}>
                                                         {userOptions.map(user => (
                                                             <button
                                                                 key={user.id}
@@ -454,7 +473,11 @@ const MilestoneDependencyTable = () => {
                                 <td className="!px-6 py-4">
                                     <div className="relative">
                                         <button
-                                            onClick={() => setOpenOwnerDropdown(openOwnerDropdown === 'new' ? null : 'new')}
+                                            onClick={(e) => {
+                                                const pos = getDropdownPosition(e);
+                                                setDropdownPos(pos);
+                                                setOpenOwnerDropdown(openOwnerDropdown === 'new' ? null : 'new');
+                                            }}
                                             disabled={isSaving}
                                             className="flex items-center gap-2 text-sm hover:bg-gray-100 px-2 py-1 rounded border border-gray-300 bg-white w-full justify-between disabled:opacity-50"
                                         >
@@ -462,7 +485,7 @@ const MilestoneDependencyTable = () => {
                                             <ChevronDown className="w-4 h-4 text-gray-400" />
                                         </button>
                                         {openOwnerDropdown === 'new' && (
-                                            <div className="absolute top-full left-0 mt-1 bg-white border border-gray-200 rounded shadow-lg z-10 w-full flex flex-col max-h-[150px] overflow-y-auto">
+                                            <div className="fixed bg-white border border-gray-200 rounded shadow-lg z-50 flex flex-col max-h-[150px] overflow-y-auto" style={{ top: dropdownPos.top, left: dropdownPos.left, width: dropdownPos.width }}>
                                                 {userOptions.map(user => (
                                                     <button
                                                         key={user.id}
