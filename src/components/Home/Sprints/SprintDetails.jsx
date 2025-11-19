@@ -85,7 +85,7 @@ const SprintDetails = () => {
           </div>
         </div>
         <div className="border-b-[3px] border-[rgba(190, 190, 190, 1)] my-3"></div>
-        <div className="border rounded-md shadow-[0_4px_6px_rgba(0,0,0,0.1)] p-5 mb-4 text-[14px]">
+        {/* <div className="border rounded-md shadow-[0_4px_6px_rgba(0,0,0,0.1)] p-5 mb-4 text-[14px]">
           <div className="font-[600] text-[16px] flex items-center gap-4" onClick={toggleFirstCollapse}>
             <ChevronDownCircle
               color="#E95420"
@@ -97,7 +97,7 @@ const SprintDetails = () => {
           <div className={`mt-3 overflow-hidden ${isFirstCollapsed ? "h-0" : ""}`} ref={firstContentRef}>
             <p>{newSprint.description}</p>
           </div>
-        </div>
+        </div> */}
         <div className="border rounded-md shadow-[0_4px_6px_rgba(0,0,0,0.1)] p-5 mb-4">
           <div className="font-[600] text-[16px] flex items-center gap-4" onClick={toggleSecondCollapse}>
             <ChevronDownCircle

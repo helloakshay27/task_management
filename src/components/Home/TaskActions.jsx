@@ -5,6 +5,7 @@ import {
     List,
     Plus,
     Search,
+    Upload,
 } from "lucide-react";
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import AddTaskModal from "./Task/AddTaskModal";
@@ -22,6 +23,7 @@ import { useParams } from "react-router-dom";
 import IssueFilter from "./Issues/Modal/Filter";
 import { filterIssue } from "../../redux/slices/IssueSlice";
 import Switch from '@mui/joy/Switch';
+import { FileUploadModal } from "../ImportFileModal";
 
 // Define status options for each addType
 const STATUS_OPTIONS_MAP = {
@@ -64,6 +66,7 @@ const TaskActions = ({
     const [isAddMilestoneModalOpen, setIsAddMilestoneModalOpen] = useState(false);
     const [isAddIssueModalOpen, setIsAddIssueModalOpen] = useState(false);
     const [isProjectFilter, setIsProjectFilter] = useState(false);
+    const [importModalOpen, setImportModalOpen] = useState(false)
     const [isIssueFilter, setIsIssueFilter] = useState(false);
     const [myTasks, setMyTasks] = useState(false);
     const token = localStorage.getItem("token");
@@ -401,6 +404,16 @@ const TaskActions = ({
                             </div>
                         )}
                     {addType !== "Milestone" && addType !== "templates" && addType !== "archived" && renderStatusDropdown()}
+                    {
+                        (addType === "Task" || addType === "Issues") && (
+                            <div
+                                className="flex items-center gap-3 cursor-pointer pl-4 text-[#C72030]"
+                                onClick={() => setImportModalOpen(true)}
+                            >
+                                <Upload size={17} className="text-gray-600" />
+                            </div>
+                        )
+                    }
 
                     {addType !== "templates" && addType !== "archived" && (
                         <button
@@ -487,6 +500,15 @@ const TaskActions = ({
                     setIsModalOpen={setIsIssueFilter}
                 />
             )}
+
+            <FileUploadModal
+                isOpen={importModalOpen}
+                onClose={() => setImportModalOpen(false)}
+                acceptedTypes="*"
+                multiple={true}
+                maxSize={10}
+                type={addType}
+            />
         </>
     );
 };
