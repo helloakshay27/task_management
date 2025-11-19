@@ -246,6 +246,21 @@ export const fetchKanbanTasks = createAsyncThunk('fetchKanbanTasks', async ({ to
     }
 })
 
+export const fetchKanbanTasksOfProject = createAsyncThunk('fetchKanbanTasks', async ({ token, id }) => {
+    try {
+        const response = await axios.get(`${baseURL}/task_managements/kanban.json?q[project_management_id_eq]=${id}`, {
+            headers: {
+                Authorization: `Bearer ${token}`,
+            }
+        });
+
+        return response.data;
+    } catch (error) {
+        console.log(error);
+        return error.response.data;
+    }
+})
+
 export const editTaskComment = createAsyncThunk('editTaskComment', async ({ token, id, payload }) => {
     console.log(payload)
     try {
@@ -450,6 +465,7 @@ export const removeTaskAttachmentSlice = createApiSlice('removeTaskAttachment', 
 export const fetchKanbanTasksSlice = createApiSlice('fetchKanbanTasks', fetchKanbanTasks);
 export const deleteDependancySlice = createApiSlice('deleteDependancy', deleteDependancy);
 export const fetchTargetDateTasksSlice = createApiSlice('fetchTargetDateTasks', fetchTargetDateTasks);
+export const fetchKanbanTasksOfProjectSlice = createApiSlice('fetchKanbanTasksOfProject', fetchKanbanTasksOfProject);
 
 export const createTaskReducer = createTaskSlice.reducer;
 export const fetchTasksReducer = fetchTasksSlice.reducer;
@@ -473,5 +489,6 @@ export const removeTaskAttachmentReducer = removeTaskAttachmentSlice.reducer;
 export const fetchKanbanTasksReducer = fetchKanbanTasksSlice.reducer;
 export const deleteDependancyReducer = deleteDependancySlice.reducer;
 export const fetchTargetDateTasksReducer = fetchTargetDateTasksSlice.reducer;
+export const fetchKanbanTasksOfProjectReducer = fetchKanbanTasksOfProjectSlice.reducer;
 
 export const { resetCommentEdit } = editTaskCommentSlice.actions;

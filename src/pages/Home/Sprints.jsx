@@ -1,10 +1,10 @@
 import { useEffect, useRef, useState } from "react";
 import { ArrowLeft, ChevronDown, Search } from "lucide-react";
-import SprintBoardSection from "../../components/Home/Sprints/SprintBoardSection";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchProjects } from "../../redux/slices/projectSlice";
 import { fetchTasksOfProject } from "../../redux/slices/taskSlice";
 import { useNavigate } from "react-router-dom";
+import SprintsBoardSection from "@/components/Home/Sprints/SprintsBoardSection";
 
 const Sprints = () => {
   const token = localStorage.getItem("token");
@@ -135,7 +135,7 @@ const Sprints = () => {
         </button>
       </div>
 
-      <SprintBoardSection selectedProject={selectedProject} />
+      <SprintsBoardSection selectedProject={selectedProject} />
     </div>
   );
 };

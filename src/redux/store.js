@@ -3,7 +3,7 @@ import { changeProjectStatusReducer, deleteProjectGroupReducer, deleteProjectTea
 import { createExternalUserReducer, createInternalUserReducer, fetchAssociatedProjectsReducer, fetchExternalUserReducer, fetchInternalUserDetailsReducer, fetchInternalUserReducer, fetchUpdatelUserReducer, fetchUserAvailabilityReducer, fetchUserShiftReducer, reassignProjectsReducer, removeUserFromProjectReducer, userReducer } from './slices/userSlice'
 import { createTagReducer, deleteTagReducer, fetchActiveTagsReducer, fetchTagsReducer, updateTagReducer } from './slices/tagsSlice'
 import { createRoleReducer, deleteRoleReducer, editRoleReducer, fetchActiveRolesReducer, fetchRolesReducer } from './slices/roleSlice'
-import { changeTaskStatusReducer, createDependancyReducer, createTaskCommentReducer, fetchMyTasksReducer, createTaskReducer, editTaskCommentReducer, editTaskReducer, fetchTasksOfProjectReducer, fetchTasksReducer, filterTaskReducer, taskDetailsReducer, updateDependancyReducer, deleteTaskCommentReducer, fetchTasksOfMilestoneReducer, removeTaskAttachmentReducer, fetchKanbanTasksReducer, deleteDependancyReducer, fetchTargetDateTasksReducer } from './slices/taskSlice'
+import { changeTaskStatusReducer, createDependancyReducer, createTaskCommentReducer, fetchMyTasksReducer, createTaskReducer, editTaskCommentReducer, editTaskReducer, fetchTasksOfProjectReducer, fetchTasksReducer, filterTaskReducer, taskDetailsReducer, updateDependancyReducer, deleteTaskCommentReducer, fetchTasksOfMilestoneReducer, removeTaskAttachmentReducer, fetchKanbanTasksReducer, deleteDependancyReducer, fetchTargetDateTasksReducer, fetchKanbanTasksOfProjectReducer } from './slices/taskSlice'
 import { createOrganizationReducer, editOrganizationReducer, fetchOrganizationsReducer } from './slices/organizationSlice'
 import { createMilestoneReducer, deleteMilestoneReducer, fetchDependentMilestoneReducer, fetchMilestoneByIdReducer, fetchMilestoneReducer, updateMilestoneReducer } from './slices/milestoneSlice'
 import { fetchSpirintByIdReducer, fetchSpirintsReducer, postSprintReducer, putSprintReducer } from './slices/spirintSlice'
@@ -65,6 +65,7 @@ export const store = configureStore({
     fetchKanbanTasks: fetchKanbanTasksReducer,
     deleteDependancy: deleteDependancyReducer,
     fetchTargetDateTasks: fetchTargetDateTasksReducer,
+    fetchKanbanTasksOfProject: fetchKanbanTasksOfProjectReducer,
 
     //issues
     createIssue: createIssueReducer,
