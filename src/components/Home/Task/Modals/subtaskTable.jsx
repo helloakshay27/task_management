@@ -773,15 +773,24 @@ const SubtaskTable = ({ projectId }) => {
         accessorKey: "status",
         header: "Status",
         size: 150,
-        cell: ({ getValue, row }) => (
-          <StatusBadge
-            status={getValue()}
-            statusOptions={globalStatusOptions}
-            onStatusChange={(newStatus) =>
-              handleOnChange(row.original.id, "status", newStatus)
-            }
-          />
-        ),
+        cell: ({ getValue, row }) => {
+          const statusOptions = globalStatusOptions.map((status) => ({
+            value: status,
+            label: status.charAt(0).toUpperCase() + status.slice(1).replace("_", " "),
+          }));
+          return (
+            <SelectBox
+              options={statusOptions}
+              value={getValue()}
+              onChange={(newStatus) =>
+                handleOnChange(row.original.id, "status", newStatus)
+              }
+              placeholder="Select Status..."
+              table={true}
+              className="w-full"
+            />
+          );
+        },
       },
       {
         accessorKey: "responsiblePersonId",
@@ -860,15 +869,24 @@ const SubtaskTable = ({ projectId }) => {
         accessorKey: "priority",
         header: "Priority",
         size: 150,
-        cell: ({ getValue, row }) => (
-          <StatusBadge
-            status={getValue()}
-            statusOptions={globalPriorityOptions}
-            onStatusChange={(newStatus) =>
-              handleOnChange(row.original.id, "priority", newStatus)
-            }
-          />
-        ),
+        cell: ({ getValue, row }) => {
+          const priorityOptions = globalPriorityOptions.map((priority) => ({
+            value: priority,
+            label: priority,
+          }));
+          return (
+            <SelectBox
+              options={priorityOptions}
+              value={getValue()}
+              onChange={(newStatus) =>
+                handleOnChange(row.original.id, "priority", newStatus)
+              }
+              placeholder="Select Priority..."
+              table={true}
+              className="w-full"
+            />
+          );
+        },
       },
       {
         accessorKey: "tags",
@@ -1026,10 +1044,15 @@ const SubtaskTable = ({ projectId }) => {
                     />
                   </td>
                   <td className="border p-1 align-middle">
-                    <StatusBadge
-                      status={newSubtaskStatus}
-                      statusOptions={globalStatusOptions}
-                      onStatusChange={setNewSubtaskStatus}
+                    <SelectBox
+                      options={globalStatusOptions.map((status) => ({
+                        value: status,
+                        label: status.charAt(0).toUpperCase() + status.slice(1).replace("_", " "),
+                      }))}
+                      value={newSubtaskStatus}
+                      onChange={setNewSubtaskStatus}
+                      placeholder="Select Status..."
+                      table={true}
                     />
                   </td>
                   <td className="border p-1 align-middle">
@@ -1111,10 +1134,15 @@ const SubtaskTable = ({ projectId }) => {
                     {newSubtaskDuration}
                   </td>
                   <td className="border p-1 align-middle">
-                    <StatusBadge
-                      status={newSubtaskPriority}
-                      statusOptions={globalPriorityOptions}
-                      onStatusChange={setNewSubtaskPriority}
+                    <SelectBox
+                      options={globalPriorityOptions.map((priority) => ({
+                        value: priority,
+                        label: priority,
+                      }))}
+                      value={newSubtaskPriority}
+                      onChange={setNewSubtaskPriority}
+                      placeholder="Select Priority..."
+                      table={true}
                     />
                   </td>
                   <td className="border p-1 align-middle">

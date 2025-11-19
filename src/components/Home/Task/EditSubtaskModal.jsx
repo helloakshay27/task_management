@@ -303,9 +303,10 @@ const EditSubtaskModal = ({ isModalOpen, setIsModalOpen, title }) => {
         if (
             !formData.title ||
             !formData.responsiblePerson ||
-            !formData.start_date ||
-            !formData.end_date ||
-            !formData.priority
+            !formData.priority ||
+            endDate === null ||
+            !dateWiseHours ||
+            formData.tags.length === 0
         ) {
             toast.error("Fill all required fields");
             return false;
