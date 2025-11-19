@@ -93,53 +93,71 @@ const AddProjectTemplate = ({ isModalOpen, setIsModalOpen }) => {
             </div>
 
             <hr className="border" />
-
-            <div className="flex flex-col p-4 gap-4 h-[80vh] overflow-y-auto">
-              <div className="relative border-2 border-gray-300">
-                <SearchOutlinedIcon className="text-[red] absolute top-2 left-3" />
-                <input
-                  type="text"
-                  className="w-full border h-[40px] outline-none py-3 px-10 text-sm"
-                  placeholder="Search Templates"
-                />
-              </div>
-
-              {/* New Project click opens AddProjectModal */}
-              <div
-                className="flex justify-between gap-3 cursor-pointer mt-4 "
-                onClick={() => {
-                  setTemplateDetails({}); // Clear template data
-                  setAddProjectModalOpen(true);
-                }}
-              >
-                <div className="flex items-center gap-2 w-2/3">
-                  <FolderIcon />
-                  <h2>
-                    New Project <i className="text-gray-400">(Create from scratch)</i>
-                  </h2>
+            {
+              tab === "All" && <div className="flex flex-col p-4 gap-4 h-[80vh] overflow-y-auto">
+                <div className="relative border-2 border-gray-300">
+                  <SearchOutlinedIcon className="text-[red] absolute top-2 left-3" />
+                  <input
+                    type="text"
+                    className="w-full border h-[40px] outline-none py-3 px-10 text-sm"
+                    placeholder="Search Templates"
+                  />
                 </div>
-                <KeyboardArrowRightIcon />
-              </div>
 
-              <div className="bg-[#e7e7e7] p-4 mt-4">
-                <i>Predefined Project Templates</i>
-              </div>
-
-              {(templates || []).map((template) => (
-                <React.Fragment key={template.id}>
-                  <div className="flex justify-between gap-3 cursor-pointer mt-2 border-b border-gray-300 pb-2" onClick={() => handleOpenTemplate(template.id)}>
-                    <div className="flex items-center gap-2 w-2/3">
-                      <FolderIcon />
-                      <span>{template.title}</span>
-                    </div>
-                    <KeyboardArrowRightIcon />
+                {/* New Project click opens AddProjectModal */}
+                <div
+                  className="flex justify-between gap-3 cursor-pointer mt-4 "
+                  onClick={() => {
+                    setTemplateDetails({}); // Clear template data
+                    setAddProjectModalOpen(true);
+                  }}
+                >
+                  <div className="flex items-center gap-2 w-2/3">
+                    <FolderIcon />
+                    <h2>
+                      New Project <i className="text-gray-400">(Create from scratch)</i>
+                    </h2>
                   </div>
-                </React.Fragment>
-              ))}
+                  <KeyboardArrowRightIcon />
+                </div>
 
-            </div>
+                <div className="bg-[#e7e7e7] p-4 mt-4">
+                  <i>Predefined Project Templates</i>
+                </div>
+
+                {(templates || []).map((template) => (
+                  <React.Fragment key={template.id}>
+                    <div className="flex justify-between gap-3 cursor-pointer mt-2 border-b border-gray-300 pb-2" onClick={() => handleOpenTemplate(template.id)}>
+                      <div className="flex items-center gap-2 w-2/3">
+                        <FolderIcon />
+                        <span>{template.title}</span>
+                      </div>
+                      <KeyboardArrowRightIcon />
+                    </div>
+                  </React.Fragment>
+                ))}
+              </div>
+            }
+
+            {
+              tab === "Project Templates" && (
+                <div className="px-4 space-y-4 overflow-y-auto mt-2">
+                  {(templates || []).map((template) => (
+                    <div key={template.id}>
+                      <div className="flex justify-between gap-3 cursor-pointer mt-2 border-b border-gray-300 pb-2" onClick={() => handleOpenTemplate(template.id)}>
+                        <div className="flex items-center gap-2 w-2/3">
+                          <FolderIcon />
+                          <span>{template.title}</span>
+                        </div>
+                        <KeyboardArrowRightIcon />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )
+            }
           </div>
-        </div>
+        </div >
       )}
     </>
   );
