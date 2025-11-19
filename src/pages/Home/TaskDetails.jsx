@@ -869,9 +869,10 @@ const TaskDetails = () => {
         };
     }, []);
 
-    const handleDeleteTask = () => {
+    const handleDeleteTask = async () => {
         try {
-            dispatch(deleteTask({ token, id: tid }));
+            await dispatch(deleteTask({ token, id: tid })).unwrap();
+            setIsDeleteModalOpen(false);
             navigate(-1);
         } catch (err) {
             console.log(err);

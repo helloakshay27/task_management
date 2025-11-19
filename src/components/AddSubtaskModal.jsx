@@ -32,7 +32,7 @@ const monthNames = [
 ];
 
 const AddSubtaskModal = ({ isModalOpen, setIsModalOpen, title }) => {
-    const { mid, tid } = useParams();
+    const { id: pid, mid, tid } = useParams();
     const dispatch = useDispatch();
     const token = localStorage.getItem("token");
 
@@ -286,7 +286,8 @@ const AddSubtaskModal = ({ isModalOpen, setIsModalOpen, title }) => {
             estimated_hour: totalWorkingHours,
             priority: formData.priority,
             task_tag_ids: formData.tags.map((tag) => tag.value),
-            task_allocation_times_attributes: dateWiseHours
+            task_allocation_times_attributes: dateWiseHours,
+            project_management_id: pid
         };
         if (payload.task_tag_ids.length === 0) {
             payload.task_tag_ids = null

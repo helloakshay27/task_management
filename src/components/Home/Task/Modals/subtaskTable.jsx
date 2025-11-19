@@ -300,7 +300,7 @@ const CountdownTimer = ({ startDate, targetDate }) => {
 const SubtaskTable = ({ projectId }) => {
   const token = localStorage.getItem("token");
   const navigate = useNavigate();
-  const { mid = "", tid: parentId } = useParams();
+  const { id, mid = "", tid: parentId } = useParams();
   const dispatch = useDispatch();
 
   const {
@@ -318,6 +318,7 @@ const SubtaskTable = ({ projectId }) => {
   );
 
   const { fetchProjectTeamMembers: projectTeamMembers } = useSelector(state => state.fetchProjectTeamMembers)
+  console.log(projectTeamMembers)
 
   const {
     fetchTags: tagList,
@@ -624,7 +625,7 @@ const SubtaskTable = ({ projectId }) => {
       title: newSubtaskTitle.trim(),
       status: newSubtaskStatus,
       responsible_person_id: newSubtaskResponsiblePersonId,
-      project_management_id: parentTaskForSubtasks?.project_management_id || 2,
+      project_management_id: parentTaskForSubtasks?.project_management_id || id,
       expected_start_date: newSubtaskStartDate || null,
       target_date: newSubtaskEndDate || null,
       priority: newSubtaskPriority,
@@ -635,7 +636,7 @@ const SubtaskTable = ({ projectId }) => {
       await dispatch(
         createSubTask({ token, payload: subtaskPayload })
       ).unwrap();
-      await dispatch(fetchKanbanTasks({ token, id: mid }));
+      await dispatch(fetchKanbanTasks({ token, id: mid })).unwrap();
       setIsAddingNewSubtask(false);
       resetNewSubtaskForm();
     } catch (error) {
@@ -722,7 +723,7 @@ const SubtaskTable = ({ projectId }) => {
       Array.isArray(members) && members.length > 0
         ? members.map((u) => ({
           value: u?.id,
-          label: u?.name || "Unknown User",
+          label: u?.name,
         }))
         : Array.isArray(users)
           ? users.map((u) => ({
@@ -730,7 +731,7 @@ const SubtaskTable = ({ projectId }) => {
             label: `${u.firstname} ${u.lastname}`,
           }))
           : [],
-    [projectTeamMembers, users]
+    [projectTeamMembers, users, members]
   );
 
   console.log(userOptionsForSelectBox)
