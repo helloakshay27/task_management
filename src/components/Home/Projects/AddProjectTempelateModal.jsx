@@ -20,6 +20,7 @@ const AddProjectTemplate = ({ isModalOpen, setIsModalOpen }) => {
   const [tab, setTab] = useState("All");
   const [AddProjectModalOpen, setAddProjectModalOpen] = useState(false);
   const [templateDetails, setTemplateDetails] = useState({})
+  const [searchQuery, setSearchQuery] = useState("")
 
   useEffect(() => {
     dispatch(fetchTemplates({ token }))
@@ -54,6 +55,10 @@ const AddProjectTemplate = ({ isModalOpen, setIsModalOpen }) => {
       setTemplateDetails(details)
     }
   }, [details])
+
+  const filteredTemplates = templates.filter((template) => {
+    return template.title.toLowerCase().includes(searchQuery.toLowerCase());
+  });
 
   return (
     <>
@@ -98,6 +103,8 @@ const AddProjectTemplate = ({ isModalOpen, setIsModalOpen }) => {
                 <div className="relative border-2 border-gray-300">
                   <SearchOutlinedIcon className="text-[red] absolute top-2 left-3" />
                   <input
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
                     type="text"
                     className="w-full border h-[40px] outline-none py-3 px-10 text-sm"
                     placeholder="Search Templates"
@@ -125,7 +132,7 @@ const AddProjectTemplate = ({ isModalOpen, setIsModalOpen }) => {
                   <i>Predefined Project Templates</i>
                 </div>
 
-                {(templates || []).map((template) => (
+                {(filteredTemplates || []).map((template) => (
                   <React.Fragment key={template.id}>
                     <div className="flex justify-between gap-3 cursor-pointer mt-2 border-b border-gray-300 pb-2" onClick={() => handleOpenTemplate(template.id)}>
                       <div className="flex items-center gap-2 w-2/3">
