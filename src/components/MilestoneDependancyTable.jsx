@@ -250,12 +250,20 @@ const MilestoneDependencyTable = () => {
     };
 
     const getDropdownPosition = (event) => {
-        if (!event.currentTarget) return { top: 0, left: 0 };
+        if (!event.currentTarget) return { top: 0, left: 0, direction: 'down' };
         const rect = event.currentTarget.getBoundingClientRect();
+        const dropdownHeight = 150; // approximate dropdown height
+        const spaceBelow = window.innerHeight - rect.bottom;
+        const spaceAbove = rect.top;
+
+        // If there's not enough space below, open upward
+        const openUpward = spaceBelow < dropdownHeight && spaceAbove > dropdownHeight;
+
         return {
-            top: rect.bottom + window.scrollY,
+            top: openUpward ? rect.top + window.scrollY - dropdownHeight : rect.bottom + window.scrollY,
             left: rect.left + window.scrollX,
-            width: rect.width
+            width: rect.width,
+            direction: openUpward ? 'up' : 'down'
         };
     };
 
