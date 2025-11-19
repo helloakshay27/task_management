@@ -37,6 +37,7 @@ import { fetchProjectTeamMembers } from "../../../redux/slices/projectSlice";
 import axios from "axios";
 import toast from "react-hot-toast";
 import { baseURL } from "../../../../apiDomain";
+import { X } from "lucide-react";
 
 const globalPriorityOptions = ["None", "Low", "Medium", "High", "Urgent"];
 const globalStatusOptions = ["open", "in_progress", "completed", "on_hold", "overdue"];
@@ -1100,7 +1101,9 @@ const TaskTable = ({ isModalOpen, searchQuery }) => {
                   className="border-b relative z-1"
                 >
                   <td className="p-0 align-middle border-r-2 text-gray-400">
-                    <div className="h-full w-full flex items-center px-1"></div>
+                    <div className="h-full w-full flex items-center px-1 justify-center">
+                      <X onClick={handleCancelNewTask} className="cursor-pointer" size={17} />
+                    </div>
                   </td>
                   <td className="p-0 align-middle border-r-2 text-gray-400">
                     <div className="h-full w-full flex items-center px-1">---</div>
