@@ -163,7 +163,7 @@ const DMConversation = () => {
                             return prev;
                         }
 
-                        if (!"Notification" in window) {
+                        if (!("Notification" in window)) {
                             toast.error("Not supported");
                             return;
                         }
