@@ -410,11 +410,7 @@ const TaskForm = ({
                   )?.user?.name ||
                   users.find(
                     (user) => user.user_id === value || user.id === value
-                  )?.firstname +
-                  " " +
-                  users.find(
-                    (user) => user.user_id === value || user.id === value
-                  )?.lastname,
+                  )?.name,
               });
               if (!isReadOnly && value) {
                 dispatch(fetchUserAvailability({ token, id: value }));
