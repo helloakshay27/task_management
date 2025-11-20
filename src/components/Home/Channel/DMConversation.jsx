@@ -156,13 +156,41 @@ const DMConversation = () => {
                     toast.success('Real-time chat connected!', { duration: 2000 });
                 },
                 onNewMessage: (message) => {
+                    // setMessages((prev) => {
+                    //     const exists = prev.some(msg => msg.id === message.id);
+                    //     if (exists) {
+                    //         console.log('⚠️ Duplicate message prevented, ID:', message.id);
+                    //         return prev;
+                    //     }
+
+                    //     return [message, ...prev];
+                    // });
+
+                    // if (!("Notification" in window)) {
+                    //     toast.error("Not supported");
+                    //     return;
+                    // }
+
+                    // Notification.requestPermission().then(permission => {
+                    //     if (permission === "granted") {
+                    //         const notification = new Notification("New message", {
+                    //             body: message.body
+                    //         });
+
+                    //         notification.onclick = () => {
+                    //             window.focus();
+                    //         }
+                    //     }
+                    // })
+                    // isUserInitiatedScroll.current = false;
+
+                    if (message.user_id === currentUser.id) {
+                        return;
+                    }
+
                     setMessages((prev) => {
                         const exists = prev.some(msg => msg.id === message.id);
-                        if (exists) {
-                            console.log('⚠️ Duplicate message prevented, ID:', message.id);
-                            return prev;
-                        }
-
+                        if (exists) return prev;
                         return [message, ...prev];
                     });
 
@@ -178,10 +206,11 @@ const DMConversation = () => {
                             });
 
                             notification.onclick = () => {
-                                window.open(`/channels/messages/${response.conversation_id}`);
-                            }
+                                window.focus();
+                            };
                         }
-                    })
+                    });
+
                     isUserInitiatedScroll.current = false;
                 },
                 onDisconnected: () => {
