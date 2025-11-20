@@ -372,10 +372,16 @@ const TasksOfDate = ({ selectedDate, onClose, tasks, userAvailability }) => {
         "December",
     ];
 
+    const dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+
     const selectedDateString = `${selectedDate.year}-${String(selectedDate.month + 1).padStart(
         2,
         "0"
     )}-${String(selectedDate.date).padStart(2, "0")}`;
+
+    // Calculate the day name from the selected date
+    const selectedDateObj = new Date(selectedDate.year, selectedDate.month, selectedDate.date);
+    const selectedDayName = dayNames[selectedDateObj.getDay()];
 
     const selectedDayAvailability = userAvailability?.find(
         (u) => u.date === selectedDateString
@@ -396,7 +402,7 @@ const TasksOfDate = ({ selectedDate, onClose, tasks, userAvailability }) => {
                 <div className="bg-red-600 text-white px-4 py-3 flex items-center justify-between">
                     <div className="flex items-center gap-3">
                         <span className="font-semibold">
-                            {selectedDate?.day || "Sunday"}
+                            {selectedDayName}
                         </span>
                         <span>
                             {selectedDate?.date || "10"}{" "}
