@@ -54,6 +54,7 @@ import CreateRoster from "./pages/Setup/CreateRoster";
 import Department from "./pages/Setup/Department";
 import Sites from "./pages/Setup/Sites";
 import Shift from "./pages/Setup/Shift";
+import EmployeeAddPage from "./pages/Setup/EmployeeAddPage";
 
 const App = () => {
   const token = localStorage.getItem("token");
@@ -184,6 +185,10 @@ const App = () => {
                     element={<InternalUser />}
                   />
                   <Route
+                    path="/setup/internal-users/add"
+                    element={<EmployeeAddPage />}
+                  />
+                  <Route
                     path="/setup/internal-users/details/:id"
                     element={<Details />}
                   />
@@ -191,9 +196,9 @@ const App = () => {
                     path="/setup/external-users"
                     element={<ExternalTable />}
                   />
-                   <Route
+                  <Route
                     path="/setup/shift"
-                    element={<Shift/>}
+                    element={<Shift />}
                   />
                   <Route
                     path="/setup/roster"

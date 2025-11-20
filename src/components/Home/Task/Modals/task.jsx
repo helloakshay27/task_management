@@ -434,25 +434,6 @@ const TaskForm = ({
         </div>
       </div>
 
-      <div className="flex justify-between mt-1 gap-2 text-[12px]">
-        <div className="space-y-2 w-full">
-          <label className="block">
-            Duration <span className="text-red-600">*</span>
-          </label>
-          <DurationPicker
-            value={taskDuration}
-            onChange={setTaskDuration}
-            onDateWiseHoursChange={setDateWiseHours}
-            startDate={startDate}
-            endDate={endDate}
-            resposiblePerson={formData.responsiblePersonName}
-            totalWorkingHours={totalWorkingHours}
-            setTotalWorkingHours={setTotalWorkingHours}
-            shift={shift}
-          />
-        </div>
-      </div>
-
       <div className="flex justify-between mt-3 gap-2 text-[12px]">
         <div className="space-y-2 w-full">
           <label className="block">Start Date</label>
@@ -517,6 +498,25 @@ const TaskForm = ({
         </div>
       </div>
 
+      <div className="flex justify-between mt-3 gap-2 text-[12px]">
+        <div className="space-y-2 w-full">
+          <label className="block">
+            Duration <span className="text-red-600">*</span>
+          </label>
+          <DurationPicker
+            value={taskDuration}
+            onChange={setTaskDuration}
+            onDateWiseHoursChange={setDateWiseHours}
+            startDate={startDate}
+            endDate={endDate}
+            resposiblePerson={formData.responsiblePersonName}
+            totalWorkingHours={totalWorkingHours}
+            setTotalWorkingHours={setTotalWorkingHours}
+            shift={shift}
+          />
+        </div>
+      </div>
+
       <div
         ref={startCollapsibleRef}
         className="overflow-hidden opacity-0 h-0"
@@ -545,6 +545,7 @@ const TaskForm = ({
             selectedDate={startDate}
             onClose={() => { }}
             tasks={startDateTasks}
+            selectedUser={formData.responsiblePerson}
             userAvailability={userAvailability}
           />
         )}
@@ -578,6 +579,7 @@ const TaskForm = ({
             selectedDate={endDate}
             onClose={() => { }}
             tasks={targetDateTasks}
+            selectedUser={formData.responsiblePerson}
             userAvailability={userAvailability}
           />
         )}

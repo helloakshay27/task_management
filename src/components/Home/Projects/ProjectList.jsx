@@ -165,14 +165,14 @@ const ActionIcons = ({ row }) => {
                 >
                     <LoginTwoToneIcon sx={{ fontSize: "1.2em" }} />
                 </button>
-                <button
+                {/* <button
                     onClick={handleDeleteClick}
                     title="Delete"
                     disabled={deleting}
                     className={deleting ? "opacity-50 cursor-not-allowed" : ""}
                 >
                     <DeleteOutlineOutlinedIcon sx={{ fontSize: "1.2em" }} />
-                </button>
+                </button> */}
             </div>
 
             <DeleteConfirmationModal
@@ -814,7 +814,7 @@ const ProjectList = ({ searchQuery }) => {
             {
                 id: "actions",
                 header: "Actions",
-                size: 150,
+                size: 70,
                 cell: ({ row }) => <ActionIcons row={row} />,
             },
         ],

@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import SelectBox from "../../../SelectBox";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchUsers } from "../../../../redux/slices/userSlice";
+import { fetchUsers, fetchUserAvailability, fetchUserShift } from "../../../../redux/slices/userSlice";
 import {
   createIssue,
   fetchIssue,
@@ -9,8 +9,15 @@ import {
 } from "../../../../redux/slices/IssueSlice";
 import { fetchMilestone } from "../../../../redux/slices/milestoneSlice";
 import { fetchProjects } from "../../../../redux/slices/projectSlice";
+import { fetchTargetDateTasks } from "../../../../redux/slices/taskSlice";
 import toast from "react-hot-toast";
 import { fetchKanbanTasks } from "../../../../redux/slices/taskSlice";
+import gsap from "gsap";
+import { CalendarIcon, X } from "lucide-react";
+import { TaskDatePicker } from "@/components/TaskDatePicker";
+import TasksOfDate from "@/components/TasksOfDate";
+import { CustomCalender } from "@/components/CustomCalender";
+import { DurationPicker } from "@/components/DurationPicker";
 
 const globalPriorityOptions = [
   { value: 2, label: "Low" },
@@ -107,8 +114,8 @@ const Attachments = ({ attachments, setAttachments }) => {
 const Issues = ({ closeModal }) => {
   const [title, setTitle] = useState("");
   const [responsiblePerson, setResponsiblePerson] = useState("");
-  const [endDate, setEndDate] = useState("");
-  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState(null);
+  const [startDate, setStartDate] = useState(null);
   const [type, setType] = useState("");
   const [priority, setPriority] = useState("");
   const [comments, setComments] = useState("");
@@ -120,14 +127,58 @@ const Issues = ({ closeModal }) => {
   const [newIssuesSubtaskId, setNewIssuesSubtaskId] = useState("");
   const [subtaskOptions, setSubtaskOptions] = useState([]);
   const [attachments, setAttachments] = useState([]);
+
+  // Date picker states
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [showStartDatePicker, setShowStartDatePicker] = useState(false);
+  const [showCalender, setShowCalender] = useState(false);
+  const [showStartCalender, setShowStartCalender] = useState(false);
+  const [startDateTasks, setStartDateTasks] = useState([]);
+  const [targetDateTasks, setTargetDateTasks] = useState([]);
+  const [calendarTaskHours, setCalendarTaskHours] = useState([]);
+  const [issueDuration, setIssueDuration] = useState();
+  const [totalWorkingHours, setTotalWorkingHours] = useState(0);
+  const [dateWiseHours, setDateWiseHours] = useState([]);
+
   const token = localStorage.getItem("token");
   const isSubmittingRef = useRef(false);
+  const startDateRef = useRef(null);
+  const endDateRef = useRef(null);
+  const collapsibleRef = useRef(null);
+  const startCollapsibleRef = useRef(null);
+
+  const monthNames = [
+    "Jan",
+    "Feb",
+    "Mar",
+    "Apr",
+    "May",
+    "Jun",
+    "Jul",
+    "Aug",
+    "Sep",
+    "Oct",
+    "Nov",
+    "Dec",
+  ];
 
   const {
     fetchUsers: users,
     loading: loadingUsers
   } = useSelector(
     (state) => state.fetchUsers || { users: [], loading: false, error: null }
+  );
+
+  const {
+    fetchUserAvailability: userAvailability = [],
+  } = useSelector(
+    (state) => state.fetchUserAvailability || { fetchUserAvailability: [], loading: false }
+  );
+
+  const {
+    fetchUserShift: shift = {},
+  } = useSelector(
+    (state) => state.fetchUserShift || { fetchUserShift: {}, loading: false }
   );
 
   const {
@@ -166,6 +217,117 @@ const Issues = ({ closeModal }) => {
   useEffect(() => {
     dispatch(fetchUsers({ token }));
   }, [dispatch]);
+
+  // Animate when showDatePicker changes
+  useEffect(() => {
+    const el = collapsibleRef.current;
+    if (!el) return;
+
+    if (showDatePicker) {
+      gsap.to(el, {
+        height: "auto",
+        opacity: 1,
+        duration: 0.4,
+        ease: "power2.out",
+      });
+    } else {
+      gsap.to(el, {
+        height: 0,
+        opacity: 0,
+        duration: 0.3,
+        ease: "power2.in",
+      });
+    }
+  }, [showDatePicker]);
+
+  // Animate when showStartDatePicker changes
+  useEffect(() => {
+    const el = startCollapsibleRef.current;
+    if (!el) return;
+
+    if (showStartDatePicker) {
+      gsap.to(el, {
+        height: "auto",
+        opacity: 1,
+        duration: 0.4,
+        ease: "power2.out",
+      });
+    } else {
+      gsap.to(el, {
+        height: 0,
+        opacity: 0,
+        duration: 0.3,
+        ease: "power2.in",
+      });
+    }
+  }, [showStartDatePicker]);
+
+  // Set calendar task hours from user availability
+  useEffect(() => {
+    if (userAvailability.length > 0) {
+      const formattedHours = userAvailability.map((dayData) => ({
+        date: dayData.date,
+        hours: dayData.allocated_hours,
+      }));
+      setCalendarTaskHours(formattedHours);
+    }
+  }, [userAvailability]);
+
+  // Fetch tasks for start date
+  useEffect(() => {
+    const getStartDateTasks = async () => {
+      if (!startDate) return;
+
+      const formattedStartDate = `${startDate.year}-${String(
+        startDate.month + 1
+      ).padStart(2, "0")}-${String(startDate.date).padStart(2, "0")}`;
+
+      try {
+        const response = await dispatch(
+          fetchTargetDateTasks({
+            token,
+            id: responsiblePerson,
+            date: formattedStartDate,
+          })
+        ).unwrap();
+        setStartDateTasks(response);
+      } catch (error) {
+        console.log(error);
+      }
+    };
+
+    if (responsiblePerson && startDate) {
+      getStartDateTasks();
+    }
+  }, [responsiblePerson, startDate]);
+
+  // Fetch tasks for end date
+  useEffect(() => {
+    const getTargetDateTasks = async () => {
+      if (!endDate) return;
+
+      const formattedEndDate = `${endDate.year}-${String(
+        endDate.month + 1
+      ).padStart(2, "0")}-${String(endDate.date).padStart(2, "0")}`;
+
+      try {
+        const response = await dispatch(
+          fetchTargetDateTasks({
+            token,
+            id: responsiblePerson,
+            date: formattedEndDate,
+          })
+        ).unwrap();
+        setTargetDateTasks(response);
+      } catch (error) {
+        console.log(error);
+      }
+    };
+
+    if (responsiblePerson && endDate) {
+      getTargetDateTasks();
+    }
+  }, [responsiblePerson, endDate]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -345,6 +507,16 @@ const Issues = ({ closeModal }) => {
       isSubmittingRef.current = true;
       const formData = new FormData();
 
+      const formattedStartDate = startDate
+        ? `${startDate.year}-${String(startDate.month + 1).padStart(2, "0")}-${String(
+          startDate.date
+        ).padStart(2, "0")}`
+        : "";
+
+      const formattedEndDate = `${endDate.year}-${String(
+        endDate.month + 1
+      ).padStart(2, "0")}-${String(endDate.date).padStart(2, "0")}`;
+
       formData.append("issue[title]", title.trim());
       formData.append("issue[status]", "open");
       formData.append("issue[responsible_person_id]", responsiblePerson);
@@ -354,8 +526,8 @@ const Issues = ({ closeModal }) => {
         "issue[task_management_id]",
         newIssuesSubtaskId || newIssuesTaskId || ""
       );
-      formData.append("issue[start_date]", startDate || "");
-      formData.append("issue[end_date]", endDate || "");
+      formData.append("issue[start_date]", formattedStartDate || "");
+      formData.append("issue[end_date]", formattedEndDate || "");
       formData.append(
         "issue[priority]",
         globalPriorityOptions.find((option) => option.value === priority)
@@ -370,6 +542,7 @@ const Issues = ({ closeModal }) => {
         type || null
       );
       formData.append("issue[comment]", comments || "");
+      formData.append("issue[estimated_hour]", totalWorkingHours || 0);
 
       attachments.forEach((file) => {
         formData.append("issue[attachments][]", file);
@@ -401,9 +574,10 @@ const Issues = ({ closeModal }) => {
       newIssuesProjectId,
       newIssuesMilestoneId,
       newIssuesTaskId,
-      newIssuesSubtaskId, // Added to dependencies
+      newIssuesSubtaskId,
       attachments,
       closeModal,
+      totalWorkingHours,
     ]
   );
 
@@ -413,7 +587,19 @@ const Issues = ({ closeModal }) => {
         id="addTask"
         className="max-w-[90%] mx-auto h-[calc(100%-4rem)] overflow-y-auto pr-3 text-[12px]"
       >
-        <div className="flex items-center justify-between gap-5">
+        <div className="space-y-2">
+          <label className="block">
+            Title <span className="text-red-600">*</span>
+          </label>
+          <input
+            type="text"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            placeholder="Enter Issue Title"
+            className="w-full border h-[40px] outline-none border-gray-300 p-2 text-sm"
+          />
+        </div>
+        <div className="flex items-center justify-between gap-2 mt-4">
           <div className="w-1/2 flex flex-col justify-between">
             <label className="block mb-2">Project</label>
             <SelectBox
@@ -435,7 +621,7 @@ const Issues = ({ closeModal }) => {
             />
           </div>
         </div>
-        <div className="flex items-center justify-between gap-5 mt-4">
+        <div className="flex items-center justify-between gap-2 mt-4">
           <div className="w-1/2 flex flex-col justify-between">
             <label className="block mb-2">
               Task <span className="text-red-600">*</span>
@@ -457,36 +643,180 @@ const Issues = ({ closeModal }) => {
             />
           </div>
         </div>
-        <div className="mt-4 space-y-2">
-          <label className="block">
-            Title <span className="text-red-600">*</span>
+        <div className="flex flex-col justify-between mt-4">
+          <label className="block mb-2">
+            Responsible Person <span className="text-red-600">*</span>
           </label>
-          <input
-            type="text"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            placeholder="Enter Issue Title"
-            className="w-full border h-[40px] outline-none border-gray-300 p-2 text-sm"
+          <SelectBox
+            options={
+              users
+                ? users.map((user) => ({
+                  value: user.id,
+                  label: `${user.firstname || ""} ${user.lastname || ""}`.trim(),
+                }))
+                : []
+            }
+            value={responsiblePerson}
+            onChange={(selectedValue) => {
+              setResponsiblePerson(selectedValue);
+              if (selectedValue) {
+                dispatch(fetchUserAvailability({ token, id: selectedValue }));
+                dispatch(fetchUserShift({ token, id: selectedValue }));
+              }
+            }}
           />
         </div>
-        <div className="flex items-start gap-4 mt-3">
-          <div className="w-1/2 flex flex-col justify-between">
-            <label className="block mb-2">
-              Responsible Person <span className="text-red-600">*</span>
+        <div className="flex items-start gap-2 mt-4 text-[12px]">
+          <div className="w-1/2 space-y-2">
+            <label className="block">Start Date</label>
+            <button
+              type="button"
+              className="w-full border outline-none border-gray-300 px-2 py-[7px] text-[13px] flex items-center gap-3 text-gray-400"
+              onClick={() => {
+                if (showDatePicker) {
+                  setShowDatePicker(false);
+                }
+                setShowStartDatePicker(!showStartDatePicker);
+              }}
+              ref={startDateRef}
+            >
+              {startDate ? (
+                <div className="text-black flex items-center justify-between w-full">
+                  <CalendarIcon className="w-4 h-4" />
+                  <div>
+                    Start Date : {startDate?.date?.toString().padStart(2, "0")}{" "}
+                    {monthNames[startDate.month]}
+                  </div>
+                  <X className="w-4 h-4 cursor-pointer" onClick={() => setStartDate(null)} />
+                </div>
+              ) : (
+                <>
+                  <CalendarIcon className="w-4 h-4" /> Select Start Date
+                </>
+              )}
+            </button>
+          </div>
+          <div className="w-1/2 space-y-2">
+            <label className="block">
+              End Date <span className="text-red-600">*</span>
             </label>
-            <SelectBox
-              options={
-                users
-                  ? users.map((user) => ({
-                    value: user.id,
-                    label: `${user.firstname || ""} ${user.lastname || ""}`.trim(),
-                  }))
-                  : []
-              }
-              value={responsiblePerson}
-              onChange={(selectedValue) => setResponsiblePerson(selectedValue)}
+            <button
+              type="button"
+              className="w-full border outline-none border-gray-300 px-2 py-[7px] text-[13px] flex items-center gap-3 text-gray-400"
+              onClick={() => {
+                if (showStartDatePicker) {
+                  setShowStartDatePicker(false);
+                }
+                setShowDatePicker(!showDatePicker);
+              }}
+              ref={endDateRef}
+            >
+              {endDate ? (
+                <div className="text-black flex items-center justify-between w-full">
+                  <CalendarIcon className="w-4 h-4" />
+                  <div>
+                    End Date : {endDate.date.toString().padStart(2, "0")}{" "}
+                    {monthNames[endDate.month]}
+                  </div>
+                  <X className="w-4 h-4 cursor-pointer" onClick={() => setEndDate(null)} />
+                </div>
+              ) : (
+                <>
+                  <CalendarIcon className="w-4 h-4" /> Select End Date
+                </>
+              )}
+            </button>
+          </div>
+        </div>
+
+        <div className="flex justify-between mt-3 gap-2 text-[12px]">
+          <div className="space-y-2 w-full">
+            <label className="block">
+              Duration
+            </label>
+            <DurationPicker
+              value={issueDuration}
+              onChange={setIssueDuration}
+              onDateWiseHoursChange={setDateWiseHours}
+              startDate={startDate}
+              endDate={endDate}
+              resposiblePerson={responsiblePerson ? users.find(u => u.id === responsiblePerson)?.firstname : ""}
+              totalWorkingHours={totalWorkingHours}
+              setTotalWorkingHours={setTotalWorkingHours}
+              shift={shift}
             />
           </div>
+        </div>
+
+        <div
+          ref={startCollapsibleRef}
+          className="overflow-hidden opacity-0 h-0"
+          style={{ willChange: "height, opacity" }}
+        >
+          {!startDate ? (
+            showStartCalender ? (
+              <CustomCalender
+                setShowCalender={setShowStartCalender}
+                onDateSelect={setStartDate}
+                selectedDate={startDate}
+                taskHoursData={calendarTaskHours}
+                ref={startDateRef}
+              />
+            ) : (
+              <TaskDatePicker
+                selectedDate={startDate}
+                onDateSelect={setStartDate}
+                startDate={null}
+                userAvailability={userAvailability}
+                setShowCalender={setShowStartCalender}
+              />
+            )
+          ) : (
+            <TasksOfDate
+              selectedDate={startDate}
+              onClose={() => { }}
+              tasks={startDateTasks}
+              selectedUser={responsiblePerson}
+              userAvailability={userAvailability}
+            />
+          )}
+        </div>
+
+        <div
+          ref={collapsibleRef}
+          className="overflow-hidden opacity-0 h-0"
+          style={{ willChange: "height, opacity" }}
+        >
+          {!endDate ? (
+            showCalender ? (
+              <CustomCalender
+                setShowCalender={setShowCalender}
+                onDateSelect={setEndDate}
+                selectedDate={endDate}
+                taskHoursData={calendarTaskHours}
+                ref={endDateRef}
+              />
+            ) : (
+              <TaskDatePicker
+                selectedDate={endDate}
+                onDateSelect={setEndDate}
+                startDate={startDate}
+                userAvailability={userAvailability}
+                setShowCalender={setShowCalender}
+              />
+            )
+          ) : (
+            <TasksOfDate
+              selectedDate={endDate}
+              onClose={() => { }}
+              tasks={targetDateTasks}
+              selectedUser={responsiblePerson}
+              userAvailability={userAvailability}
+            />
+          )}
+        </div>
+
+        <div className="flex items-center justify-between gap-2 mt-4">
           <div className="w-1/2 flex flex-col justify-between">
             <label className="block mb-2">
               Type <span className="text-red-600">*</span>
@@ -496,32 +826,6 @@ const Issues = ({ closeModal }) => {
               value={type}
               onChange={(selectedValue) => setType(selectedValue)}
               placeholder={"Select Type"}
-            />
-          </div>
-        </div>
-        <div className="flex items-start gap-4 mt-4 text-[12px]">
-          <div className="w-1/2 space-y-2">
-            <label className="block">
-              Start Date <span className="text-red-600">*</span>
-            </label>
-            <input
-              value={startDate}
-              onChange={(e) => setStartDate(e.target.value)}
-              type="date"
-              className="w-full border outline-none border-gray-300 p-2 text-[12px]"
-              min={new Date().toISOString().split("T")[0]}
-            />
-          </div>
-          <div className="w-1/2 space-y-2">
-            <label className="block">
-              End Date <span className="text-red-600">*</span>
-            </label>
-            <input
-              value={endDate}
-              onChange={(e) => setEndDate(e.target.value)}
-              type="date"
-              className="w-full border outline-none border-gray-300 p-2 text-[12px]"
-              min={startDate}
             />
           </div>
           <div className="w-1/2 flex flex-col justify-between">
@@ -535,7 +839,7 @@ const Issues = ({ closeModal }) => {
             />
           </div>
         </div>
-        <div className="mt-4 space-y-2">
+        <div className="space-y-2 mt-4">
           <label className="block">
             Comment <span className="text-red-600">*</span>
           </label>

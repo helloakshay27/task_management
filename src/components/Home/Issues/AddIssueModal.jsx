@@ -30,7 +30,7 @@ const AddIssueModal = ({ isModalOpen, setIsModalOpen }) => {
         <div className="fixed inset-0 flex items-center justify-end bg-black bg-opacity-50 z-10">
             <div
                 ref={addTaskModalRef}
-                className="bg-white py-6 rounded-lg shadow-lg w-1/3 relative h-full right-0"
+                className="bg-white py-6 rounded-lg shadow-lg w-[50%] relative h-full right-0"
             >
                 <h3 className="text-[14px] font-medium text-center">Add Issues</h3>
                 <X
@@ -39,8 +39,8 @@ const AddIssueModal = ({ isModalOpen, setIsModalOpen }) => {
                 />
 
                 <hr className="border border-[#E95420] my-4" />
-                 
-                <Issues closeModal = {closeModal}  />
+
+                <Issues closeModal={closeModal} />
             </div>
         </div>
     );

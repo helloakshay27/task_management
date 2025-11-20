@@ -1,6 +1,7 @@
 import {
     ChartNoAxesColumn,
     ChartNoAxesGantt,
+    Download,
     Filter,
     List,
     Plus,
@@ -24,6 +25,8 @@ import IssueFilter from "./Issues/Modal/Filter";
 import { filterIssue } from "../../redux/slices/IssueSlice";
 import Switch from '@mui/joy/Switch';
 import { FileUploadModal } from "../ImportFileModal";
+import axios from "axios";
+import { baseURL } from "../../../apiDomain";
 
 // Define status options for each addType
 const STATUS_OPTIONS_MAP = {
@@ -222,6 +225,44 @@ const TaskActions = ({
         [dispatch, addType, mid, token]
     );
 
+    const handleExport = async () => {
+        try {
+            if (addType === "Task") {
+                const response = await axios.get(`${baseURL}/task_managements/export_tasks.json`, {
+                    responseType: 'blob',
+                    headers: {
+                        "Authorization": `Bearer ${token}`
+                    }
+                });
+
+                const blob = new Blob([response.data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+                const url = window.URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = 'tasks.xlsx';
+                link.click();
+                window.URL.revokeObjectURL(url);
+            } else {
+                const response = await axios.get(`${baseURL}/issues/export_issues.json`, {
+                    responseType: 'blob',
+                    headers: {
+                        "Authorization": `Bearer ${token}`
+                    }
+                });
+
+                const blob = new Blob([response.data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+                const url = window.URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = 'issues.xlsx';
+                link.click();
+                window.URL.revokeObjectURL(url);
+            }
+        } catch (error) {
+            console.log(error)
+        }
+    }
+
     const handleAddClick = useCallback(() => {
         switch (addType) {
             case "Sprint-Gantt":
@@ -406,11 +447,21 @@ const TaskActions = ({
                     {addType !== "Milestone" && addType !== "templates" && addType !== "archived" && renderStatusDropdown()}
                     {
                         (addType === "Task" || addType === "Issues") && (
-                            <div
-                                className="flex items-center gap-3 cursor-pointer pl-4 text-[#C72030]"
-                                onClick={() => setImportModalOpen(true)}
-                            >
-                                <Upload size={17} className="text-gray-600" />
+                            <div className="flex items-center gap-1 divide-x divide-gray-400">
+                                <div
+                                    className="flex items-center gap-3 cursor-pointer px-4 text-[#C72030]"
+                                    onClick={() => setImportModalOpen(true)}
+                                    title="Import"
+                                >
+                                    <Upload size={17} className="text-gray-600" />
+                                </div>
+                                <div
+                                    className="flex items-center gap-3 cursor-pointer pl-4 text-[#C72030]"
+                                    onClick={handleExport}
+                                    title="Export"
+                                >
+                                    <Download size={17} className="text-gray-600" />
+                                </div>
                             </div>
                         )
                     }

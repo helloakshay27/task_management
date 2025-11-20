@@ -510,7 +510,7 @@ const ProjectDetails = () => {
                             <span>Edit Project</span>
                         </span>
 
-                        <span className="h-6 w-[1px] border border-gray-300"></span>
+                        {/* <span className="h-6 w-[1px] border border-gray-300"></span>
 
                         <span
                             className="flex items-center gap-1 cursor-pointer"
@@ -518,7 +518,7 @@ const ProjectDetails = () => {
                         >
                             <Trash2 size={15} />
                             <span>Delete Project</span>
-                        </span>
+                        </span> */}
                     </div>
                 </div>
                 <div className="border-b-[3px] border-grey my-3 "></div>

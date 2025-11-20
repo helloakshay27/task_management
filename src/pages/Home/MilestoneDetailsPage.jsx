@@ -305,13 +305,13 @@ const MilestoneDetailsPage = () => {
                             >
                                 <PencilIcon className="mx-1" size={15} /> Edit Milestone
                             </span>
-                            <span className="h-6 w-[1px] border border-gray-300"></span>
+                            {/* <span className="h-6 w-[1px] border border-gray-300"></span>
                             <span
                                 className="cursor-pointer flex items-center gap-1"
                                 onClick={() => setIsDeleteModalOpen(true)}
                             >
                                 <Trash2 className="mx-1" size={15} /> Delete Milestone
-                            </span>
+                            </span> */}
                         </div>
                     </div>
                     <div className="border-b-[3px] border-grey my-3"></div>

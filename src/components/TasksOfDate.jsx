@@ -9,7 +9,7 @@ import { useState, useMemo, useEffect } from "react";
 import { DndProvider, useDrag, useDrop } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
 import { useDispatch } from "react-redux";
-import { updateTask } from "@/redux/slices/taskSlice";
+import { updateTask, fetchTargetDateTasks } from "@/redux/slices/taskSlice";
 import toast from "react-hot-toast";
 
 const calculateDuration = (end) => {
@@ -101,7 +101,7 @@ const TaskCard = ({ task, selectedDate }) => {
 };
 
 // ===================== DroppableDay =====================
-const DroppableDay = ({ dateInfo, onDrop, assignedTasks }) => {
+const DroppableDay = ({ dateInfo, onDrop, assignedTasks, onDateClick }) => {
     const [{ isOver }, drop] = useDrop(
         () => ({
             accept: "TASK",
@@ -126,11 +126,16 @@ const DroppableDay = ({ dateInfo, onDrop, assignedTasks }) => {
                 ? "bg-[#D5DBDB]"
                 : "hover:bg-gray-50";
 
+    const handleClick = () => {
+        onDateClick(dateInfo.fullDate);
+    };
+
     return (
         <div
             ref={drop}
+            onClick={handleClick}
             className={`relative grid grid-cols-3 border-t border-b border-r border-dashed border-gray-400 items-center px-3 py-[19px] ${bgClass} ${isOver ? "bg-gray-200" : ""
-                }`}
+                } cursor-pointer`}
         >
             <span
                 className={`absolute left-0 top-0 h-full w-[4px] ${durationPercentage <= 33
@@ -159,6 +164,7 @@ const CalendarWeekView = ({
     onScroll,
     onDrop,
     assignedTasks,
+    onDateClick,
 }) => {
     return (
         <div className="bg-white border-gray-300 relative">
@@ -181,6 +187,7 @@ const CalendarWeekView = ({
                         dateInfo={dateInfo}
                         onDrop={onDrop}
                         assignedTasks={assignedTasks}
+                        onDateClick={onDateClick}
                     />
                 ))}
             </div>
@@ -200,7 +207,7 @@ const CalendarWeekView = ({
 };
 
 // ===================== TasksOfDate =====================
-const TasksOfDate = ({ selectedDate, onClose, tasks, userAvailability }) => {
+const TasksOfDate = ({ selectedDate, onClose, tasks, userAvailability, selectedUser }) => {
     const dispatch = useDispatch();
     const token = localStorage.getItem("token");
 
@@ -354,6 +361,30 @@ const TasksOfDate = ({ selectedDate, onClose, tasks, userAvailability }) => {
         }
     };
 
+    const handleDateClick = async (dateString) => {
+        if (!selectedUser) {
+            toast.error("No user selected");
+            return;
+        }
+
+        try {
+            const result = await dispatch(
+                fetchTargetDateTasks({
+                    token,
+                    id: selectedUser,
+                    date: dateString,
+                })
+            ).unwrap();
+
+            // Update current tasks with fetched tasks from the clicked date
+            setCurrentTasks(result || []);
+            setTaskStartIndex(0);
+        } catch (err) {
+            console.error("Failed to fetch tasks for date:", err);
+            toast.error("Could not load tasks for this date");
+        }
+    };
+
     const hasMoreTasks = taskStartIndex + visibleTasksCount < currentTasks.length;
     const hasPreviousTasks = taskStartIndex > 0;
 
@@ -477,6 +508,7 @@ const TasksOfDate = ({ selectedDate, onClose, tasks, userAvailability }) => {
                             onScroll={handleScroll}
                             onDrop={handleDrop}
                             assignedTasks={assignedTasks}
+                            onDateClick={handleDateClick}
                         />
                     </div>
                 </div>
