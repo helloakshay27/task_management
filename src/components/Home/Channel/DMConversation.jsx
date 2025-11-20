@@ -163,25 +163,25 @@ const DMConversation = () => {
                             return prev;
                         }
 
-                        if (!("Notification" in window)) {
-                            toast.error("Not supported");
-                            return;
-                        }
-
-                        Notification.requestPermission().then(permission => {
-                            if (permission === "granted") {
-                                const notification = new Notification("New message", {
-                                    body: response.body
-                                });
-
-                                notification.onclick = () => {
-                                    window.open(`/channels/messages/${response.conversation_id}`);
-                                }
-                            }
-                        })
-
                         return [message, ...prev];
                     });
+
+                    if (!("Notification" in window)) {
+                        toast.error("Not supported");
+                        return;
+                    }
+
+                    Notification.requestPermission().then(permission => {
+                        if (permission === "granted") {
+                            const notification = new Notification("New message", {
+                                body: message.body
+                            });
+
+                            notification.onclick = () => {
+                                window.open(`/channels/messages/${response.conversation_id}`);
+                            }
+                        }
+                    })
                     isUserInitiatedScroll.current = false;
                 },
                 onDisconnected: () => {

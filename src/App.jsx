@@ -51,6 +51,8 @@ import DMConversation from "./components/Home/Channel/DMConversation.jsx";
 import GroupConversation from "./components/Home/Channel/GroupConversation.jsx";
 import Roster from "./pages/Setup/Roster";
 import CreateRoster from "./pages/Setup/CreateRoster";
+import EditRoster from "./pages/Setup/EditRoster";
+import RosterDetails from "./pages/Setup/RosterDetails";
 import Department from "./pages/Setup/Department";
 import Sites from "./pages/Setup/Sites";
 import Shift from "./pages/Setup/Shift";
@@ -207,6 +209,14 @@ const App = () => {
                   <Route
                     path="/setup/roster/add-roster"
                     element={<CreateRoster />}
+                  />
+                  <Route
+                    path="/setup/roster/:rosterId/edit"
+                    element={<EditRoster />}
+                  />
+                  <Route
+                    path="/setup/roster/:rosterId/view"
+                    element={<RosterDetails />}
                   />
                   <Route
                     path="/setup/project-teams"

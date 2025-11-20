@@ -3,6 +3,29 @@ import { baseURL } from '../../../apiDomain';
 import axios from 'axios';
 import React, { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom';
+import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
+import { Eye } from 'lucide-react';
+
+const ActionIcons = ({ row, onView, onEdit }) => {
+    return (
+        <>
+            <div className="action-icons flex justify-center gap-2">
+                {/* <Switch
+                    color={isActive ? 'success' : 'danger'}
+                    checked={isActive}
+                    onChange={handleToggle}
+                /> */}
+                <Eye size={18} className="cursor-pointer"
+                // onClick={() => onView(row)} 
+                />
+                <EditOutlinedIcon
+                    sx={{ fontSize: 20, cursor: 'pointer' }}
+                // onClick={() => onEdit(row)}
+                />
+            </div>
+        </>
+    );
+};
 
 const Roster = () => {
     const [rosters, setRosters] = useState([])
@@ -24,6 +47,14 @@ const Roster = () => {
 
         getRosters()
     }, [])
+
+    const handleViewRoster = (row) => {
+        navigate(`/setup/roster/${row.original.id}/view`, { state: row.original });
+    };
+
+    const handleEditRoster = (row) => {
+        navigate(`/setup/roster/${row.original.id}/edit`, { state: row.original });
+    };
 
     const columns = useMemo(() => [
         {
@@ -61,6 +92,12 @@ const Roster = () => {
             header: "Created On",
             size: 100,
             cell: ({ getValue }) => getValue(),
+        },
+        {
+            id: 'actions',
+            header: 'Actions',
+            size: 60,
+            cell: ({ row }) => (row.original ? <ActionIcons row={row} onView={handleViewRoster} onEdit={handleEditRoster} /> : null),
         },
     ], []);
 

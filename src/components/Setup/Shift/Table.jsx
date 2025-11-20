@@ -71,7 +71,7 @@ const ShiftTable = ({ openModal, setOpenModal, editMode, setEditMode }) => {
       toast.error('Invalid shift ID');
       return;
     }
-    
+
     try {
       await dispatch(deleteShift({ token, id })).unwrap();
       toast.success('Shift deleted successfully', {
@@ -86,17 +86,51 @@ const ShiftTable = ({ openModal, setOpenModal, editMode, setEditMode }) => {
 
   const ActionIcons = ({ row }) => {
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+    const [isActive, setIsActive] = useState(row.original.active);
+
+    useEffect(() => {
+      setIsActive(row.original.active);
+    }, [row.original.active]);
+
+    const handleToggle = async (row) => {
+      const updatedValue = !row.original.active;
+      setIsActive(updatedValue);
+      try {
+        await dispatch(updateShift({
+          token,
+          id: row.original.id,
+          payload: { active: updatedValue },
+        })).unwrap();
+
+        toast.dismiss();
+        toast.success(`Status ${updatedValue ? 'activated' : 'deactivated'} successfully`, {
+          iconTheme: {
+            primary: updatedValue ? 'green' : 'red',
+            secondary: 'white',
+          },
+        });
+        dispatch(fetchShift({ token }));
+      } catch (error) {
+        toast.error('Failed to update status.');
+        console.error(error);
+      }
+    };
     return (
       <>
         <div className="action-icons flex justify-between gap-5">
+          <Switch
+            color={isActive ? 'success' : 'danger'}
+            checked={isActive}
+            onChange={handleToggle}
+          />
           <EditOutlinedIcon
             sx={{ fontSize: 20, cursor: 'pointer' }}
             onClick={() => handleEditClick(row)}
           />
-          <DeleteOutlineOutlinedIcon
+          {/* <DeleteOutlineOutlinedIcon
             sx={{ fontSize: 20, cursor: 'pointer' }}
             onClick={() => setIsDeleteModalOpen(true)}
-          />
+          /> */}
         </div>
         <DeleteConfirmationModal
           isOpen={isDeleteModalOpen}
@@ -109,29 +143,6 @@ const ShiftTable = ({ openModal, setOpenModal, editMode, setEditMode }) => {
         />
       </>
     );
-  };
-
-  const handleToggle = async (row) => {
-    const updatedValue = !row.original.active;
-    try {
-      await dispatch(updateShift({
-        token,
-        id: row.original.id,
-        payload: { active: updatedValue },
-      })).unwrap();
-
-      toast.dismiss();
-      toast.success(`Status ${updatedValue ? 'activated' : 'deactivated'} successfully`, {
-        iconTheme: {
-          primary: updatedValue ? 'green' : 'red',
-          secondary: 'white',
-        },
-      });
-      dispatch(fetchShift({ token }));
-    } catch (error) {
-      toast.error('Failed to update status.');
-      console.error(error);
-    }
   };
 
   const onSuccess = () => {
@@ -223,146 +234,146 @@ const ShiftTable = ({ openModal, setOpenModal, editMode, setEditMode }) => {
 
   return (
     <>
-    <div className="project-table-container text-[14px] ">
-      <div
-        className="table-wrapper overflow-x-auto"
-        style={{ height: `${desiredTableHeight}px` }}
-      >
-        <table className="w-full">
-          <thead>
-            {table.getHeaderGroups().map(headerGroup => (
-              <tr key={headerGroup.id}>
-                {headerGroup.headers.map(header => (
-                  <th
-                    key={header.id}
-                    colSpan={header.colSpan}
-                    style={{ width: header.getSize() }}
-                    className="bg-[#D5DBDB] px-3 py-3.5 text-center font-[500] border-r-2 border-[#FFFFFF]"
-                  >
-                    {header.isPlaceholder ? null : (
-                      <div>
-                        {flexRender(
-                          header.column.columnDef.header,
-                          header.getContext()
-                        )}
-                      </div>
-                    )}
-                  </th>
-                ))}
-              </tr>
-            ))}
-          </thead>
-          <tbody className="divide-y" style={{ height: `${fixedRowsPerPage * rowHeight}px` }}>
-            {pageRows.map(row => {
-              const isDataRowConsideredEmpty = !row.original || Object.values(row.original).every(v => v === null || v === '');
-
-              return (
-                <tr
-                  key={row.id}
-                  className={`hover:bg-gray-50 even:bg-[#D5DBDB4D] ${isDataRowConsideredEmpty ? 'pointer-events-none text-transparent' : ''}`}
-                  style={{ height: `${rowHeight}px` }}
-                >
-                  {row.getVisibleCells().map(cell => (
-                    <td
-                      key={cell.id}
-                      style={{ width: cell.column.getSize() }}
-                      className={`${cell.column.columnDef.meta?.cellClassName || ''
-                        } whitespace-nowrap px-3 py-2 border-r-2
-                        }`}
+      <div className="project-table-container text-[14px] ">
+        <div
+          className="table-wrapper overflow-x-auto"
+          style={{ height: `${desiredTableHeight}px` }}
+        >
+          <table className="w-full">
+            <thead>
+              {table.getHeaderGroups().map(headerGroup => (
+                <tr key={headerGroup.id}>
+                  {headerGroup.headers.map(header => (
+                    <th
+                      key={header.id}
+                      colSpan={header.colSpan}
+                      style={{ width: header.getSize() }}
+                      className="bg-[#D5DBDB] px-3 py-3.5 text-center font-[500] border-r-2 border-[#FFFFFF]"
                     >
-                      {!isDataRowConsideredEmpty
-                        ? flexRender(cell.column.columnDef.cell, cell.getContext())
-                        : null}
+                      {header.isPlaceholder ? null : (
+                        <div>
+                          {flexRender(
+                            header.column.columnDef.header,
+                            header.getContext()
+                          )}
+                        </div>
+                      )}
+                    </th>
+                  ))}
+                </tr>
+              ))}
+            </thead>
+            <tbody className="divide-y" style={{ height: `${fixedRowsPerPage * rowHeight}px` }}>
+              {pageRows.map(row => {
+                const isDataRowConsideredEmpty = !row.original || Object.values(row.original).every(v => v === null || v === '');
+
+                return (
+                  <tr
+                    key={row.id}
+                    className={`hover:bg-gray-50 even:bg-[#D5DBDB4D] ${isDataRowConsideredEmpty ? 'pointer-events-none text-transparent' : ''}`}
+                    style={{ height: `${rowHeight}px` }}
+                  >
+                    {row.getVisibleCells().map(cell => (
+                      <td
+                        key={cell.id}
+                        style={{ width: cell.column.getSize() }}
+                        className={`${cell.column.columnDef.meta?.cellClassName || ''
+                          } whitespace-nowrap px-3 py-2 border-r-2
+                        }`}
+                      >
+                        {!isDataRowConsideredEmpty
+                          ? flexRender(cell.column.columnDef.cell, cell.getContext())
+                          : null}
+                      </td>
+                    ))}
+                  </tr>
+                );
+              })}
+              {Array.from({ length: numEmptyRowsToAdd }).map((_, index) => (
+                <tr
+                  key={`empty-row-${index}`}
+                  style={{ height: `${rowHeight}px` }}
+                  className="even:bg-[#D5DBDB4D] pointer-events-none"
+                >
+                  {table.getAllLeafColumns().map(column => (
+                    <td
+                      key={`empty-cell-${index}-${column.id}`}
+                      style={{ width: column.getSize() }}
+                      className="whitespace-nowrap px-3 py-2 text-transparent border-r-2"
+                    >
+                      &nbsp;
                     </td>
                   ))}
                 </tr>
-              );
-            })}
-            {Array.from({ length: numEmptyRowsToAdd }).map((_, index) => (
-              <tr
-                key={`empty-row-${index}`}
-                style={{ height: `${rowHeight}px` }}
-                className="even:bg-[#D5DBDB4D] pointer-events-none"
-              >
-                {table.getAllLeafColumns().map(column => (
-                  <td
-                    key={`empty-cell-${index}-${column.id}`}
-                    style={{ width: column.getSize() }}
-                    className="whitespace-nowrap px-3 py-2 text-transparent border-r-2"
-                  >
-                    &nbsp;
-                  </td>
-                ))}
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+              ))}
+            </tbody>
+          </table>
+        </div>
 
-      <div className="flex items-center justify-start gap-4 mt-4 text-[12px]">
-        {/* Previous Button */}
-        <button
-          onClick={() => table.previousPage()}
-          disabled={!table.getCanPreviousPage()}
-          className="text-red-600 disabled:opacity-30"
-        >
-          {"<"}
-        </button>
+        <div className="flex items-center justify-start gap-4 mt-4 text-[12px]">
+          {/* Previous Button */}
+          <button
+            onClick={() => table.previousPage()}
+            disabled={!table.getCanPreviousPage()}
+            className="text-red-600 disabled:opacity-30"
+          >
+            {"<"}
+          </button>
 
-        {/* Page Numbers (Sliding Window of 3) */}
-        {(() => {
-          const totalPages = table.getPageCount();
-          const currentPage = table.getState().pagination.pageIndex;
-          const visiblePages = 3;
+          {/* Page Numbers (Sliding Window of 3) */}
+          {(() => {
+            const totalPages = table.getPageCount();
+            const currentPage = table.getState().pagination.pageIndex;
+            const visiblePages = 3;
 
-          let start = Math.max(
-            0,
-            currentPage - Math.floor(visiblePages / 2)
-          );
-          let end = start + visiblePages;
-
-          // Ensure end does not exceed total pages
-          if (end > totalPages) {
-            end = totalPages;
-            start = Math.max(0, end - visiblePages);
-          }
-
-          return [...Array(end - start)].map((_, i) => {
-            const page = start + i;
-            const isActive = page === currentPage;
-
-            return (
-              <button
-                key={page}
-                onClick={() => table.setPageIndex(page)}
-                className={`px-3 py-1 ${isActive ? "bg-gray-200 font-bold" : ""}`}
-              >
-                {page + 1}
-              </button>
+            let start = Math.max(
+              0,
+              currentPage - Math.floor(visiblePages / 2)
             );
-          });
-        })()}
+            let end = start + visiblePages;
 
-        {/* Next Button */}
-        <button
-          onClick={() => table.nextPage()}
-          disabled={!table.getCanNextPage()}
-          className="text-red-600 disabled:opacity-30"
-        >
-          {">"}
-        </button>
+            // Ensure end does not exceed total pages
+            if (end > totalPages) {
+              end = totalPages;
+              start = Math.max(0, end - visiblePages);
+            }
+
+            return [...Array(end - start)].map((_, i) => {
+              const page = start + i;
+              const isActive = page === currentPage;
+
+              return (
+                <button
+                  key={page}
+                  onClick={() => table.setPageIndex(page)}
+                  className={`px-3 py-1 ${isActive ? "bg-gray-200 font-bold" : ""}`}
+                >
+                  {page + 1}
+                </button>
+              );
+            });
+          })()}
+
+          {/* Next Button */}
+          <button
+            onClick={() => table.nextPage()}
+            disabled={!table.getCanNextPage()}
+            className="text-red-600 disabled:opacity-30"
+          >
+            {">"}
+          </button>
+        </div>
       </div>
-    </div>
 
-    {openModal && (
-      <AddShiftModel
-        openModal={openModal}
-        setOpenModal={setOpenModal}
-        isEditMode={editMode}
-        initialData={selectedData}
-        onSuccess={onSuccess}
-      />
-    )}
+      {openModal && (
+        <AddShiftModel
+          openModal={openModal}
+          setOpenModal={setOpenModal}
+          isEditMode={editMode}
+          initialData={selectedData}
+          onSuccess={onSuccess}
+        />
+      )}
     </>
   );
 };
