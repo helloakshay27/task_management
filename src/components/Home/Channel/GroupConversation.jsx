@@ -9,6 +9,7 @@ import Chats from "./Chats";
 import { useDispatch } from "react-redux";
 import { createMessage, fetchChannelById, fetchMessagesOfConversation } from "@/redux/slices/channelSlice";
 import { useWebSocket } from "@/hooks/useWebSocket";
+import { socketUrl } from "../../../../apiDomain";
 
 const GroupConversation = () => {
     const { id } = useParams();
@@ -44,8 +45,6 @@ const GroupConversation = () => {
     const [cursorPosition, setCursorPosition] = useState(0);
     const [mentionStartPos, setMentionStartPos] = useState(0);
     const [mentions, setMentions] = useState([]);
-
-    const socketUrl = "wss://uat-tasks.lockated.com/cable";
 
     const { manager: webSocketManager, connect } = useWebSocket();
 

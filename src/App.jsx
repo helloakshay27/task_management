@@ -1,7 +1,7 @@
 import "./index.css";
-import { Navigate, Route, Routes } from "react-router-dom";
+import { Navigate, Route, Routes, useNavigate } from "react-router-dom";
 import ProtectedRoute from "./pages/Login/ProtectedRoute.jsx";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Layout from "./Layout";
 import Tasks from "./pages/Home/Tasks";
 import TaskDetails from "./pages/Home/TaskDetails";
@@ -32,7 +32,7 @@ import Login from "./pages/Login/Login";
 import GroupTable from "./components/Setup/ProjectGroup/Table.jsx";
 import ProjectGroup from "./pages/Setup/ProjectGroup.jsx";
 import ProjectTemplates from "./pages/Setup/ProjectTemplates.jsx";
-import { Toaster } from "react-hot-toast";
+import toast, { Toaster } from "react-hot-toast";
 import Table from "./components/Setup/Issues_Type/Table.jsx";
 import IssuesType from "./pages/Setup/IssueType.jsx";
 import SprintDetails from "./components/Home/Sprints/SprintDetails.jsx";
@@ -57,10 +57,78 @@ import Department from "./pages/Setup/Department";
 import Sites from "./pages/Setup/Sites";
 import Shift from "./pages/Setup/Shift";
 import EmployeeAddPage from "./pages/Setup/EmployeeAddPage";
+import { useWebSocket } from "./hooks/useWebSocket";
+import { socketUrl } from "../apiDomain";
 
 const App = () => {
   const token = localStorage.getItem("token");
+  const navigate = useNavigate();
+  const currentUser = JSON.parse(localStorage.getItem("user"));
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [isSubscribed, setIsSubscribed] = useState(false);
+
+  const { manager: webSocketManager, connect } = useWebSocket();
+
+  useEffect(() => {
+    console.log('🔌 WebSocket connection effect running');
+
+    if (token) {
+      console.log('✅ Token available, connecting...');
+      connect(token, socketUrl);
+    } else {
+      console.error('❌ No token available for WebSocket connection');
+    }
+
+    // return () => {
+    //   console.log('🧹 Cleaning up WebSocket subscriptions');
+    // };
+  }, [token, connect]);
+
+  useEffect(() => {
+    const subscriptionTimer = setTimeout(() => {
+      const sub = webSocketManager.subscribeToUserNotifications({
+        onConnected: () => {
+          console.log('🎉 SUBSCRIPTION SUCCESSFUL - Chat connected!');
+          setIsSubscribed(true);
+          toast.success('Real-time connection established!', { duration: 2000 });
+        },
+        onMessageNotification: (message, context) => {
+          if (message.user_id === currentUser.id) {
+            return;
+          }
+
+          if (!("Notification" in window)) {
+            toast.error("Not supported");
+            return;
+          }
+
+          Notification.requestPermission().then(permission => {
+            if (permission === "granted") {
+              const notification = new Notification("New message", {
+                body: message.body
+              });
+
+              notification.onclick = () => {
+                window.focus();
+                navigate(`/channels/messages/${message.conversation_id}`);
+              };
+            }
+          });
+        },
+        onDisconnected: () => {
+          console.log('❌ Chat subscription disconnected');
+          setIsSubscribed(false);
+          toast.error('Real-time chat disconnected');
+        }
+      });
+      console.log('📋 Subscription object:', sub);
+    }, 2000); // Wait 2 seconds for connection to establish
+
+    return () => {
+      console.log('⏰ Clearing subscription timer');
+      clearTimeout(subscriptionTimer);
+    };
+  }, [isSubscribed, webSocketManager, currentUser.id]);
 
   return (
     <>

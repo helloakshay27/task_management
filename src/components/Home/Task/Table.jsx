@@ -293,8 +293,11 @@ const TaskTable = ({ isModalOpen, searchQuery }) => {
     error: filterTasksError,
     success: filterSuccess,
   } = useSelector((state) => state.filterTask);
+  console.log(projectTeamMembers)
+  console.log(users)
   const { fetchMilestoneById: milestone } = useSelector((state) => state.fetchMilestoneById);
   console.log(milestone)
+
   const userFetchInitiatedRef = useRef(false);
   const isFetchingRef = useRef(false);
   const lastFetchedPageRef = useRef(null);
@@ -316,6 +319,7 @@ const TaskTable = ({ isModalOpen, searchQuery }) => {
   const [localError, setLocalError] = useState(null);
   const [isCreatingTask, setIsCreatingTask] = useState(false);
   const [isUpdatingTask, setIsUpdatingTask] = useState(false);
+  const [members, setMembers] = useState([])
   const [pagination, setPagination] = useState({
     pageIndex: 0,
     pageSize: 10,
@@ -326,6 +330,19 @@ const TaskTable = ({ isModalOpen, searchQuery }) => {
   const MIN_DISPLAY_ROWS = 10;
   const ROW_HEIGHT = 40;
   const HEADER_HEIGHT = 40;
+
+  useEffect(() => {
+    if (projectTeamMembers) {
+      const members = []
+
+      projectTeamMembers?.project_team_members?.map((member) => {
+        members.push(member.user)
+      })
+      members.push(projectTeamMembers.team_lead)
+
+      setMembers(members)
+    }
+  }, [projectTeamMembers])
 
   const createNewTaskDefaults = useCallback(
     () => ({
@@ -858,9 +875,9 @@ const TaskTable = ({ isModalOpen, searchQuery }) => {
       size: 150,
       cell: ({ getValue, row }) => (
         <SelectBox
-          options={(projectTeamMembers?.length > 0 ? projectTeamMembers : users).map((user) => ({
-            value: user.user_id || user.id,
-            label: user?.user?.name || `${user.firstname} ${user.lastname}`,
+          options={(members?.length > 0 ? members : users).map((user) => ({
+            value: user?.id,
+            label: user?.name || `${user.firstname} ${user.lastname}`,
           }))}
           value={getValue()}
           onChange={(newValue) => handleUpdateTaskFieldCell(row.original.id, "responsible_person_id", newValue, row)}
@@ -1127,9 +1144,9 @@ const TaskTable = ({ isModalOpen, searchQuery }) => {
                   </td>
                   <td className="p-0 align-middle border-r-2">
                     <SelectBox
-                      options={Array.isArray(projectTeamMembers) ? projectTeamMembers.map((u) => ({
-                        value: u.user_id,
-                        label: u?.user?.name,
+                      options={Array.isArray(members) ? members.map((u) => ({
+                        value: u?.id,
+                        label: u?.name,
                       })) : []}
                       value={newTaskResponsiblePersonId}
                       onChange={(selectedId) => setNewTaskResponsiblePersonId(selectedId)}

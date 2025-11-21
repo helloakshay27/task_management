@@ -9,6 +9,7 @@ import ChatTasks from "./ChatTasks";
 import ChatAttachments from "./ChatAttachments";
 import { createMessage, fetchChannelById, fetchMessagesOfConversation } from "@/redux/slices/channelSlice";
 import { useWebSocket } from "@/hooks/useWebSocket";
+import { socketUrl } from "../../../../apiDomain";
 
 const DMConversation = () => {
     const { id } = useParams();
@@ -34,8 +35,6 @@ const DMConversation = () => {
         sender_name: "",
         sender_id: "",
     });
-
-    const socketUrl = "wss://uat-tasks.lockated.com/cable";
 
     const { manager: webSocketManager, connect } = useWebSocket();
 
@@ -156,34 +155,6 @@ const DMConversation = () => {
                     toast.success('Real-time chat connected!', { duration: 2000 });
                 },
                 onNewMessage: (message) => {
-                    // setMessages((prev) => {
-                    //     const exists = prev.some(msg => msg.id === message.id);
-                    //     if (exists) {
-                    //         console.log('⚠️ Duplicate message prevented, ID:', message.id);
-                    //         return prev;
-                    //     }
-
-                    //     return [message, ...prev];
-                    // });
-
-                    // if (!("Notification" in window)) {
-                    //     toast.error("Not supported");
-                    //     return;
-                    // }
-
-                    // Notification.requestPermission().then(permission => {
-                    //     if (permission === "granted") {
-                    //         const notification = new Notification("New message", {
-                    //             body: message.body
-                    //         });
-
-                    //         notification.onclick = () => {
-                    //             window.focus();
-                    //         }
-                    //     }
-                    // })
-                    // isUserInitiatedScroll.current = false;
-
                     if (message.user_id === currentUser.id) {
                         return;
                     }

@@ -228,6 +228,10 @@ const TaskActions = ({
     const handleExport = async () => {
         try {
             if (addType === "Task") {
+                // const queryParams = new URLSearchParams();
+                // if (window.location.pathname.includes("/projects")) {
+                //     queryParams.append("q[project_id_eq]", projectId);
+                // }
                 const response = await axios.get(`${baseURL}/task_managements/export_tasks.json`, {
                     responseType: 'blob',
                     headers: {

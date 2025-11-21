@@ -197,7 +197,7 @@ const TaskForm = ({
             date: formattedStartDate,
           })
         ).unwrap();
-        setStartDateTasks(response);
+        setStartDateTasks([...response.tasks, ...response.issues]);
       } catch (error) {
         console.log(error);
       }
@@ -221,7 +221,7 @@ const TaskForm = ({
             date: formattedEndDate,
           })
         ).unwrap();
-        setTargetDateTasks(response);
+        setTargetDateTasks([...response.tasks, ...response.issues]);
       } catch (error) {
         console.log(error);
       }
@@ -395,8 +395,8 @@ const TaskForm = ({
           </label>
           <SelectBox
             options={users.map((user) => ({
-              label: user?.user?.name || user.name,
-              value: user.user_id || user.id,
+              label: user.name ? user.name : user?.firstname + " " + user?.lastname,
+              value: user.id,
             }))}
             placeholder="Select Person"
             value={formData.responsiblePerson}
@@ -929,7 +929,7 @@ const Tasks = ({ isEdit, onCloseModal }) => {
             isReadOnly={true}
             project={project}
             milestone={milestone}
-            users={members || users}
+            users={members.length > 0 ? members : users}
             tags={tags}
             prevTags={prevTags}
             setPrevTags={setPrevTags}
@@ -960,7 +960,7 @@ const Tasks = ({ isEdit, onCloseModal }) => {
             isReadOnly={false}
             project={project}
             milestone={milestone}
-            users={members || users}
+            users={members.length > 0 ? members : users}
             tags={tags}
             prevTags={prevTags}
             setPrevTags={setPrevTags}

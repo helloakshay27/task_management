@@ -1,9 +1,53 @@
 /* eslint-disable react/prop-types */
-import { useState } from 'react';
-import CloseIcon from '@mui/icons-material/Close';
+import { useEffect, useState } from 'react';
 import SelectBox from '../../components/SelectBox';
+import MultiSelectBox from '../../components/MultiSelectBox';
+import { CheckCircle2, FileText, Upload } from 'lucide-react';
+import { useDispatch } from 'react-redux';
+import { fetchDepartment } from '@/redux/slices/departmentSlice';
+import { fetchShift } from '@/redux/slices/shiftSlice';
+import toast from 'react-hot-toast';
+import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
+import { baseURL } from '../../../apiDomain';
+
+const uploadSections = [
+    {
+        id: 'onBoardingFile',
+        label: 'On Boarding',
+        description: 'Upload onboarding documentation'
+    },
+    {
+        id: 'employeeHandbookFile',
+        label: 'Employee Handbook',
+        description: 'Company policies and guidelines'
+    },
+    {
+        id: 'employeeCompensationFile',
+        label: 'Employee Compensation',
+        description: 'Salary and benefits information'
+    },
+    {
+        id: 'exitProcessFile',
+        label: 'Exit Process',
+        description: 'Offboarding procedures'
+    },
+    {
+        id: 'managementFile',
+        label: 'Employee Management & Record Keeping',
+        description: 'HR records and documentation'
+    }
+];
 
 const EmployeeAddPage = () => {
+    const navigate = useNavigate();
+    const dispatch = useDispatch();
+    const token = localStorage.getItem('token');
+
+    const [departments, setDepartments] = useState([])
+    const [shifts, setShifts] = useState([])
+    const [buildigs, setBuildigs] = useState([])
+    const [floors, setFloors] = useState([])
     const [formData, setFormData] = useState({
         firstName: '',
         lastName: '',
@@ -17,11 +61,46 @@ const EmployeeAddPage = () => {
         lateComing: false,
         applicable: false,
         workType: '',
-        building: '',
-        floor: '',
+        building: [],
+        floor: [],
         onBoardingFile: null,
         employeeHandbookFile: null,
+        employeeCompensationFile: null,
+        exitProcessFile: null,
+        managementFile: null
     });
+
+    useEffect(() => {
+        const fetchDepartments = async () => {
+            try {
+                const response = await dispatch(fetchDepartment({ token })).unwrap();
+                setDepartments(response);
+            } catch (error) {
+                console.error('Error fetching departments:', error);
+            }
+        };
+
+        const fetchShifts = async () => {
+            try {
+                const response = await dispatch(fetchShift({ token })).unwrap();
+                setShifts(response.user_shifts);
+            } catch (error) {
+                console.error('Error fetching shifts:', error);
+            }
+        };
+
+        // const fetchBuildings = async () => {
+        //     try {
+        //         const response = await dispatch(fetchBuilding({ token })).unwrap();
+        //         setBuildigs(response);
+        //     } catch (error) {
+        //         console.error('Error fetching buildings:', error);
+        //     }
+        // };
+
+        fetchShifts();
+        fetchDepartments();
+    }, [])
 
     const handleInputChange = (e) => {
         const { name, value, type, checked } = e.target;
@@ -39,7 +118,7 @@ const EmployeeAddPage = () => {
     };
 
     const handleFileChange = (e, fieldName) => {
-        const file = e.target.files?.[0];
+        const file = e.target.files[0];
         if (file) {
             setFormData(prev => ({
                 ...prev,
@@ -48,9 +127,97 @@ const EmployeeAddPage = () => {
         }
     };
 
-    const handleSubmit = (e) => {
+    const validateForm = () => {
+        if (!formData.firstName) {
+            toast.error("First Name is required");
+            return false;
+        }
+        if (!formData.lastName) {
+            toast.error("Last Name is required");
+            return false;
+        }
+        if (!formData.email) {
+            toast.error("Email is required");
+            return false;
+        }
+        if (!formData.mobile) {
+            toast.error("Mobile is required");
+            return false;
+        }
+        if (!formData.department) {
+            toast.error("Department is required");
+            return false;
+        }
+        if (!formData.designation) {
+            toast.error("Designation is required");
+            return false;
+        }
+        if (!formData.shift) {
+            toast.error("Shift is required");
+            return false;
+        }
+        if (!formData.employeeId) {
+            toast.error("Employee ID is required");
+            return false;
+        }
+        if (!formData.workType) {
+            toast.error("Work Type is required");
+            return false;
+        }
+        return true;
+    };
+
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        console.log('Form data:', formData);
+        if (!validateForm()) return;
+        try {
+            const payload = {
+                user: {
+                    firstname: formData.firstName,
+                    lastname: formData.lastName,
+                    email: formData.email,
+                    mobile: formData.mobile,
+                    lock_user_permissions_attributes: [
+                        {
+                            department_id: formData.department,
+                            designation: formData.designation,
+                            user_shift_id: formData.shift,
+                            employee_id: formData.employeeId,
+                            work_type: formData.workType,
+                            building_id: formData.building,
+                            floor_id: formData.floor,
+                            on_boarding_attachments_attributes: [
+                                { document: formData.onBoardingFile }
+                            ],
+                            handbook_attachments_attributes: [
+                                { document: formData.employeeHandbookFile }
+                            ],
+                            compensation_attachments_attributes: [
+                                { document: formData.employeeCompensationFile }
+                            ],
+                            exit_process_attachments_attributes: [
+                                { document: formData.exitProcessFile }
+                            ],
+                            management_record_attachments_attributes: [
+                                { document: formData.managementFile }
+                            ]
+                        }
+                    ]
+                }
+            }
+
+            await axios.post(`${baseURL}/pms/manage/employees.json`, payload, {
+                headers: {
+                    "Authorization": `Bearer ${token}`,
+                    "Content-Type": "multipart/form-data"
+                }
+            })
+
+            toast.success("Employee added successfully")
+            navigate(-1)
+        } catch (error) {
+            console.log(error)
+        }
     };
 
     const departmentOptions = [
@@ -69,20 +236,17 @@ const EmployeeAddPage = () => {
 
     const workTypeOptions = [
         { label: 'Select Work Type', value: '' },
-        { label: 'Full Time', value: 'full_time' },
-        { label: 'Part Time', value: 'part_time' },
-        { label: 'Contract', value: 'contract' },
+        { label: 'Work from Office', value: 'Work from Office' },
+        { label: 'Work from Home/Office', value: 'Work from Home/Office' },
     ];
 
     const buildingOptions = [
-        { label: 'Select Building', value: '' },
         { label: 'Building A', value: 'building_a' },
         { label: 'Building B', value: 'building_b' },
         { label: 'Building C', value: 'building_c' },
     ];
 
     const floorOptions = [
-        { label: 'Select Floor', value: '' },
         { label: 'Ground', value: 'ground' },
         { label: 'First', value: 'first' },
         { label: 'Second', value: 'second' },
@@ -100,7 +264,7 @@ const EmployeeAddPage = () => {
                         <h2 className="text-lg font-semibold text-gray-800">BASIC INFORMATION</h2>
                     </div>
 
-                    <div className="grid grid-cols-5 gap-4">
+                    <div className="grid grid-cols-4 gap-2">
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">
                                 First Name<span className="text-red-500">*</span>
@@ -153,7 +317,7 @@ const EmployeeAddPage = () => {
                                 className="w-full px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-[#C72030]"
                             />
                         </div>
-                        <div>
+                        {/* <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">
                                 Desk Extension<span className="text-red-500">*</span>
                             </label>
@@ -165,7 +329,7 @@ const EmployeeAddPage = () => {
                                 onChange={handleInputChange}
                                 className="w-full px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-[#C72030]"
                             />
-                        </div>
+                        </div> */}
                     </div>
                 </div>
 
@@ -178,13 +342,18 @@ const EmployeeAddPage = () => {
                         <h2 className="text-lg font-semibold text-gray-800">FUNCTIONAL DETAILS</h2>
                     </div>
 
-                    <div className="grid grid-cols-4 gap-4">
+                    <div className="grid grid-cols-4 gap-2">
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">
                                 Department<span className="text-red-500">*</span>
                             </label>
                             <SelectBox
-                                options={departmentOptions}
+                                options={
+                                    departments.map((item) => ({
+                                        label: item.name,
+                                        value: item.id,
+                                    }))
+                                }
                                 value={formData.department}
                                 onChange={(val) => handleSelectChange('department', val)}
                                 placeholder="Select Department"
@@ -208,7 +377,12 @@ const EmployeeAddPage = () => {
                                 Shift<span className="text-red-500">*</span>
                             </label>
                             <SelectBox
-                                options={shiftOptions}
+                                options={
+                                    shifts.map((item) => ({
+                                        label: item.timings,
+                                        value: item.id,
+                                    }))
+                                }
                                 value={formData.shift}
                                 onChange={(val) => handleSelectChange('shift', val)}
                                 placeholder="Select Shift"
@@ -229,7 +403,7 @@ const EmployeeAddPage = () => {
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4 mt-4">
+                    {/* <div className="grid grid-cols-2 gap-2 mt-4">
                         <div className="flex items-center gap-2">
                             <input
                                 type="checkbox"
@@ -243,7 +417,7 @@ const EmployeeAddPage = () => {
                                 Late Coming
                             </label>
                         </div>
-                    </div>
+                    </div> */}
                 </div>
 
                 {/* Seat Management Section */}
@@ -255,7 +429,7 @@ const EmployeeAddPage = () => {
                         <h2 className="text-lg font-semibold text-gray-800">Seat Management</h2>
                     </div>
 
-                    <div className="grid grid-cols-3 gap-4">
+                    <div className="grid grid-cols-3 gap-2">
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">
                                 Work Type<span className="text-red-500">*</span>
@@ -271,7 +445,7 @@ const EmployeeAddPage = () => {
                             <label className="block text-sm font-medium text-gray-700 mb-1">
                                 Building<span className="text-red-500">*</span>
                             </label>
-                            <SelectBox
+                            <MultiSelectBox
                                 options={buildingOptions}
                                 value={formData.building}
                                 onChange={(val) => handleSelectChange('building', val)}
@@ -282,7 +456,7 @@ const EmployeeAddPage = () => {
                             <label className="block text-sm font-medium text-gray-700 mb-1">
                                 Floor<span className="text-red-500">*</span>
                             </label>
-                            <SelectBox
+                            <MultiSelectBox
                                 options={floorOptions}
                                 value={formData.floor}
                                 onChange={(val) => handleSelectChange('floor', val)}
@@ -301,66 +475,63 @@ const EmployeeAddPage = () => {
                         <h2 className="text-lg font-semibold text-gray-800">ATTACHMENTS</h2>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-6">
-                        {/* On Boarding */}
-                        <div className="border border-gray-200 rounded p-4">
-                            <label className="block text-sm font-medium text-gray-700 mb-3">
-                                On Boarding
-                            </label>
-                            <div className="flex items-center justify-between mb-4">
-                                <span className="text-sm text-gray-600">
-                                    {formData.onBoardingFile ? formData.onBoardingFile.name : 'No file chosen'}
-                                </span>
-                                <label className="text-red-600 cursor-pointer text-sm font-medium">
-                                    Choose file
-                                    <input
-                                        type="file"
-                                        onChange={(e) => handleFileChange(e, 'onBoardingFile')}
-                                        className="hidden"
-                                    />
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {uploadSections.map((section) => (
+                            <div
+                                key={section.id}
+                                className="group relative border-2 border-gray-200 rounded-lg p-6 hover:shadow-md transition-all duration-200 bg-white"
+                            >
+                                <label className="block text-base font-semibold text-gray-800 mb-1">
+                                    {section.label}
                                 </label>
-                            </div>
-                            {formData.onBoardingFile && (
-                                <button
-                                    type="button"
-                                    onClick={() => setFormData(prev => ({ ...prev, onBoardingFile: null }))}
-                                    className="text-red-600 hover:bg-red-50 p-2 rounded"
-                                    title="Remove file"
-                                >
-                                    <CloseIcon sx={{ fontSize: '20px' }} />
-                                </button>
-                            )}
-                        </div>
+                                <p className="text-xs text-gray-500 mb-4">{section.description}</p>
 
-                        {/* Employee Handbook */}
-                        <div className="border border-gray-200 rounded p-4">
-                            <label className="block text-sm font-medium text-gray-700 mb-3">
-                                Employee Handbook
-                            </label>
-                            <div className="flex items-center justify-between mb-4">
-                                <span className="text-sm text-gray-600">
-                                    {formData.employeeHandbookFile ? formData.employeeHandbookFile.name : 'No file chosen'}
-                                </span>
-                                <label className="text-red-600 cursor-pointer text-sm font-medium">
-                                    Choose file
-                                    <input
-                                        type="file"
-                                        onChange={(e) => handleFileChange(e, 'employeeHandbookFile')}
-                                        className="hidden"
-                                    />
-                                </label>
+                                <div className="flex items-center justify-between gap-3">
+                                    <div className="flex items-center gap-2 flex-1 min-w-0">
+                                        {formData[section.id] ? (
+                                            <>
+                                                <CheckCircle2 className="w-5 h-5 text-green-600 flex-shrink-0" />
+                                                <span className="text-sm text-gray-700 truncate font-medium">
+                                                    {formData[section.id].name}
+                                                </span>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <FileText className="w-5 h-5 text-gray-400 flex-shrink-0" />
+                                                <span className="text-sm text-gray-500 italic">
+                                                    No file chosen
+                                                </span>
+                                            </>
+                                        )}
+                                    </div>
+
+                                    <label className="flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-md cursor-pointer transition-colors duration-200 flex-shrink-0">
+                                        <Upload className="w-4 h-4" />
+                                        Choose
+                                        <input
+                                            type="file"
+                                            onChange={(e) => handleFileChange(e, section.id)}
+                                            className="hidden"
+                                            accept=".pdf,.doc,.docx"
+                                        />
+                                    </label>
+                                </div>
+
+                                {formData[section.id] && (
+                                    <div className="mt-3 pt-3 border-t border-gray-100">
+                                        <div className="flex items-center justify-between text-xs text-gray-500">
+                                            <span>Size: {(formData[section.id].size / 1024).toFixed(1)} KB</span>
+                                            <button
+                                                onClick={() => setFormData(prev => ({ ...prev, [section.id]: null }))}
+                                                className="text-red-600 hover:text-red-700 font-medium"
+                                            >
+                                                Remove
+                                            </button>
+                                        </div>
+                                    </div>
+                                )}
                             </div>
-                            {formData.employeeHandbookFile && (
-                                <button
-                                    type="button"
-                                    onClick={() => setFormData(prev => ({ ...prev, employeeHandbookFile: null }))}
-                                    className="text-red-600 hover:bg-red-50 p-2 rounded"
-                                    title="Remove file"
-                                >
-                                    <CloseIcon sx={{ fontSize: '20px' }} />
-                                </button>
-                            )}
-                        </div>
+                        ))}
                     </div>
                 </div>
 

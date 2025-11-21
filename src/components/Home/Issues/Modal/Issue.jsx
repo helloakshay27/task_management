@@ -140,6 +140,8 @@ const Issues = ({ closeModal }) => {
   const [totalWorkingHours, setTotalWorkingHours] = useState(0);
   const [dateWiseHours, setDateWiseHours] = useState([]);
 
+  console.log(dateWiseHours)
+
   const token = localStorage.getItem("token");
   const isSubmittingRef = useRef(false);
   const startDateRef = useRef(null);
@@ -290,7 +292,7 @@ const Issues = ({ closeModal }) => {
             date: formattedStartDate,
           })
         ).unwrap();
-        setStartDateTasks(response);
+        setStartDateTasks([...response.tasks, ...response.issues]);
       } catch (error) {
         console.log(error);
       }
@@ -318,7 +320,7 @@ const Issues = ({ closeModal }) => {
             date: formattedEndDate,
           })
         ).unwrap();
-        setTargetDateTasks(response);
+        setTargetDateTasks([...response.tasks, ...response.issues]);
       } catch (error) {
         console.log(error);
       }
@@ -543,7 +545,12 @@ const Issues = ({ closeModal }) => {
       );
       formData.append("issue[comment]", comments || "");
       formData.append("issue[estimated_hour]", totalWorkingHours || 0);
-
+      // formData.append("issue[issue_allocation_times_attributes]", dateWiseHours);
+      dateWiseHours.map(date => {
+        formData.append("issue[issue_allocation_times_attributes][][hours]", date.hours);
+        formData.append("issue[issue_allocation_times_attributes][][minutes]", date.minutes);
+        formData.append("issue[issue_allocation_times_attributes][][date]", date.date);
+      })
       attachments.forEach((file) => {
         formData.append("issue[attachments][]", file);
       });

@@ -113,7 +113,7 @@ class WebSocketManager {
                             case 'new_conversation':
                                 callbacks.onNewConversation?.(data.conversation);
                                 break;
-                            case 'message_notification':
+                            case 'new_message':
                                 callbacks.onMessageNotification?.(data.message, data.context);
                                 break;
                             default:

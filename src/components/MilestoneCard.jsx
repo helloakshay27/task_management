@@ -202,7 +202,7 @@ const MilestoneCard = ({ milestone, toggleTaskCard, hasVisibleTasks, isExpanded 
                         className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] text-gray-800`}
                         style={{ backgroundColor: getRandomColor() }}
                     >
-                        {milestone.owner_name.charAt(0).toUpperCase()}
+                        {milestone?.owner_name?.charAt(0).toUpperCase()}
                     </div>
                 </div>
             </div>
