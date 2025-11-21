@@ -297,6 +297,19 @@ const GanttChart = () => {
         gantt.config.columns = [
             {
                 name: "text",
+                label: "Id",
+                tree: true,
+                width: 130,
+                resize: true,
+                template: function (task) {
+                    if (task.type === "milestone") {
+                        return `<span class="gantt-milestone-link" data-id="${task.navigationid}" style="cursor: pointer; font-size: 14px;" title="${task.text}">M-${task.id.split('-')[1]}</span>`;
+                    }
+                    return `<span style="cursor: pointer; font-size: 14px;" title="${task.text}">T-${task.id.split('-')[1]}</span>`;
+                },
+            },
+            {
+                name: "text",
                 label: "Milestone / Task Title",
                 tree: true,
                 width: 250,
@@ -1083,7 +1096,7 @@ const GanttChart = () => {
                     )
                         .then(response => {
                             console.log('Dependency updated successfully:', response.data);
-                            toast.success('Dependency added successfully!');
+                            // toast.success('Dependency added successfully!');
                         })
                         .catch(error => {
                             console.error('Error updating dependency:', error);

@@ -235,7 +235,7 @@ const MilestoneDetailsPage = () => {
                 <Toaster position="top-center" />
                 <div className="px-4 pt-1">
                     <h2 className="text-[15px] p-3 px-0">
-                        <span className="mr-3">T-0{milestone.id}</span>
+                        <span className="mr-3">M-0{milestone.id}</span>
                         <span>{milestone.title}</span>
                     </h2>
                     <div className="border-b-[3px] border-[rgba(190, 190, 190, 1)]"></div>
