@@ -287,6 +287,7 @@ const TaskTable = ({ isModalOpen, searchQuery }) => {
     loading: loadingUsers,
     error: usersFetchError,
   } = useSelector((state) => state.fetchUsers || { users: [], loading: false, error: null });
+  console.log(users)
   const {
     filterTask: filterTasks,
     loading: loadingFilterTasks,
@@ -296,7 +297,6 @@ const TaskTable = ({ isModalOpen, searchQuery }) => {
   console.log(projectTeamMembers)
   console.log(users)
   const { fetchMilestoneById: milestone } = useSelector((state) => state.fetchMilestoneById);
-  console.log(milestone)
 
   const userFetchInitiatedRef = useRef(false);
   const isFetchingRef = useRef(false);
@@ -331,18 +331,21 @@ const TaskTable = ({ isModalOpen, searchQuery }) => {
   const ROW_HEIGHT = 40;
   const HEADER_HEIGHT = 40;
 
+  console.log(Array.isArray(projectTeamMembers))
   useEffect(() => {
-    if (projectTeamMembers) {
+    if (!Array.isArray(projectTeamMembers)) {
       const members = []
 
       projectTeamMembers?.project_team_members?.map((member) => {
         members.push(member.user)
       })
-      members.push(projectTeamMembers.team_lead)
+      members.push(projectTeamMembers?.team_lead)
 
       setMembers(members)
     }
   }, [projectTeamMembers])
+
+  console.log(members.length)
 
   const createNewTaskDefaults = useCallback(
     () => ({
@@ -798,6 +801,8 @@ const TaskTable = ({ isModalOpen, searchQuery }) => {
     return () => window.removeEventListener("keydown", handleEscape);
   }, [isAddingNewTask, handleCancelNewTask]);
 
+  console.log(members)
+
   const mainTableColumns = [
     {
       id: "expander",
@@ -875,10 +880,11 @@ const TaskTable = ({ isModalOpen, searchQuery }) => {
       size: 150,
       cell: ({ getValue, row }) => (
         <SelectBox
-          options={(members?.length > 0 ? members : users).map((user) => ({
-            value: user?.id,
-            label: user?.name || `${user.firstname} ${user.lastname}`,
-          }))}
+          options={(members?.filter(Boolean).length > 0 ? members.filter(Boolean) : users)
+            .map((user) => ({
+              value: user?.id,
+              label: user?.name || `${user?.firstname} ${user?.lastname}`,
+            }))}
           value={getValue()}
           onChange={(newValue) => handleUpdateTaskFieldCell(row.original.id, "responsible_person_id", newValue, row)}
           table={true}
@@ -1144,10 +1150,11 @@ const TaskTable = ({ isModalOpen, searchQuery }) => {
                   </td>
                   <td className="p-0 align-middle border-r-2">
                     <SelectBox
-                      options={Array.isArray(members) ? members.map((u) => ({
-                        value: u?.id,
-                        label: u?.name,
-                      })) : []}
+                      options={(members?.filter(Boolean).length > 0 ? members.filter(Boolean) : users)
+                        .map((user) => ({
+                          value: user?.id,
+                          label: user?.name || `${user?.firstname} ${user?.lastname}`,
+                        }))}
                       value={newTaskResponsiblePersonId}
                       onChange={(selectedId) => setNewTaskResponsiblePersonId(selectedId)}
                       placeholder="Select Person..."
@@ -1172,7 +1179,7 @@ const TaskTable = ({ isModalOpen, searchQuery }) => {
                         );
                       }}
                       min={milestone?.start_date ? milestone.start_date.split("T")[0] : new Date().toISOString().split("T")[0]}
-                      max={milestone?.end_date.split("T")[0] || undefined}
+                      max={milestone?.end_date?.split("T")[0] || undefined}
                     />
                   </td>
                   <td className="p-0 align-middle border-r-2">
