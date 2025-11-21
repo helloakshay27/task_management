@@ -377,7 +377,7 @@ const TasksOfDate = ({ selectedDate, onClose, tasks, userAvailability, selectedU
             ).unwrap();
 
             // Update current tasks with fetched tasks from the clicked date
-            setCurrentTasks(result || []);
+            setCurrentTasks([...result.tasks, ...result.issues]);
             setTaskStartIndex(0);
         } catch (err) {
             console.error("Failed to fetch tasks for date:", err);
