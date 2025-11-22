@@ -1062,7 +1062,7 @@ const TaskTable = ({ isModalOpen, searchQuery }) => {
       <>
         <div
           className="table-wrapper border-none overflow-x-auto"
-          style={{ minHeight: `${desiredTableHeight}px`, maxHeight: "80vh", overflowY: "auto" }}
+          style={{ maxHeight: "80vh", overflowY: "auto" }}
         >
           <table className="w-full text-sm table-fixed">
             <thead className="sticky top-0 bg-gray-50 z-30">
@@ -1081,7 +1081,7 @@ const TaskTable = ({ isModalOpen, searchQuery }) => {
               ))}
             </thead>
             <tbody className="bg-white">
-              {data.length === 0 && !isAddingNewTask && !showTopLevelAddTaskButton && !loadingTasks && !isCreatingTask && !isUpdatingTask && !loadingFilterTasks && (
+              {data.length === 0 && !isAddingNewTask && !loadingTasks && !isCreatingTask && !isUpdatingTask && !loadingFilterTasks && (
                 <tr style={{ height: `${ROW_HEIGHT * 2}px` }}>
                   <td colSpan={mainTableColumns.length} className="text-center text-gray-500 p-4">
                     {isFiltered ? "Try adjusting Filters" : ""} "No tasks available"
@@ -1208,7 +1208,7 @@ const TaskTable = ({ isModalOpen, searchQuery }) => {
                   <td className="p-0 align-middle border-r-2"></td>
                 </tr>
               )}
-              {showTopLevelAddTaskButton && (
+              {/* {showTopLevelAddTaskButton && (
                 <tr style={{ height: `${ROW_HEIGHT}px` }}>
                   <td colSpan={mainTableColumns.length} className="border text-left text-[12px]">
                     <button
@@ -1219,12 +1219,12 @@ const TaskTable = ({ isModalOpen, searchQuery }) => {
                     </button>
                   </td>
                 </tr>
-              )}
-              {Array.from({ length: numEmptyRowsToFill }).map((_, i) => (
+              )} */}
+              {/* {Array.from({ length: numEmptyRowsToFill }).map((_, i) => (
                 <tr key={`empty-${i}`} style={{ height: `${ROW_HEIGHT}px` }}>
                   <td colSpan={mainTableColumns.length} className="border-r-2 p-2"></td>
                 </tr>
-              ))}
+              ))} */}
             </tbody>
           </table>
         </div>

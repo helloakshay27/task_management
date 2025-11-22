@@ -9,7 +9,7 @@ import { useEffect, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import gsap from "gsap";
-import { Toaster } from "react-hot-toast";
+import toast, { Toaster } from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 import { fetchStatus } from "../../redux/slices/statusSlice";
 import { deleteMilestone, fetchMilestoneById, updateMilestone } from "../../redux/slices/milestoneSlice";
@@ -184,6 +184,8 @@ const MilestoneDetailsPage = () => {
                 payload: { status: mapDisplayToApiStatus(option) },
             })
         );
+        toast.dismiss()
+        toast.success("Status updated successfully");
     };
 
     useGSAP(() => {
@@ -318,13 +320,13 @@ const MilestoneDetailsPage = () => {
                     <div className="border rounded-md shadow-custom p-5 mb-4">
                         <div
                             className="font-[600] text-[16px] flex items-center gap-4"
-                            onClick={toggleSecondCollapse}
                         >
                             <ChevronDownCircle
                                 color="#E95420"
                                 size={30}
                                 className={`${isSecondCollapsed ? "rotate-180" : "rotate-0"
-                                    } transition-transform`}
+                                    } transition-transform cursor-pointer`}
+                                onClick={toggleSecondCollapse}
                             />{" "}
                             Details
                         </div>

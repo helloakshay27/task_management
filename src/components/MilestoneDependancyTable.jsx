@@ -7,6 +7,17 @@ import { fetchUsers } from '../redux/slices/userSlice';
 import toast from 'react-hot-toast';
 import { fetchProjectDetails } from '../redux/slices/projectSlice';
 
+const mapStatusToDisplay = (rawStatus) => {
+    const statusMap = {
+        open: "Open",
+        in_progress: "In Progress",
+        on_hold: "On Hold",
+        overdue: "Overdue",
+        completed: "Completed",
+    };
+    return statusMap[rawStatus?.toLowerCase()] || "Open";
+};
+
 const MilestoneDependencyTable = () => {
     const { id, mid } = useParams();
     const dispatch = useDispatch();
@@ -208,7 +219,7 @@ const MilestoneDependencyTable = () => {
         const payload = {
             milestone: {
                 title: newMilestone.title,
-                status: "Open",
+                status: "open",
                 owner_id: newMilestone.owner_id,
                 start_date: newMilestone.start_date,
                 end_date: newMilestone.end_date,
@@ -223,7 +234,7 @@ const MilestoneDependencyTable = () => {
             await getDependentMilestones();
             setNewMilestone({
                 title: '',
-                status: 'Open',
+                status: 'open',
                 owner_name: '',
                 owner_id: '',
                 start_date: '',
@@ -417,7 +428,7 @@ const MilestoneDependencyTable = () => {
                                         <td className="px-6 py-4 cursor-pointer" onClick={() => startEditing(milestone)}>
                                             <div className="flex items-center gap-2 text-sm">
                                                 <span className={`w-2 h-2 rounded-full ${getStatusColor(milestone.status)}`}></span>
-                                                <span className="text-gray-800">{milestone.status}</span>
+                                                <span className="text-gray-800">{mapStatusToDisplay(milestone.status)}</span>
                                             </div>
                                         </td>
                                         <td className="!px-6 py-4 text-gray-800 text-sm cursor-pointer" onClick={() => startEditing(milestone)}>

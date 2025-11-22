@@ -316,7 +316,7 @@ const GanttChart = () => {
                 resize: true,
                 template: function (task) {
                     if (task.type === "milestone") {
-                        return `<span class="gantt-milestone-link" data-id="${task.navigationid}" style="cursor: pointer; font-size: 14px;" title="${task.text}">${task.text}</span>`;
+                        return `<span class="gantt-milestone-link" style="cursor: pointer; font-size: 14px;" title="${task.text}">${task.text}</span>`;
                     }
                     return `<span style="cursor: pointer; font-size: 14px;" title="${task.text}">${task.text}</span>`;
                 },

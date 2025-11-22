@@ -60,7 +60,7 @@ const TaskActions = ({
     isModalOpen,
     setIsModalOpen,
 }) => {
-    const { id, mid } = useParams();
+    const { mid } = useParams();
     const [isTypeOpen, setIsTypeOpen] = useState(false);
     const [isStatusOpen, setIsStatusOpen] = useState(false);
     const [isSprintModalOpen, setIsSprintModalOpen] = useState(false);
@@ -228,11 +228,11 @@ const TaskActions = ({
     const handleExport = async () => {
         try {
             if (addType === "Task") {
-                // const queryParams = new URLSearchParams();
-                // if (window.location.pathname.includes("/projects")) {
-                //     queryParams.append("q[project_id_eq]", projectId);
-                // }
-                const response = await axios.get(`${baseURL}/task_managements/export_tasks.json`, {
+                const queryParams = new URLSearchParams();
+                if (window.location.pathname.includes("/projects")) {
+                    queryParams.append("milestone_id", mid);
+                }
+                const response = await axios.get(`${baseURL}/task_managements/export_tasks.json?${queryParams.toString()}`, {
                     responseType: 'blob',
                     headers: {
                         "Authorization": `Bearer ${token}`

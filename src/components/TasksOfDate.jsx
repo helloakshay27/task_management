@@ -211,11 +211,9 @@ const TasksOfDate = ({ selectedDate, onClose, tasks, userAvailability, selectedU
     const dispatch = useDispatch();
     const token = localStorage.getItem("token");
 
-    const [dateStartIndex, setDateStartIndex] = useState(0);
+    const [dateStartIndex, setDateStartIndex] = useState(null);
     const [assignedTasks, setAssignedTasks] = useState({});
-    // track local adjustments to availability after successful drops
     const [availabilityUpdates, setAvailabilityUpdates] = useState({});
-    // track pending drops per date so UI doesn't apply change until API returns
     const [pendingDrops, setPendingDrops] = useState({});
     const [taskStartIndex, setTaskStartIndex] = useState(0);
     const [currentTasks, setCurrentTasks] = useState([]);
@@ -237,17 +235,22 @@ const TasksOfDate = ({ selectedDate, onClose, tasks, userAvailability, selectedU
             (a, b) => new Date(a.date) - new Date(b.date)
         );
 
+        const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+        const selectedFullDate = selectedDate
+            ? `${selectedDate.year}-${String(selectedDate.month + 1).padStart(2, "0")}-${String(selectedDate.date).padStart(2, "0")}`
+            : new Date().toISOString().split("T")[0];
+
+        // Initialize dateStartIndex based on selected date position on first load
+        if (dateStartIndex === null) {
+            const selectedIndex = sorted.findIndex(u => u.date === selectedFullDate);
+            setDateStartIndex(selectedIndex !== -1 ? selectedIndex : 0);
+            return [];
+        }
+
         const visible = sorted.slice(
             dateStartIndex,
             dateStartIndex + visibleDaysCount
         );
-
-        const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-        const selectedFullDate = selectedDate
-            ? new Date(2024, selectedDate.month, selectedDate.date)
-                .toISOString()
-                .split("T")[0]
-            : new Date().toISOString().split("T")[0];
 
         // helper to format hours string (shows decimals if needed)
         const formatHoursString = (h) => {
