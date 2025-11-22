@@ -907,6 +907,115 @@ const ProjectList = ({ searchQuery }) => {
         .map((columnId) => allColumns.find((col) => col.id === columnId || col.accessorKey === columnId))
         .filter(Boolean);
 
+    const renderNewProjectRow = () => {
+        const newProjectFields = {
+            id: (
+                <td key="id" className="p-1 border-r-2 text-center text-gray-500 text-xs align-middle">
+                    NEW
+                </td>
+            ),
+            title: (
+                <td key="title" className="p-0 border-r-2 align-middle">
+                    <NewProjectTextField
+                        inputRef={newProjectTitleInputRef}
+                        value={newProjectTitle}
+                        onChange={(e) => {
+                            setNewProjectTitle(e.target.value);
+                            if (localError) setLocalError(null);
+                        }}
+                        onEnterPress={handleSaveNewProject}
+                        placeholder="Project Title"
+                        validator={validator}
+                    />
+                </td>
+            ),
+            status: (
+                <td key="status" className="p-1 border-r-2 align-middle">
+                    <StatusBadge
+                        statusOptions={globalStatusOptions.map(
+                            (s) => s.charAt(0).toUpperCase() + s.slice(1)
+                        )}
+                        status={
+                            newProjectStatus.charAt(0).toUpperCase() +
+                            newProjectStatus.slice(1)
+                        }
+                        onStatusChange={(val) =>
+                            setNewProjectStatus(val.toLowerCase())
+                        }
+                    />
+                </td>
+            ),
+            type: (
+                <td key="type" className="p-1 border-r-2 align-middle">
+                    <SelectBox
+                        options={projectTypeOptions}
+                        value={newProjectType}
+                        onChange={(selected) => setNewProjectType(selected)}
+                        table={true}
+                    />
+                </td>
+            ),
+            manager: (
+                <td key="manager" className="p-0 border-r-2 align-middle">
+                    <SelectBox
+                        options={userOptionsForSelectBox}
+                        value={newProjectManager}
+                        onChange={(selectedValue) =>
+                            setNewProjectManager(selectedValue)
+                        }
+                        table={true}
+                        placeholder="Select Manager..."
+                    />
+                </td>
+            ),
+            milestones: (
+                <td key="milestones" className="p-1 border-r-2 align-middle"></td>
+            ),
+            tasks: (
+                <td key="tasks" className="p-1 border-r-2 align-middle"></td>
+            ),
+            issues: (
+                <td key="issues" className="p-1 border-r-2 align-middle"></td>
+            ),
+            startDate: (
+                <td key="startDate" className="p-0 border-r-2 align-middle">
+                    <NewProjectDateEditor
+                        value={newProjectStartDate}
+                        onChange={(e) => setNewProjectStartDate(e.target.value)}
+                        onEnterPress={handleSaveNewProject}
+                        validator={validator}
+                        min={new Date().toISOString().split("T")[0]}
+                    />
+                </td>
+            ),
+            endDate: (
+                <td key="endDate" className="p-0 border-r-2 align-middle">
+                    <NewProjectDateEditor
+                        value={newProjectEndDate}
+                        onChange={(e) => setNewProjectEndDate(e.target.value)}
+                        onEnterPress={handleSaveNewProject}
+                        validator={validator}
+                        min={newProjectStartDate}
+                    />
+                </td>
+            ),
+            priority: (
+                <td key="priority" className="p-1 border-r-2 align-middle">
+                    <StatusBadge
+                        statusOptions={globalPriorityOptionsForNew}
+                        status={newProjectPriority}
+                        onStatusChange={(val) => setNewProjectPriority(val)}
+                    />
+                </td>
+            ),
+            actions: (
+                <td key="actions" className="p-1 border-r-2 text-center align-middle"></td>
+            ),
+        };
+
+        return columnOrder.map((colId) => newProjectFields[colId] || null);
+    };
+
     const table = useReactTable({
         data,
         columns,
@@ -1025,84 +1134,7 @@ const ProjectList = ({ searchQuery }) => {
                                     className="bg-blue-50"
                                     style={{ height: `${rowHeight}px` }}
                                 >
-                                    <td className="p-1 border-r-2 text-center text-gray-500 text-xs align-middle">
-                                        NEW
-                                    </td>
-                                    <td className="p-0 border-r-2 align-middle">
-                                        <NewProjectTextField
-                                            inputRef={newProjectTitleInputRef}
-                                            value={newProjectTitle}
-                                            onChange={(e) => {
-                                                setNewProjectTitle(e.target.value);
-                                                if (localError) setLocalError(null);
-                                            }}
-                                            onEnterPress={handleSaveNewProject}
-                                            placeholder="Project Title"
-                                            validator={validator}
-                                        />
-                                    </td>
-                                    <td className="p-1 border-r-2 align-middle">
-                                        <StatusBadge
-                                            statusOptions={globalStatusOptions.map(
-                                                (s) => s.charAt(0).toUpperCase() + s.slice(1)
-                                            )}
-                                            status={
-                                                newProjectStatus.charAt(0).toUpperCase() +
-                                                newProjectStatus.slice(1)
-                                            }
-                                            onStatusChange={(val) =>
-                                                setNewProjectStatus(val.toLowerCase())
-                                            }
-                                        />
-                                    </td>
-                                    <td className="p-1 border-r-2 align-middle">
-                                        <SelectBox
-                                            options={projectTypeOptions}
-                                            value={newProjectType}
-                                            onChange={(selected) => setNewProjectType(selected)}
-                                            table={true}
-                                        />
-                                    </td>
-                                    <td className="p-0 border-r-2 align-middle">
-                                        <SelectBox
-                                            options={userOptionsForSelectBox}
-                                            value={newProjectManager}
-                                            onChange={(selectedValue) =>
-                                                setNewProjectManager(selectedValue)
-                                            }
-                                            table={true}
-                                            placeholder="Select Manager..."
-                                        />
-                                    </td>
-                                    <td className="p-1 border-r-2 align-middle"></td>
-                                    <td className="p-1 border-r-2 align-middle"></td>
-                                    <td className="p-1 border-r-2 align-middle"></td>
-                                    <td className="p-0 border-r-2 align-middle">
-                                        <NewProjectDateEditor
-                                            value={newProjectStartDate}
-                                            onChange={(e) => setNewProjectStartDate(e.target.value)}
-                                            onEnterPress={handleSaveNewProject}
-                                            validator={validator}
-                                            min={new Date().toISOString().split("T")[0]}
-                                        />
-                                    </td>
-                                    <td className="p-0 border-r-2 align-middle">
-                                        <NewProjectDateEditor
-                                            value={newProjectEndDate}
-                                            onChange={(e) => setNewProjectEndDate(e.target.value)}
-                                            onEnterPress={handleSaveNewProject}
-                                            validator={validator}
-                                            min={newProjectStartDate}
-                                        />
-                                    </td>
-                                    <td className="p-1 border-r-2 align-middle">
-                                        <StatusBadge
-                                            statusOptions={globalPriorityOptionsForNew}
-                                            status={newProjectPriority}
-                                            onStatusChange={(val) => setNewProjectPriority(val)}
-                                        />
-                                    </td>
-                                    <td className="p-1 border-r-2 text-center align-middle"></td>
+                                    {renderNewProjectRow()}
                                 </tr>
                             )}
                         </tbody>

@@ -722,6 +722,94 @@ const MilestoneList = ({ searchQuery }) => {
         .map((columnId) => allColumns.find((col) => col.id === columnId || col.accessorKey === columnId))
         .filter(Boolean);
 
+    const renderNewMilestoneRow = () => {
+        const newMilestoneFields = {
+            id: (
+                <td key="id" className="p-1 border-r-2 text-center text-gray-500 text-xs align-middle">
+                    NEW
+                </td>
+            ),
+            title: (
+                <td key="title" className="p-0 border-r-2 align-middle">
+                    <NewMilestoneTextField
+                        inputRef={newMilestoneTitleInputRef}
+                        value={newMilestoneTitle}
+                        onChange={(e) => {
+                            setNewMilestoneTitle(e.target.value);
+                            if (localError) setLocalError(null);
+                        }}
+                        onEnterPress={handleSaveNewMilestone}
+                        placeholder="Milestone Title"
+                        validator={validator}
+                    />
+                </td>
+            ),
+            status: (
+                <td key="status" className="p-1 border-r-2 align-middle">
+                    <StatusBadge
+                        statusOptions={globalStatusOptions.map(
+                            (s) => s.charAt(0).toUpperCase() + s.slice(1)
+                        )}
+                        status={
+                            newMilestoneStatus.charAt(0).toUpperCase() +
+                            newMilestoneStatus.slice(1)
+                        }
+                        onStatusChange={(val) =>
+                            setNewMilestoneStatus(val.toLowerCase())
+                        }
+                    />
+                </td>
+            ),
+            owner: (
+                <td key="owner" className="p-0 border-r-2 align-middle">
+                    <SelectBox
+                        options={userOptionsForSelectBox}
+                        value={newMilestoneOwner}
+                        onChange={(selectedValue) =>
+                            setNewMilestoneOwner(selectedValue)
+                        }
+                        table={true}
+                        placeholder="Select Owner..."
+                    />
+                </td>
+            ),
+            tasks: (
+                <td key="tasks" className="p-1 border-r-2 align-middle"></td>
+            ),
+            startDate: (
+                <td key="startDate" className="p-0 border-r-2 align-middle">
+                    <NewMilestoneDateEditor
+                        value={newMilestoneStartDate}
+                        onChange={(e) =>
+                            setNewMilestoneStartDate(e.target.value)
+                        }
+                        onEnterPress={handleSaveNewMilestone}
+                        validator={validator}
+                        min={new Date().toISOString().split("T")[0]}
+                    />
+                </td>
+            ),
+            endDate: (
+                <td key="endDate" className="p-0 border-r-2 align-middle">
+                    <NewMilestoneDateEditor
+                        value={newMilestoneEndDate}
+                        onChange={(e) =>
+                            setNewMilestoneEndDate(e.target.value)
+                        }
+                        onEnterPress={handleSaveNewMilestone}
+                        validator={validator}
+                        min={newMilestoneStartDate}
+                    />
+                </td>
+            ),
+            actions: (
+                <td key="actions" className="p-1 border-r-2 text-center align-middle"></td>
+            ),
+        };
+
+        return columnOrder.map((colId) => newMilestoneFields[colId] || null);
+    };
+
     const table = useReactTable({
         data,
         columns,
@@ -825,71 +913,7 @@ const MilestoneList = ({ searchQuery }) => {
                                     className="bg-blue-50"
                                     style={{ height: `${rowHeight}px` }}
                                 >
-                                    <td className="p-1 border-r-2 text-center text-gray-500 text-xs align-middle">
-                                        NEW
-                                    </td>
-                                    <td className="p-0 border-r-2 align-middle">
-                                        <NewMilestoneTextField
-                                            inputRef={newMilestoneTitleInputRef}
-                                            value={newMilestoneTitle}
-                                            onChange={(e) => {
-                                                setNewMilestoneTitle(e.target.value);
-                                                if (localError) setLocalError(null);
-                                            }}
-                                            onEnterPress={handleSaveNewMilestone}
-                                            placeholder="Milestone Title"
-                                            validator={validator}
-                                        />
-                                    </td>
-                                    <td className="p-1 border-r-2 align-middle">
-                                        <StatusBadge
-                                            statusOptions={globalStatusOptions.map(
-                                                (s) => s.charAt(0).toUpperCase() + s.slice(1)
-                                            )}
-                                            status={
-                                                newMilestoneStatus.charAt(0).toUpperCase() +
-                                                newMilestoneStatus.slice(1)
-                                            }
-                                            onStatusChange={(val) =>
-                                                setNewMilestoneStatus(val.toLowerCase())
-                                            }
-                                        />
-                                    </td>
-                                    <td className="p-0 border-r-2 align-middle">
-                                        <SelectBox
-                                            options={userOptionsForSelectBox}
-                                            value={newMilestoneOwner}
-                                            onChange={(selectedValue) =>
-                                                setNewMilestoneOwner(selectedValue)
-                                            }
-                                            table={true}
-                                            placeholder="Select Owner..."
-                                        />
-                                    </td>
-                                    <td className="p-1 border-r-2 align-middle"></td>
-                                    <td className="p-0 border-r-2 align-middle">
-                                        <NewMilestoneDateEditor
-                                            value={newMilestoneStartDate}
-                                            onChange={(e) =>
-                                                setNewMilestoneStartDate(e.target.value)
-                                            }
-                                            onEnterPress={handleSaveNewMilestone}
-                                            validator={validator}
-                                            min={new Date().toISOString().split("T")[0]}
-                                        />
-                                    </td>
-                                    <td className="p-0 border-r-2 align-middle">
-                                        <NewMilestoneDateEditor
-                                            value={newMilestoneEndDate}
-                                            onChange={(e) =>
-                                                setNewMilestoneEndDate(e.target.value)
-                                            }
-                                            onEnterPress={handleSaveNewMilestone}
-                                            validator={validator}
-                                            min={newMilestoneStartDate}
-                                        />
-                                    </td>
-                                    <td className="p-1 border-r-2 text-center align-middle"></td>
+                                    {renderNewMilestoneRow()}
                                 </tr>
                             )}
                         </tbody>

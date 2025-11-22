@@ -1027,6 +1027,126 @@ const TaskTable = ({ isModalOpen, searchQuery }) => {
     .map((columnId) => mainTableColumns.find((col) => col.id === columnId || col.accessorKey === columnId))
     .filter(Boolean);
 
+  const renderNewTaskRow = () => {
+    const newTaskFields = {
+      expander: (
+        <td key="expander" className="p-0 align-middle border-r-2 text-gray-400">
+          <div className="h-full w-full flex items-center px-1 justify-center">
+            <X onClick={handleCancelNewTask} className="cursor-pointer" size={17} />
+          </div>
+        </td>
+      ),
+      id: (
+        <td key="id" className="p-0 align-middle border-r-2 text-gray-400">
+          <div className="h-full w-full flex items-center px-1">---</div>
+        </td>
+      ),
+      taskTitle: (
+        <td key="taskTitle" className="pl-2 p-0 align-middle border-r-2">
+          <EditableTextField
+            value={newTaskTitle}
+            onUpdate={setNewTaskTitle}
+            inputRef={newTaskTitleInputRef}
+            isNewRow={true}
+            onEnterPress={handleSaveNewTask}
+            validator={!newTaskTitle || newTaskTitle.trim() === ""}
+          />
+        </td>
+      ),
+      status: (
+        <td key="status" className="pl-2 p-0 align-middle border-r-2">
+          <StatusBadge
+            status={newTaskStatus}
+            statusOptions={globalStatusOptions}
+            onStatusChange={setNewTaskStatus}
+          />
+        </td>
+      ),
+      responsiblePersonId: (
+        <td key="responsiblePersonId" className="p-0 align-middle border-r-2">
+          <SelectBox
+            options={(members?.filter(Boolean).length > 0 ? members.filter(Boolean) : users)
+              .map((user) => ({
+                value: user?.id,
+                label: user?.name || `${user?.firstname} ${user?.lastname}`,
+              }))}
+            value={newTaskResponsiblePersonId}
+            onChange={(selectedId) => setNewTaskResponsiblePersonId(selectedId)}
+            placeholder="Select Person..."
+            table={true}
+          />
+        </td>
+      ),
+      startDate: (
+        <td key="startDate" className="p-0 align-middle border-r-2">
+          <DateEditor
+            value={newTaskStartDate}
+            onUpdate={setNewTaskStartDate}
+            isNewRow={true}
+            onEnterPress={handleSaveNewTask}
+            validator={(date) => {
+              if (!date) return false;
+              const start = new Date(date);
+              const milestoneStart = milestone?.start_date ? new Date(milestone.start_date) : new Date();
+              const milestoneEnd = milestone?.end_date ? new Date(milestone.end_date) : null;
+              return (
+                start >= milestoneStart &&
+                (!milestoneEnd || start <= milestoneEnd) &&
+                (!newTaskEndDate || start <= new Date(newTaskEndDate))
+              );
+            }}
+            min={milestone?.start_date ? milestone.start_date.split("T")[0] : new Date().toISOString().split("T")[0]}
+            max={milestone?.end_date?.split("T")[0] || undefined}
+          />
+        </td>
+      ),
+      endDate: (
+        <td key="endDate" className="p-0 align-middle border-r-2">
+          <DateEditor
+            value={newTaskEndDate}
+            onUpdate={setNewTaskEndDate}
+            isNewRow={true}
+            onEnterPress={handleSaveNewTask}
+            className="text-[12px]"
+            validator={(date) => {
+              if (!date) return false;
+              const end = new Date(date);
+              const start = newTaskStartDate ? new Date(newTaskStartDate) : null;
+              const milestoneEnd = milestone?.end_date ? new Date(milestone.end_date) : null;
+              return (!start || end >= start) && (!milestoneEnd || end <= milestoneEnd);
+            }}
+            min={newTaskStartDate || milestone?.start_date?.split("T")[0]}
+            max={milestone?.end_date?.split("T")[0] || undefined}
+          />
+        </td>
+      ),
+      duration: (
+        <td key="duration" className="p-0 align-middle border-r-2 text-xs">
+          <div className="h-full w-full flex items-center px-2">
+            {calculateDuration(newTaskStartDate, newTaskEndDate).text}
+          </div>
+        </td>
+      ),
+      priority: (
+        <td key="priority" className="p-0 pl-2 align-middle border-r-2">
+          <StatusBadge
+            status={newTaskPriority}
+            statusOptions={globalPriorityOptions}
+            onStatusChange={setNewTaskPriority}
+          />
+        </td>
+      ),
+      predecessor: (
+        <td key="predecessor" className="p-0 align-middle border-r-2"></td>
+      ),
+      successor: (
+        <td key="successor" className="p-0 align-middle border-r-2"></td>
+      ),
+    };
+
+    return columnOrder.map((colId) => newTaskFields[colId] || null);
+  };
+
   const renderPagination = () => {
     const totalPages = pagination.totalPages;
     const currentPage = pagination.pageIndex;
@@ -1198,97 +1318,7 @@ const TaskTable = ({ isModalOpen, searchQuery }) => {
                   style={{ height: `${ROW_HEIGHT}px` }}
                   className="border-b relative z-1"
                 >
-                  <td className="p-0 align-middle border-r-2 text-gray-400">
-                    <div className="h-full w-full flex items-center px-1 justify-center">
-                      <X onClick={handleCancelNewTask} className="cursor-pointer" size={17} />
-                    </div>
-                  </td>
-                  <td className="p-0 align-middle border-r-2 text-gray-400">
-                    <div className="h-full w-full flex items-center px-1">---</div>
-                  </td>
-                  <td className="pl-2 p-0 align-middle border-r-2">
-                    <EditableTextField
-                      value={newTaskTitle}
-                      onUpdate={setNewTaskTitle}
-                      inputRef={newTaskTitleInputRef}
-                      isNewRow={true}
-                      onEnterPress={handleSaveNewTask}
-                      validator={!newTaskTitle || newTaskTitle.trim() === ""}
-                    />
-                  </td>
-                  <td className="pl-2 p-0 align-middle border-r-2">
-                    <StatusBadge
-                      status={newTaskStatus}
-                      statusOptions={globalStatusOptions}
-                      onStatusChange={setNewTaskStatus}
-                    />
-                  </td>
-                  <td className="p-0 align-middle border-r-2">
-                    <SelectBox
-                      options={(members?.filter(Boolean).length > 0 ? members.filter(Boolean) : users)
-                        .map((user) => ({
-                          value: user?.id,
-                          label: user?.name || `${user?.firstname} ${user?.lastname}`,
-                        }))}
-                      value={newTaskResponsiblePersonId}
-                      onChange={(selectedId) => setNewTaskResponsiblePersonId(selectedId)}
-                      placeholder="Select Person..."
-                      table={true}
-                    />
-                  </td>
-                  <td className="p-0 align-middle border-r-2">
-                    <DateEditor
-                      value={newTaskStartDate}
-                      onUpdate={setNewTaskStartDate}
-                      isNewRow={true}
-                      onEnterPress={handleSaveNewTask}
-                      validator={(date) => {
-                        if (!date) return false;
-                        const start = new Date(date);
-                        const milestoneStart = milestone?.start_date ? new Date(milestone.start_date) : new Date();
-                        const milestoneEnd = milestone?.end_date ? new Date(milestone.end_date) : null;
-                        return (
-                          start >= milestoneStart &&
-                          (!milestoneEnd || start <= milestoneEnd) &&
-                          (!newTaskEndDate || start <= new Date(newTaskEndDate))
-                        );
-                      }}
-                      min={milestone?.start_date ? milestone.start_date.split("T")[0] : new Date().toISOString().split("T")[0]}
-                      max={milestone?.end_date?.split("T")[0] || undefined}
-                    />
-                  </td>
-                  <td className="p-0 align-middle border-r-2">
-                    <DateEditor
-                      value={newTaskEndDate}
-                      onUpdate={setNewTaskEndDate}
-                      isNewRow={true}
-                      onEnterPress={handleSaveNewTask}
-                      className="text-[12px]"
-                      validator={(date) => {
-                        if (!date) return false;
-                        const end = new Date(date);
-                        const start = newTaskStartDate ? new Date(newTaskStartDate) : null;
-                        const milestoneEnd = milestone?.end_date ? new Date(milestone.end_date) : null;
-                        return (!start || end >= start) && (!milestoneEnd || end <= milestoneEnd);
-                      }}
-                      min={newTaskStartDate || milestone?.start_date?.split("T")[0]}
-                      max={milestone?.end_date?.split("T")[0] || undefined}
-                    />
-                  </td>
-                  <td className="p-0 align-middle border-r-2 text-xs">
-                    <div className="h-full w-full flex items-center px-2">
-                      {calculateDuration(newTaskStartDate, newTaskEndDate).text}
-                    </div>
-                  </td>
-                  <td className="p-0 pl-2 align-middle border-r-2">
-                    <StatusBadge
-                      status={newTaskPriority}
-                      statusOptions={globalPriorityOptions}
-                      onStatusChange={setNewTaskPriority}
-                    />
-                  </td>
-                  <td className="p-0 align-middle border-r-2"></td>
-                  <td className="p-0 align-middle border-r-2"></td>
+                  {renderNewTaskRow()}
                 </tr>
               )}
               {/* {showTopLevelAddTaskButton && (

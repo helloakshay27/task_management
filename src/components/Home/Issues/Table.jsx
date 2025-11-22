@@ -1248,6 +1248,180 @@ const IssuesTable = () => {
     .map((columnId) => allColumns.find((col) => col.id === columnId || col.accessorKey === columnId))
     .filter(Boolean);
 
+  const renderNewIssueRow = () => {
+    const newIssueFields = {
+      id: (
+        <td key="id" className="border p-1 text-xs text-gray-400 align-middle">
+          NEW
+        </td>
+      ),
+      projectName: (
+        <td key="projectName" className="border p-1 text-xs text-gray-400 align-middle">
+          {parentId ? (
+            <span className="text-xs text-gray-600">
+              {projectDetails?.title}
+            </span>
+          ) : (
+            <SelectBox
+              options={projectOptions}
+              value={newIssuesProjectId}
+              onChange={(selected) =>
+                setNewIssuesProjectId(selected)
+              }
+              placeholder="Select Project"
+              table={true}
+            />
+          )}
+        </td>
+      ),
+      milestoneName: (
+        <td key="milestoneName" className="border p-1 text-xs text-gray-400 align-middle">
+          <SelectBox
+            options={milestoneOptions}
+            value={newIssuesMilestoneId}
+            onChange={(selected) =>
+              setNewIssuesMilestoneId(selected)
+            }
+            placeholder="Select Milestone"
+            table={true}
+          />
+        </td>
+      ),
+      taskName: (
+        <td key="taskName" className="border p-1 text-xs text-gray-400 align-middle">
+          <SelectBox
+            options={taskOptions}
+            value={newIssuesTaskId}
+            onChange={(selected) => setNewIssuesTaskId(selected)}
+            placeholder="Select Task"
+            table={true}
+            validator={validator}
+          />
+        </td>
+      ),
+      subtaskName: (
+        <td key="subtaskName" className="border p-1 text-xs text-gray-400 align-middle">
+          <SelectBox
+            options={subtaskOptions}
+            value={newIssuesSubtaskId}
+            onChange={(selected) => setNewIssuesSubtaskId(selected)}
+            placeholder="Select Subtask"
+            table={true}
+          />
+        </td>
+      ),
+      issueTitle: (
+        <td key="issueTitle" className="border p-1 align-middle">
+          <NewIssuesTextField
+            inputRef={newIssuesTitleInputRef}
+            value={newIssuesTitle}
+            onChange={(e) => {
+              setNewIssuesTitle(e.target.value);
+              if (localError) setLocalError(null);
+            }}
+            onEnterPress={handleSaveNewIssues}
+            placeholder="Issues title"
+            validator={validator}
+          />
+        </td>
+      ),
+      attachments: (
+        <td key="attachments" className="border p-1 align-middle">
+          <Attachments
+            setAttachments={setAttachments}
+            attachments={attachments}
+            fileInputRef={newIssueAttachmentInputRef}
+            containerRef={newIssueAttachmentContainerRef}
+            setIsFileDialogOpen={setIsFileDialogOpen}
+          />
+        </td>
+      ),
+      status: (
+        <td key="status" className="border p-1 align-middle">
+          <StatusBadge
+            status={newIssuesStatus}
+            statusOptions={globalStatusOptions}
+            onStatusChange={setNewIssuesStatus}
+          />
+        </td>
+      ),
+      responsiblePerson: (
+        <td key="responsiblePerson" className="border p-1 align-middle">
+          <SelectBox
+            options={userOptionsForSelectBox}
+            value={newIssuesResponsiblePersonId}
+            onChange={setNewIssuesResponsiblePersonId}
+            placeholder="Select Person..."
+            table={true}
+          />
+        </td>
+      ),
+      issueType: (
+        <td key="issueType" className="border p-1 align-middle">
+          <SelectBox
+            options={
+              issueType.map(type => (
+                {
+                  label: type.name,
+                  value: type.id
+                }
+              ))
+            }
+            value={newIssuesType}
+            onChange={setNewIssuesType}
+            table={true}
+          />
+        </td>
+      ),
+      startDate: (
+        <td key="startDate" className="border p-1 align-middle">
+          <NewIssuesDateEditor
+            value={newIssuesStartDate}
+            onChange={(e) => setNewIssuesStartDate(e.target.value)}
+            onEnterPress={handleSaveNewIssues}
+            validator={validator}
+            min={new Date().toISOString().split("T")[0]}
+          />
+        </td>
+      ),
+      endDate: (
+        <td key="endDate" className="border p-1 align-middle">
+          <NewIssuesDateEditor
+            value={newIssuesEndDate}
+            onChange={(e) => setNewIssuesEndDate(e.target.value)}
+            onEnterPress={handleSaveNewIssues}
+            validator={validator}
+            min={newIssuesStartDate}
+          />
+        </td>
+      ),
+      priority: (
+        <td key="priority" className="border p-1 align-middle">
+          <StatusBadge
+            status={newIssuesPriority}
+            statusOptions={globalPriorityOptions}
+            onStatusChange={setNewIssuesPriority}
+          />
+        </td>
+      ),
+      comments: (
+        <td key="comments" className="border p-1 align-middle">
+          <NewIssuesTextField
+            value={newIssuesComments}
+            onChange={(e) => {
+              setNewIssuesComments(e.target.value);
+              if (localError) setLocalError(null);
+            }}
+            onEnterPress={handleSaveNewIssues}
+            placeholder="Comments"
+          />
+        </td>
+      ),
+    };
+
+    return columnOrder.map((colId) => newIssueFields[colId] || null);
+  };
+
   const table = useReactTable({
     data,
     columns,
@@ -1365,145 +1539,7 @@ const IssuesTable = () => {
                     ref={newIssueFormRowRef}
                     style={{ height: `${rowHeight}px` }}
                   >
-                    <td className="border p-1 text-xs text-gray-400 align-middle">
-                      NEW
-                    </td>
-                    <td className="border p-1 text-xs text-gray-400 align-middle">
-                      {parentId ? (
-                        <span className="text-xs text-gray-600">
-                          {projectDetails?.title}
-                        </span>
-                      ) : (
-                        <SelectBox
-                          options={projectOptions}
-                          value={newIssuesProjectId}
-                          onChange={(selected) =>
-                            setNewIssuesProjectId(selected)
-                          }
-                          placeholder="Select Project"
-                          table={true}
-                        />
-                      )}
-                    </td>
-                    <td className="border p-1 text-xs text-gray-400 align-middle">
-                      <SelectBox
-                        options={milestoneOptions}
-                        value={newIssuesMilestoneId}
-                        onChange={(selected) =>
-                          setNewIssuesMilestoneId(selected)
-                        }
-                        placeholder="Select Milestone"
-                        table={true}
-                      />
-                    </td>
-                    <td className="border p-1 text-xs text-gray-400 align-middle">
-                      <SelectBox
-                        options={taskOptions}
-                        value={newIssuesTaskId}
-                        onChange={(selected) => setNewIssuesTaskId(selected)}
-                        placeholder="Select Task"
-                        table={true}
-                        validator={validator}
-                      />
-                    </td>
-                    <td className="border p-1 text-xs text-gray-400 align-middle">
-                      <SelectBox
-                        options={subtaskOptions}
-                        value={newIssuesSubtaskId}
-                        onChange={(selected) => setNewIssuesSubtaskId(selected)}
-                        placeholder="Select Subtask"
-                        table={true}
-                      />
-                    </td>
-                    <td className="border p-1 align-middle">
-                      <NewIssuesTextField
-                        inputRef={newIssuesTitleInputRef}
-                        value={newIssuesTitle}
-                        onChange={(e) => {
-                          setNewIssuesTitle(e.target.value);
-                          if (localError) setLocalError(null);
-                        }}
-                        onEnterPress={handleSaveNewIssues}
-                        placeholder="Issues title"
-                        validator={validator}
-                      />
-                    </td>
-                    <td className="border p-1 align-middle">
-                      <Attachments
-                        setAttachments={setAttachments}
-                        attachments={attachments}
-                        fileInputRef={newIssueAttachmentInputRef}
-                        containerRef={newIssueAttachmentContainerRef}
-                        setIsFileDialogOpen={setIsFileDialogOpen}
-                      />
-                    </td>
-                    <td className="border p-1 align-middle">
-                      <StatusBadge
-                        status={newIssuesStatus}
-                        statusOptions={globalStatusOptions}
-                        onStatusChange={setNewIssuesStatus}
-                      />
-                    </td>
-                    <td className="border p-1 align-middle">
-                      <SelectBox
-                        options={userOptionsForSelectBox}
-                        value={newIssuesResponsiblePersonId}
-                        onChange={setNewIssuesResponsiblePersonId}
-                        placeholder="Select Person..."
-                        table={true}
-                      />
-                    </td>
-                    <td className="border p-1 align-middle">
-                      <SelectBox
-                        options={
-                          issueType.map(type => (
-                            {
-                              label: type.name,
-                              value: type.id
-                            }
-                          ))
-                        }
-                        value={newIssuesType}
-                        onChange={setNewIssuesType}
-                        table={true}
-                      />
-                    </td>
-                    <td className="border p-1 align-middle">
-                      <NewIssuesDateEditor
-                        value={newIssuesStartDate}
-                        onChange={(e) => setNewIssuesStartDate(e.target.value)}
-                        onEnterPress={handleSaveNewIssues}
-                        validator={validator}
-                        min={new Date().toISOString().split("T")[0]}
-                      />
-                    </td>
-                    <td className="border p-1 align-middle">
-                      <NewIssuesDateEditor
-                        value={newIssuesEndDate}
-                        onChange={(e) => setNewIssuesEndDate(e.target.value)}
-                        onEnterPress={handleSaveNewIssues}
-                        validator={validator}
-                        min={newIssuesStartDate}
-                      />
-                    </td>
-                    <td className="border p-1 align-middle">
-                      <StatusBadge
-                        status={newIssuesPriority}
-                        statusOptions={globalPriorityOptions}
-                        onStatusChange={setNewIssuesPriority}
-                      />
-                    </td>
-                    <td className="border p-1 align-middle">
-                      <NewIssuesTextField
-                        value={newIssuesComments}
-                        onChange={(e) => {
-                          setNewIssuesComments(e.target.value);
-                          if (localError) setLocalError(null);
-                        }}
-                        onEnterPress={handleSaveNewIssues}
-                        placeholder="Comments"
-                      />
-                    </td>
+                    {renderNewIssueRow()}
                   </tr>
                 )}
                 {!isAddingNewIssues && (
