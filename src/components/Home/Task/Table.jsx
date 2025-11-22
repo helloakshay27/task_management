@@ -38,6 +38,8 @@ import axios from "axios";
 import toast from "react-hot-toast";
 import { baseURL } from "../../../../apiDomain";
 import { X } from "lucide-react";
+import { useDrag, useDrop, DndProvider } from "react-dnd";
+import { HTML5Backend } from "react-dnd-html5-backend";
 
 const globalPriorityOptions = ["None", "Low", "Medium", "High", "Urgent"];
 const globalStatusOptions = ["open", "in_progress", "completed", "on_hold", "overdue"];
@@ -195,6 +197,57 @@ const CountdownTimer = ({ startDate, targetDate }) => {
   );
 };
 
+// Draggable Column Header Component
+const DraggableColumnHeader = ({ header, onReorderColumns, columnOrder }) => {
+  const [{ isDragging }, dragRef] = useDrag(
+    () => ({
+      type: "column",
+      item: { id: header.id },
+      collect: (monitor) => ({
+        isDragging: monitor.isDragging(),
+      }),
+    }),
+    []
+  );
+
+  const [{ isOver }, dropRef] = useDrop(
+    () => ({
+      accept: "column",
+      hover: (item) => {
+        if (item.id !== header.id) {
+          onReorderColumns(item.id, header.id);
+        }
+      },
+      collect: (monitor) => ({
+        isOver: monitor.isOver(),
+      }),
+    }),
+    [header.id, columnOrder]
+  );
+
+  const combinedRef = (el) => {
+    dragRef(el);
+    dropRef(el);
+  };
+
+  return (
+    <th
+      ref={combinedRef}
+      style={{
+        width: `${header.getSize()}px`,
+        opacity: isDragging ? 0.5 : 1,
+        backgroundColor: isOver ? "bg-gray-300" : "bg-gray-300",
+        transition: "all 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
+        transform: isOver ? "scale(1.02)" : "scale(1)",
+      }}
+      className={`border-r-2 p-2 text-center text-gray-600 bg-gray-300 font-semibold break-words cursor-move select-none ${isDragging ? "shadow-lg" : ""
+        } ${isOver ? "bg-gray-300" : ""}`}
+    >
+      {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
+    </th>
+  );
+};
+
 // Helper function to calculate task status based on subtasks
 const calculateTaskStatus = (task) => {
   if (!task.sub_tasks_managements || task.sub_tasks_managements.length === 0) {
@@ -317,6 +370,13 @@ const TaskTable = ({ isModalOpen, searchQuery }) => {
   const [isCreatingTask, setIsCreatingTask] = useState(false);
   const [isUpdatingTask, setIsUpdatingTask] = useState(false);
   const [members, setMembers] = useState([])
+  const [columnOrder, setColumnOrder] = useState(() => {
+    // Load column order from local storage or use default
+    const savedOrder = localStorage.getItem("taskTableColumnOrder");
+    return savedOrder
+      ? JSON.parse(savedOrder)
+      : ["expander", "id", "taskTitle", "status", "responsiblePersonId", "startDate", "endDate", "duration", "priority", "predecessor", "successor"];
+  });
   const [pagination, setPagination] = useState({
     pageIndex: 0,
     pageSize: 10,
@@ -352,6 +412,25 @@ const TaskTable = ({ isModalOpen, searchQuery }) => {
     }),
     []
   );
+
+  // Handle column reordering
+  const handleReorderColumns = useCallback((draggedId, targetId) => {
+    setColumnOrder((prevOrder) => {
+      const draggedIndex = prevOrder.indexOf(draggedId);
+      const targetIndex = prevOrder.indexOf(targetId);
+
+      if (draggedIndex === -1 || targetIndex === -1) return prevOrder;
+
+      const newOrder = [...prevOrder];
+      newOrder.splice(draggedIndex, 1);
+      newOrder.splice(targetIndex, 0, draggedId);
+
+      // Save to local storage
+      localStorage.setItem("taskTableColumnOrder", JSON.stringify(newOrder));
+
+      return newOrder;
+    });
+  }, []);
 
   const handleFetchTasks = async () => {
     const myTasks = localStorage.getItem("myTasks");
@@ -943,6 +1022,11 @@ const TaskTable = ({ isModalOpen, searchQuery }) => {
     },
   ];
 
+  // Reorder columns based on columnOrder state
+  const orderedColumns = columnOrder
+    .map((columnId) => mainTableColumns.find((col) => col.id === columnId || col.accessorKey === columnId))
+    .filter(Boolean);
+
   const renderPagination = () => {
     const totalPages = pagination.totalPages;
     const currentPage = pagination.pageIndex;
@@ -1024,7 +1108,7 @@ const TaskTable = ({ isModalOpen, searchQuery }) => {
 
   const table = useReactTable({
     data,
-    columns: mainTableColumns,
+    columns: orderedColumns,
     state: { expanded, pagination },
     onExpandedChange: setExpanded,
     onPaginationChange: setPagination,
@@ -1065,22 +1149,21 @@ const TaskTable = ({ isModalOpen, searchQuery }) => {
           style={{ maxHeight: "80vh", overflowY: "auto" }}
         >
           <table className="w-full text-sm table-fixed">
-            <thead className="sticky top-0 bg-gray-50 z-30">
+            <thead className="sticky top-0 bg-gray-300 z-30">
               {table.getHeaderGroups().map((hg) => (
-                <tr key={hg.id}>
+                <tr key={hg.id} className="bg-gray-300">
                   {hg.headers.map((h) => (
-                    <th
+                    <DraggableColumnHeader
                       key={h.id}
-                      style={{ width: `${h.getSize()}px` }}
-                      className="border-r-2 p-2 text-center text-gray-600 font-semibold break-words"
-                    >
-                      {h.isPlaceholder ? null : flexRender(h.column.columnDef.header, h.getContext())}
-                    </th>
+                      header={h}
+                      onReorderColumns={handleReorderColumns}
+                      columnOrder={columnOrder}
+                    />
                   ))}
                 </tr>
               ))}
             </thead>
-            <tbody className="bg-white">
+            <tbody className="!bg-white">
               {data.length === 0 && !isAddingNewTask && !loadingTasks && !isCreatingTask && !isUpdatingTask && !loadingFilterTasks && (
                 <tr style={{ height: `${ROW_HEIGHT * 2}px` }}>
                   <td colSpan={mainTableColumns.length} className="text-center text-gray-500 p-4">
@@ -1244,38 +1327,40 @@ const TaskTable = ({ isModalOpen, searchQuery }) => {
   }
 
   return (
-    <div className="p-2">
-      {renderError}
-      {content}
-      {data.length > 0 && !loadingTasks && (
-        <div className="flex items-center justify-start gap-4 mt-4 text-[12px]">
-          <button
-            onClick={() => {
-              lastFetchedPageRef.current = null;
-              table.previousPage();
-            }}
-            disabled={!table.getCanPreviousPage()}
-            className="text-red-600 disabled:opacity-30"
-          >
-            {"<"}
-          </button>
-          {renderPagination()}
-          <button
-            onClick={() => {
-              lastFetchedPageRef.current = null;
-              table.nextPage();
-            }}
-            disabled={!table.getCanNextPage()}
-            className="text-red-600 disabled:opacity-30"
-          >
-            {">"}
-          </button>
-          <span className="ml-4">
-            Page {pagination.currentPage} of {pagination.totalPages} | Total Records: {pagination.totalRecords}
-          </span>
-        </div>
-      )}
-    </div>
+    <DndProvider backend={HTML5Backend}>
+      <div className="p-2">
+        {renderError}
+        {content}
+        {data.length > 0 && !loadingTasks && (
+          <div className="flex items-center justify-start gap-4 mt-4 text-[12px]">
+            <button
+              onClick={() => {
+                lastFetchedPageRef.current = null;
+                table.previousPage();
+              }}
+              disabled={!table.getCanPreviousPage()}
+              className="text-red-600 disabled:opacity-30"
+            >
+              {"<"}
+            </button>
+            {renderPagination()}
+            <button
+              onClick={() => {
+                lastFetchedPageRef.current = null;
+                table.nextPage();
+              }}
+              disabled={!table.getCanNextPage()}
+              className="text-red-600 disabled:opacity-30"
+            >
+              {">"}
+            </button>
+            <span className="ml-4">
+              Page {pagination.currentPage} of {pagination.totalPages} | Total Records: {pagination.totalRecords}
+            </span>
+          </div>
+        )}
+      </div>
+    </DndProvider>
   );
 };
 

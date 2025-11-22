@@ -311,7 +311,6 @@ const GanttChart = () => {
             {
                 name: "text",
                 label: "Milestone / Task Title",
-                tree: true,
                 width: 250,
                 resize: true,
                 template: function (task) {

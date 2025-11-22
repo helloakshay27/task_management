@@ -8,6 +8,8 @@ import {
 } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { getProjectPaths, useIsCloudRoute } from "../../../utils/navigationUtils";
+import { useDrag, useDrop, DndProvider } from "react-dnd";
+import { HTML5Backend } from "react-dnd-html5-backend";
 import OpenInFullIcon from "@mui/icons-material/OpenInFull";
 import LoginTwoToneIcon from "@mui/icons-material/LoginTwoTone";
 import ArchiveOutlinedIcon from "@mui/icons-material/ArchiveOutlined";
@@ -215,6 +217,59 @@ const globalStatusOptions = [
 
 const globalPriorityOptionsForNew = ["Low", "Medium", "High", "Urgent"];
 
+// Draggable Column Header Component
+const DraggableColumnHeader = ({ header, onReorderColumns, columnOrder }) => {
+    const [{ isDragging }, dragRef] = useDrag(
+        () => ({
+            type: "column",
+            item: { id: header.id },
+            collect: (monitor) => ({
+                isDragging: monitor.isDragging(),
+            }),
+        }),
+        []
+    );
+
+    const [{ isOver }, dropRef] = useDrop(
+        () => ({
+            accept: "column",
+            hover: (item) => {
+                if (item.id !== header.id) {
+                    onReorderColumns(item.id, header.id);
+                }
+            },
+            collect: (monitor) => ({
+                isOver: monitor.isOver(),
+            }),
+        }),
+        [header.id, columnOrder]
+    );
+
+    const combinedRef = (el) => {
+        dragRef(el);
+        dropRef(el);
+    };
+
+    return (
+        <th
+            ref={combinedRef}
+            style={{
+                width: `${header.getSize()}px`,
+                opacity: isDragging ? 0.5 : 1,
+                backgroundColor: isOver ? "bg-gray-300" : "bg-gray-300",
+                transition: "all 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
+                transform: isOver ? "scale(1.02)" : "scale(1)",
+            }}
+            className={`bg-gray-300 px-3 py-3.5 text-gray-800 text-center font-[500] border-r-2 border-[#FFFFFF] sticky top-0 z-10 cursor-move select-none ${isDragging ? "shadow-lg" : ""
+                } ${isOver ? "bg-gray-300" : ""}`}
+        >
+            {header.isPlaceholder
+                ? null
+                : flexRender(header.column.columnDef.header, header.getContext())}
+        </th>
+    );
+};
+
 const ProjectList = ({ searchQuery }) => {
     const token = localStorage.getItem("token");
     const fixedRowsPerPage = 10;
@@ -281,6 +336,13 @@ const ProjectList = ({ searchQuery }) => {
 
     const [isFiltered, setIsFiltered] = useState(false);
     const [data, setData] = useState([]);
+    const [columnOrder, setColumnOrder] = useState(() => {
+        // Load column order from local storage or use default
+        const savedOrder = localStorage.getItem("projectTableColumnOrder");
+        return savedOrder
+            ? JSON.parse(savedOrder)
+            : ["id", "title", "status", "type", "manager", "milestones", "tasks", "issues", "startDate", "endDate", "priority", "actions"];
+    });
 
     useEffect(() => {
         if (!fetchProjectTypesLoading && !fetchProjectTypesError && (projectTypes.length == 0 || !Array.isArray(projectTypes))) {
@@ -560,6 +622,25 @@ const ProjectList = ({ searchQuery }) => {
         setIsAddingNewProject(true);
     }, [resetNewProjectForm]);
 
+    // Handle column reordering
+    const handleReorderColumns = useCallback((draggedId, targetId) => {
+        setColumnOrder((prevOrder) => {
+            const draggedIndex = prevOrder.indexOf(draggedId);
+            const targetIndex = prevOrder.indexOf(targetId);
+
+            if (draggedIndex === -1 || targetIndex === -1) return prevOrder;
+
+            const newOrder = [...prevOrder];
+            newOrder.splice(draggedIndex, 1);
+            newOrder.splice(targetIndex, 0, draggedId);
+
+            // Save to local storage
+            localStorage.setItem("projectTableColumnOrder", JSON.stringify(newOrder));
+
+            return newOrder;
+        });
+    }, []);
+
     const handleCancelNewProject = useCallback(() => {
         setIsAddingNewProject(false);
         resetNewProjectForm();
@@ -690,7 +771,7 @@ const ProjectList = ({ searchQuery }) => {
     const rowHeight = 40;
     const headerHeight = 48;
 
-    const columns = useMemo(
+    const allColumns = useMemo(
         () => [
             {
                 accessorKey: "id",
@@ -821,6 +902,11 @@ const ProjectList = ({ searchQuery }) => {
         [handleStatusChange]
     );
 
+    // Reorder columns based on columnOrder state
+    const columns = columnOrder
+        .map((columnId) => allColumns.find((col) => col.id === columnId || col.accessorKey === columnId))
+        .filter(Boolean);
+
     const table = useReactTable({
         data,
         columns,
@@ -866,26 +952,16 @@ const ProjectList = ({ searchQuery }) => {
                 )}
                 <div className="table-wrapper overflow-x-auto">
                     <table className="w-full border-collapse">
-                        <thead>
+                        <thead className="bg-gray-300">
                             {table.getHeaderGroups().map((headerGroup) => (
                                 <tr key={headerGroup.id}>
                                     {headerGroup.headers.map((header) => (
-                                        <th
+                                        <DraggableColumnHeader
                                             key={header.id}
-                                            colSpan={header.colSpan}
-                                            style={{
-                                                width: header.getSize(),
-                                                height: `${headerHeight}px`,
-                                            }}
-                                            className="bg-[#D5DBDB] px-3 py-3.5 text-gray-800 text-center font-[500] border-r-2 border-[#FFFFFF] sticky top-0 z-10"
-                                        >
-                                            {header.isPlaceholder
-                                                ? null
-                                                : flexRender(
-                                                    header.column.columnDef.header,
-                                                    header.getContext()
-                                                )}
-                                        </th>
+                                            header={header}
+                                            onReorderColumns={handleReorderColumns}
+                                            columnOrder={columnOrder}
+                                        />
                                     ))}
                                 </tr>
                             ))}
@@ -1089,7 +1165,11 @@ const ProjectList = ({ searchQuery }) => {
         );
     }
 
-    return <div className="project-list-wrapper px-4 py-1">{content}</div>;
+    return (
+        <DndProvider backend={HTML5Backend}>
+            <div className="project-list-wrapper px-4 py-1">{content}</div>
+        </DndProvider>
+    );
 };
 
 export default ProjectList;

@@ -7,6 +7,8 @@ import {
   getCoreRowModel,
   flexRender
 } from "@tanstack/react-table";
+import { useDrag, useDrop, DndProvider } from "react-dnd";
+import { HTML5Backend } from "react-dnd-html5-backend";
 
 // Custom Components
 import StatusBadge from "../Projects/statusBadge";
@@ -200,6 +202,57 @@ const globalPriorityOptions = ["None", "Low", "Medium", "High", "Urgent"];
 const globalStatusOptions = ["open", "in_progress", "completed", "on_hold"];
 const globalTypesOptions = ["bug", "task", "feature", "UI", "UX"];
 
+// Draggable Column Header Component
+const DraggableColumnHeader = ({ header, onReorderColumns, columnOrder }) => {
+  const [{ isDragging }, dragRef] = useDrag(
+    () => ({
+      type: "column",
+      item: { id: header.id },
+      collect: (monitor) => ({
+        isDragging: monitor.isDragging(),
+      }),
+    }),
+    []
+  );
+
+  const [{ isOver }, dropRef] = useDrop(
+    () => ({
+      accept: "column",
+      hover: (item) => {
+        if (item.id !== header.id) {
+          onReorderColumns(item.id, header.id);
+        }
+      },
+      collect: (monitor) => ({
+        isOver: monitor.isOver(),
+      }),
+    }),
+    [header.id, columnOrder]
+  );
+
+  const combinedRef = (el) => {
+    dragRef(el);
+    dropRef(el);
+  };
+
+  return (
+    <th
+      ref={combinedRef}
+      style={{
+        width: header.getSize() ? `${header.getSize()}px` : undefined,
+        opacity: isDragging ? 0.5 : 1,
+        backgroundColor: isOver ? "bg-gray-300" : "bg-gray-300",
+        transition: "all 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
+        transform: isOver ? "scale(1.02)" : "scale(1)",
+      }}
+      className={`border p-2 bg-gray-300 text-center text-gray-700 font-semibold sticky top-0 cursor-move select-none ${isDragging ? "shadow-lg" : ""
+        } ${isOver ? "bg-gray-300" : ""}`}
+    >
+      {flexRender(header.column.columnDef.header, header.getContext())}
+    </th>
+  );
+};
+
 const IssuesTable = () => {
   const { id: parentId } = useParams();
   const dispatch = useDispatch();
@@ -278,6 +331,13 @@ const IssuesTable = () => {
   );
 
   const [data, setData] = useState([]);
+  const [columnOrder, setColumnOrder] = useState(() => {
+    // Load column order from local storage or use default
+    const savedOrder = localStorage.getItem("issuesTableColumnOrder");
+    return savedOrder
+      ? JSON.parse(savedOrder)
+      : ["id", "projectName", "milestoneName", "taskName", "subtaskName", "issueTitle", "attachments", "status", "responsiblePerson", "issueType", "startDate", "endDate", "priority", "comments"];
+  });
   const [isAddingNewIssues, setIsAddingNewIssues] = useState(false);
   const [newIssuesTitle, setNewIssuesTitle] = useState("");
   const [newIssuesStatus, setNewIssuesStatus] = useState("open");
@@ -974,12 +1034,31 @@ const IssuesTable = () => {
     [users]
   );
 
+  // Handle column reordering
+  const handleReorderColumns = useCallback((draggedId, targetId) => {
+    setColumnOrder((prevOrder) => {
+      const draggedIndex = prevOrder.indexOf(draggedId);
+      const targetIndex = prevOrder.indexOf(targetId);
+
+      if (draggedIndex === -1 || targetIndex === -1) return prevOrder;
+
+      const newOrder = [...prevOrder];
+      newOrder.splice(draggedIndex, 1);
+      newOrder.splice(targetIndex, 0, draggedId);
+
+      // Save to local storage
+      localStorage.setItem("issuesTableColumnOrder", JSON.stringify(newOrder));
+
+      return newOrder;
+    });
+  }, []);
+
   const fixedRowsPerPage = 10;
   const rowHeight = 45;
   const headerHeight = 42;
   const desiredTableHeight = fixedRowsPerPage * rowHeight + headerHeight;
 
-  const columns = useMemo(
+  const allColumns = useMemo(
     () => [
       {
         accessorKey: "id",
@@ -1164,6 +1243,11 @@ const IssuesTable = () => {
     [handleUpdateIssues, handleUpdateComment, userOptionsForSelectBox, issueType, isCloudRoute]
   );
 
+  // Reorder columns based on columnOrder state
+  const columns = columnOrder
+    .map((columnId) => allColumns.find((col) => col.id === columnId || col.accessorKey === columnId))
+    .filter(Boolean);
+
   const table = useReactTable({
     data,
     columns,
@@ -1226,25 +1310,16 @@ const IssuesTable = () => {
         >
           <div className="table-wrapper overflow-x-auto">
             <table className="w-full border text-sm bg-white overflow-y-auto">
-              <thead>
+              <thead className="bg-gray-300">
                 {table.getHeaderGroups().map((headerGroup) => (
                   <tr key={headerGroup.id}>
                     {headerGroup.headers.map((header) => (
-                      <th
+                      <DraggableColumnHeader
                         key={header.id}
-                        style={{
-                          width: header.getSize()
-                            ? `${header.getSize()}px`
-                            : undefined,
-                          height: `${headerHeight}px`,
-                        }}
-                        className="border p-2 text-center text-gray-700 font-semibold sticky top-0"
-                      >
-                        {flexRender(
-                          header.column.columnDef.header,
-                          header.getContext()
-                        )}
-                      </th>
+                        header={header}
+                        onReorderColumns={handleReorderColumns}
+                        columnOrder={columnOrder}
+                      />
                     ))}
                   </tr>
                 ))}
@@ -1498,7 +1573,7 @@ const IssuesTable = () => {
     );
   }
 
-  return <div className="project-list-wrapper p-2">{pageContent}</div>;
+  return <div className="project-list-wrapper p-2"><DndProvider backend={HTML5Backend}>{pageContent}</DndProvider></div>;
 };
 
 export default IssuesTable;
