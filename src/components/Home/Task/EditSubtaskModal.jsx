@@ -153,7 +153,7 @@ const EditSubtaskModal = ({ isModalOpen, setIsModalOpen, title }) => {
                         date: formattedStartDate,
                     })
                 ).unwrap();
-                setStartDateTasks(response);
+                setStartDateTasks([...response.tasks, ...response.issues]);
             } catch (error) {
                 console.log(error);
             }
@@ -177,7 +177,7 @@ const EditSubtaskModal = ({ isModalOpen, setIsModalOpen, title }) => {
                         date: formattedEndDate,
                     })
                 ).unwrap();
-                setTargetDateTasks(response);
+                setTargetDateTasks([...response.tasks, ...response.issues]);
             } catch (error) {
                 console.log(error);
             }
@@ -456,25 +456,6 @@ const EditSubtaskModal = ({ isModalOpen, setIsModalOpen, title }) => {
                                 </div>
                             </div> */}
 
-                            <div className="flex justify-between mt-4 gap-2 text-[12px]">
-                                <div className="space-y-2 w-full">
-                                    <label className="block">
-                                        Duration <span className="text-red-600">*</span>
-                                    </label>
-                                    <DurationPicker
-                                        value={taskDuration}
-                                        onChange={setTaskDuration}
-                                        onDateWiseHoursChange={setDateWiseHours}
-                                        startDate={startDate}
-                                        endDate={endDate}
-                                        resposiblePerson={formData.responsiblePersonName}
-                                        totalWorkingHours={totalWorkingHours}
-                                        setTotalWorkingHours={setTotalWorkingHours}
-                                        shift={shift}
-                                    />
-                                </div>
-                            </div>
-
                             <div className="flex justify-between mt-3 gap-2 text-[12px]">
                                 <div className="space-y-2 w-full">
                                     <label className="block">Start Date</label>
@@ -536,6 +517,25 @@ const EditSubtaskModal = ({ isModalOpen, setIsModalOpen, title }) => {
                                             </>
                                         )}
                                     </button>
+                                </div>
+                            </div>
+
+                            <div className="flex justify-between mt-4 gap-2 text-[12px]">
+                                <div className="space-y-2 w-full">
+                                    <label className="block">
+                                        Duration <span className="text-red-600">*</span>
+                                    </label>
+                                    <DurationPicker
+                                        value={taskDuration}
+                                        onChange={setTaskDuration}
+                                        onDateWiseHoursChange={setDateWiseHours}
+                                        startDate={startDate}
+                                        endDate={endDate}
+                                        resposiblePerson={formData.responsiblePersonName}
+                                        totalWorkingHours={totalWorkingHours}
+                                        setTotalWorkingHours={setTotalWorkingHours}
+                                        shift={shift}
+                                    />
                                 </div>
                             </div>
 
