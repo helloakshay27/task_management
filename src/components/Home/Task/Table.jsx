@@ -287,15 +287,12 @@ const TaskTable = ({ isModalOpen, searchQuery }) => {
     loading: loadingUsers,
     error: usersFetchError,
   } = useSelector((state) => state.fetchUsers || { users: [], loading: false, error: null });
-  console.log(users)
   const {
     filterTask: filterTasks,
     loading: loadingFilterTasks,
     error: filterTasksError,
     success: filterSuccess,
   } = useSelector((state) => state.filterTask);
-  console.log(projectTeamMembers)
-  console.log(users)
   const { fetchMilestoneById: milestone } = useSelector((state) => state.fetchMilestoneById);
 
   const userFetchInitiatedRef = useRef(false);
@@ -331,7 +328,6 @@ const TaskTable = ({ isModalOpen, searchQuery }) => {
   const ROW_HEIGHT = 40;
   const HEADER_HEIGHT = 40;
 
-  console.log(Array.isArray(projectTeamMembers))
   useEffect(() => {
     if (!Array.isArray(projectTeamMembers)) {
       const members = []
@@ -344,8 +340,6 @@ const TaskTable = ({ isModalOpen, searchQuery }) => {
       setMembers(members)
     }
   }, [projectTeamMembers])
-
-  console.log(members.length)
 
   const createNewTaskDefaults = useCallback(
     () => ({
@@ -800,8 +794,6 @@ const TaskTable = ({ isModalOpen, searchQuery }) => {
     window.addEventListener("keydown", handleEscape);
     return () => window.removeEventListener("keydown", handleEscape);
   }, [isAddingNewTask, handleCancelNewTask]);
-
-  console.log(members)
 
   const mainTableColumns = [
     {
