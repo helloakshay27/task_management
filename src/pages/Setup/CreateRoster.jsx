@@ -376,8 +376,6 @@ const CreateRoster = () => {
             let payload;
             const baseUserRoaster = {
                 name: formData.templateName,
-                resource_id:
-                    selectedSite?.id || localStorage.getItem("selectedSiteId") || "",
                 user_shift_id: formData.shift || "",
                 seat_category_id: "1", // Required field
                 allocation_type: formData.rosterType,

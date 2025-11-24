@@ -279,11 +279,11 @@ const App = () => {
                     element={<CreateRoster />}
                   />
                   <Route
-                    path="/setup/roster/:rosterId/edit"
+                    path="/setup/roster/edit/:id"
                     element={<EditRoster />}
                   />
                   <Route
-                    path="/setup/roster/:rosterId/view"
+                    path="/setup/roster/:id"
                     element={<RosterDetails />}
                   />
                   <Route

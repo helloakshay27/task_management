@@ -16,11 +16,11 @@ const ActionIcons = ({ row, onView, onEdit }) => {
                     onChange={handleToggle}
                 /> */}
                 <Eye size={18} className="cursor-pointer"
-                // onClick={() => onView(row)} 
+                    onClick={() => onView(row)}
                 />
                 <EditOutlinedIcon
                     sx={{ fontSize: 20, cursor: 'pointer' }}
-                // onClick={() => onEdit(row)}
+                    onClick={() => onEdit(row)}
                 />
             </div>
         </>
@@ -49,11 +49,11 @@ const Roster = () => {
     }, [])
 
     const handleViewRoster = (row) => {
-        navigate(`/setup/roster/${row.original.id}/view`, { state: row.original });
+        navigate(`/setup/roster/${row.original.id}`, { state: row.original });
     };
 
     const handleEditRoster = (row) => {
-        navigate(`/setup/roster/${row.original.id}/edit`, { state: row.original });
+        navigate(`/setup/roster/edit/${row.original.id}`, { state: row.original });
     };
 
     const columns = useMemo(() => [

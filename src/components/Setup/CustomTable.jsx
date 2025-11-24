@@ -315,7 +315,7 @@ const CustomTable = ({
                 <div className="project-table-container text-[14px] font-light px-4 mt-4">
                     <div
                         className="table-wrapper overflow-x-auto"
-                        style={{ height: `${desiredTableHeight}px` }}
+                    // style={{ height: `${desiredTableHeight}px` }}
                     >
                         <table className="w-full">
                             <thead>

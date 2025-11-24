@@ -5,6 +5,9 @@ import { ArrowLeft, Calendar, Clock, MapPin, Users } from "lucide-react";
 import { CircularProgress } from "@mui/material";
 import toast from "react-hot-toast";
 import { Button } from "@/components/ui/button";
+import { fetchShift } from "@/redux/slices/shiftSlice";
+import { useDispatch } from "react-redux";
+import { fetchUsers } from "@/redux/slices/userSlice";
 
 const SectionHeader = ({ title, icon }) => (
     <div className="flex items-center gap-3 mb-4">
@@ -26,7 +29,7 @@ const InfoField = ({ label, value, variant = "text" }) => {
                             value.map((item, idx) => (
                                 <span
                                     key={idx}
-                                    className="bg-red-600 text-white px-3 py-1 rounded-full text-sm"
+                                    className="bg-red-600 text-white px-3 py-1 rounded-full text-xs"
                                 >
                                     {item}
                                 </span>
@@ -53,18 +56,21 @@ const InfoField = ({ label, value, variant = "text" }) => {
 };
 
 const RosterDetails = () => {
-    const { rosterId } = useParams();
+    const { id } = useParams();
+    const dispatch = useDispatch();
     const navigate = useNavigate();
     const token = localStorage.getItem("token");
 
+    const [users, setUsers] = useState([])
+    const [shifts, setShifts] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [rosterData, setRosterData] = useState(null);
+    const [rosterTemplate, setRosterTemplate] = useState(null);
 
     useEffect(() => {
         const fetchRosterDetails = async () => {
             setLoading(true);
             try {
-                const response = await fetch(`${baseURL}/user_roasters/${rosterId}.json`, {
+                const response = await fetch(`${baseURL}/user_roasters/${id}.json`, {
                     method: "GET",
                     headers: {
                         "Content-Type": "application/json",
@@ -79,7 +85,7 @@ const RosterDetails = () => {
 
                 const data = await response.json();
                 console.log("Fetched roster details:", data);
-                setRosterData(data);
+                setRosterTemplate(data);
             } catch (error) {
                 console.error("Error fetching roster details:", error);
                 toast.error("Failed to load roster details");
@@ -89,10 +95,45 @@ const RosterDetails = () => {
             }
         };
 
-        if (rosterId) {
-            fetchRosterDetails();
+        const fetchShifts = async () => {
+            try {
+                const response = await dispatch(fetchShift({ token })).unwrap();
+                console.log("Shifts API Response:", response);
+
+                const shiftsData = response.user_shifts
+                setShifts(
+                    shiftsData.map((shift) => ({
+                        id: shift.id,
+                        start_hour: shift.start_hour,
+                        start_min: shift.start_min,
+                        end_hour: shift.end_hour,
+                        end_min: shift.end_min,
+                        timings: shift.timings,
+                        total_hour: shift.total_hour,
+                    }))
+                );
+            } catch (error) {
+                console.error("Error fetching shifts:", error);
+                toast.error("Failed to load shifts");
+                setShifts([]);
+            }
+        };
+
+        const getUsers = async () => {
+            try {
+                const response = await dispatch(fetchUsers({ token })).unwrap();
+                setUsers(response);
+            } catch (error) {
+                console.log(error)
+            }
         }
-    }, [rosterId, token, navigate]);
+
+        if (id) {
+            fetchRosterDetails();
+            fetchShifts();
+            getUsers();
+        }
+    }, [id, token, navigate]);
 
     if (loading) {
         return (
@@ -105,7 +146,7 @@ const RosterDetails = () => {
         );
     }
 
-    if (!rosterData) {
+    if (!rosterTemplate) {
         return (
             <div className="p-6 flex items-center justify-center min-h-screen">
                 <p className="text-gray-600">No data available</p>
@@ -114,40 +155,88 @@ const RosterDetails = () => {
     }
 
     const getDayTypeDisplay = () => {
-        const dayType = rosterData.roaster_type;
+        const dayType = rosterTemplate.roaster_type;
         if (dayType === "Weekdays") return "Weekdays (Monday - Friday)";
         if (dayType === "Weekends") return "Weekends (Saturday - Sunday)";
         if (dayType === "Recurring") return "Recurring (Custom)";
         return dayType;
     };
 
-    const getFrequencyDisplay = () => {
-        const weekdays = rosterData.weekdays || [];
-        const weekends = rosterData.weekends || [];
+    const getWeekSelectionDisplay = () => {
+        if (!rosterTemplate || !rosterTemplate.no_of_days) return [];
 
-        if (weekdays.length > 0) {
-            return weekdays.map(w => {
-                const weeks = ["", "1st Week", "2nd Week", "3rd Week", "4th Week", "5th Week"];
-                return weeks[w] || `Week ${w}`;
-            });
+        if (rosterTemplate.roaster_type === 'Recurring') {
+            if (Array.isArray(rosterTemplate.no_of_days) && rosterTemplate.no_of_days.length > 0) {
+                const recurringData = rosterTemplate.no_of_days[0];
+                return Object.keys(recurringData).map(weekNum => `Week ${weekNum}`);
+            }
+        } else if (rosterTemplate.roaster_type === 'Weekdays') {
+            if (Array.isArray(rosterTemplate.no_of_days)) {
+                return rosterTemplate.no_of_days.map((weekNum) =>
+                    `${weekNum}${weekNum === '1' ? 'st' : weekNum === '2' ? 'nd' : weekNum === '3' ? 'rd' : 'th'} Week`
+                );
+            }
+        } else if (rosterTemplate.roaster_type === 'Weekends') {
+            if (Array.isArray(rosterTemplate.no_of_days)) {
+                return rosterTemplate.no_of_days.map((weekendNum) =>
+                    `${weekendNum}${weekendNum === '1' ? 'st' : weekendNum === '2' ? 'nd' : weekendNum === '3' ? 'rd' : 'th'} Weekend`
+                );
+            }
         }
-
-        if (weekends.length > 0) {
-            return weekends.map(w => {
-                const weekends_arr = ["", "1st Weekend", "2nd Weekend", "3rd Weekend", "4th Weekend", "5th Weekend"];
-                return weekends_arr[w] || `Weekend ${w}`;
-            });
-        }
-
         return [];
     };
 
+    const getSelectedShift = () => {
+        if (!rosterTemplate || !rosterTemplate.user_shift_id) return null;
+        return shifts.find(shift => shift.id === rosterTemplate.user_shift_id);
+    };
+
+    const getSelectedDepartments = () => {
+        console.log(rosterTemplate)
+        if (!rosterTemplate) return [];
+
+        // First try to get from new API response structure
+        if (rosterTemplate.departments && Array.isArray(rosterTemplate.departments)) {
+            return rosterTemplate.departments.map(dept => ({
+                id: dept.id,
+                department_name: dept.name
+            }));
+        }
+
+        // Fallback to old structure
+        if (!rosterTemplate.departments) return [];
+        const deptIds = Array.isArray(rosterTemplate.departments)
+            ? rosterTemplate.departments.map(dept => dept.id)
+            : [rosterTemplate.departments.map(dept => dept.id)];
+        console.log(deptIds)
+        return departments.filter(dept => deptIds.includes(dept.id));
+    };
+
     const getStatus = () => {
-        return rosterData.active ? "Active" : "Inactive";
+        return rosterTemplate.active ? "Active" : "Inactive";
     };
 
     const getStatusColor = () => {
-        return rosterData.active ? "text-green-600" : "text-red-600";
+        return rosterTemplate.active ? "text-green-600" : "text-red-600";
+    };
+
+    const getSelectedEmployees = () => {
+        if (!rosterTemplate) return [];
+
+        // First try to get from new API response structure
+        if (rosterTemplate.employees && Array.isArray(rosterTemplate.employees)) {
+            return rosterTemplate.employees.map(emp => ({
+                id: emp.id,
+                name: emp.name,
+                email: emp.email,
+                department: undefined // Department info not included in employee object
+            }));
+        }
+
+        // Fallback to old structure
+        if (!rosterTemplate.resource_id) return [];
+        const employee = users.find(user => user.id === rosterTemplate.resource_id);
+        return employee ? [employee] : [];
     };
 
     return (
@@ -167,9 +256,9 @@ const RosterDetails = () => {
                             <h1 className="text-2xl font-bold text-gray-900">ROSTER TEMPLATE DETAILS</h1>
                             <div className="flex items-center gap-2 mt-1">
                                 <Calendar className="w-4 h-4 text-gray-600" />
-                                <span className="text-sm text-gray-600">{rosterData.name}</span>
+                                <span className="text-sm text-gray-600">{rosterTemplate.name}</span>
                                 <span
-                                    className={`px-2 py-1 rounded text-xs font-medium ${getStatusColor()} ${rosterData.active
+                                    className={`px-2 py-1 rounded text-xs font-medium ${getStatusColor()} ${rosterTemplate.active
                                         ? "bg-green-50"
                                         : "bg-red-50"
                                         }`}
@@ -188,8 +277,8 @@ const RosterDetails = () => {
                 <div className="rounded-lg border border-gray-200 p-6">
                     <SectionHeader title="Basic Information" icon={<Calendar className="w-5 h-5" />} />
                     <div className="grid grid-cols-3 gap-6">
-                        <InfoField label="Template Name" value={rosterData.name} />
-                        <InfoField label="Roster Type" value={rosterData.allocation_type || "Permanent"} />
+                        <InfoField label="Template Name" value={rosterTemplate.name} />
+                        <InfoField label="Roster Type" value={rosterTemplate.allocation_type || "Permanent"} />
                         <InfoField label="Status" value={getStatus()} />
                     </div>
                 </div>
@@ -201,7 +290,7 @@ const RosterDetails = () => {
                         <InfoField label="Day Type" value={getDayTypeDisplay()} />
                         <InfoField
                             label="Frequency"
-                            value={getFrequencyDisplay()}
+                            value={getWeekSelectionDisplay()}
                             variant="badge"
                         />
                     </div>
@@ -211,14 +300,10 @@ const RosterDetails = () => {
                 <div className="bg-white rounded-lg border border-gray-200 p-6">
                     <SectionHeader title="Location & Department" icon={<MapPin className="w-5 h-5" />} />
                     <div className="grid grid-cols-2 gap-6">
-                        <InfoField label="Location" value={rosterData.location} />
+                        <InfoField label="Location" value={rosterTemplate.location} />
                         <InfoField
                             label="Departments"
-                            value={
-                                rosterData.department_names && rosterData.department_names.length > 0
-                                    ? rosterData.department_names
-                                    : rosterData.department_id || "N/A"
-                            }
+                            value={getSelectedDepartments().map(dept => dept.department_name)}
                             variant="badge"
                         />
                     </div>
@@ -230,40 +315,50 @@ const RosterDetails = () => {
 
                     <div className="mb-8">
                         <label className="text-sm text-gray-600 block mb-2">Assigned Shift</label>
-                        <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-                            <div className="flex items-center gap-2">
-                                <Clock className="w-4 h-4 text-red-600" />
-                                <span className="text-gray-900 font-medium">
-                                    {rosterData.shift_timings ? `${rosterData.shift_timings}` : "N/A"}
-                                </span>
-                            </div>
-                        </div>
+                        <span className="text-gray-900 font-medium">
+                            {(rosterTemplate.shift || getSelectedShift()) && (
+                                <div className="flex items-center gap-2 p-3 bg-[#f6f4ee] border border-[#D5DbDB] rounded-lg">
+                                    <Clock className="w-4 h-4 text-[#C72030]" />
+                                    <span className="font-medium text-gray-900">
+                                        {rosterTemplate.shift || getSelectedShift()?.timings}
+                                    </span>
+                                    {getSelectedShift()?.total_hour && (
+                                        <span className="text-sm text-gray-600">
+                                            ({getSelectedShift()?.total_hour}h)
+                                        </span>
+                                    )}
+                                </div>
+                            )}
+                            {!rosterTemplate.shift && !getSelectedShift() && (
+                                <p className="text-gray-500 italic">No shift assigned</p>
+                            )}
+                        </span>
                     </div>
 
                     <div>
                         <label className="text-sm text-gray-600 block mb-3">
-                            Assigned Employees ({rosterData.assigned_employees_count || 0})
+                            Assigned Employees ({getSelectedEmployees().length})
                         </label>
-                        <div className="space-y-3">
-                            {rosterData.assigned_employees && rosterData.assigned_employees.length > 0 ? (
-                                rosterData.assigned_employees.map((employee, idx) => (
-                                    <div
-                                        key={idx}
-                                        className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200"
-                                    >
-                                        <div className="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center text-gray-600 font-medium text-sm flex-shrink-0">
-                                            {employee.name?.charAt(0).toUpperCase() || "E"}
+                        {getSelectedEmployees().length > 0 ? (
+                            <div className="space-y-2">
+                                {getSelectedEmployees().map((employee, index) => (
+                                    <div key={employee.id || index} className="flex items-center gap-3 p-3 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+                                        <Users className="w-4 h-4 text-gray-400" />
+                                        <div className="flex-1">
+                                            <div className="font-medium text-gray-900">{employee.name || 'No name available'}</div>
+                                            <div className="text-sm text-gray-600">{employee.email}</div>
                                         </div>
-                                        <div className="flex-1 min-w-0">
-                                            <p className="text-gray-900 font-medium text-sm">{employee.name}</p>
-                                            <p className="text-gray-600 text-xs truncate">{employee.email}</p>
-                                        </div>
+                                        {employee.department && (
+                                            <span className="text-xs px-2 py-1 bg-gray-100 text-gray-600 rounded">
+                                                {employee.department}
+                                            </span>
+                                        )}
                                     </div>
-                                ))
-                            ) : (
-                                <p className="text-gray-500 text-sm">No employees assigned</p>
-                            )}
-                        </div>
+                                ))}
+                            </div>
+                        ) : (
+                            <p className="text-gray-500 italic">No employees assigned</p>
+                        )}
                     </div>
                 </div>
 
@@ -274,8 +369,8 @@ const RosterDetails = () => {
                         <InfoField
                             label="Start Date"
                             value={
-                                rosterData.start_date
-                                    ? new Date(rosterData.start_date).toLocaleDateString("en-GB", {
+                                rosterTemplate.start_date
+                                    ? new Date(rosterTemplate.start_date).toLocaleDateString("en-GB", {
                                         day: "2-digit",
                                         month: "2-digit",
                                         year: "numeric",
@@ -286,8 +381,8 @@ const RosterDetails = () => {
                         <InfoField
                             label="End Date"
                             value={
-                                rosterData.end_date
-                                    ? new Date(rosterData.end_date).toLocaleDateString("en-GB", {
+                                rosterTemplate.end_date
+                                    ? new Date(rosterTemplate.end_date).toLocaleDateString("en-GB", {
                                         day: "2-digit",
                                         month: "2-digit",
                                         year: "numeric",
@@ -302,7 +397,7 @@ const RosterDetails = () => {
                 <div className="flex items-center justify-center gap-4 pt-6">
                     <Button
                         variant="destructive"
-                        onClick={() => navigate(`/setup/roster/${rosterId}/edit`)}
+                        onClick={() => navigate(`/setup/roster/edit/${id}`)}
                         className="px-8"
                     >
                         Edit Template

@@ -44,7 +44,7 @@ const fieldStyles = {
 const EditRoster = () => {
     const navigate = useNavigate();
     const dispatch = useDispatch();
-    const { rosterId } = useParams();
+    const { id } = useParams();
     const token = localStorage.getItem("token");
 
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -90,7 +90,7 @@ const EditRoster = () => {
         const fetchRosterData = async () => {
             setIsLoading(true);
             try {
-                const response = await fetch(`${baseURL}/user_roasters/${rosterId}.json`, {
+                const response = await fetch(`${baseURL}/user_roasters/${id}.json`, {
                     method: "GET",
                     headers: {
                         "Content-Type": "application/json",
@@ -106,18 +106,50 @@ const EditRoster = () => {
                 const data = await response.json();
                 console.log("Fetched roster data:", data);
 
+                let selectedDays = []
+                let weekSelection = []
+
+                if (data.roaster_type === 'Recurring' && data.no_of_days && Array.isArray(data.no_of_days) && data.no_of_days.length > 0) {
+                    const recurringData = data.no_of_days[0];
+                    Object.keys(recurringData).forEach(weekNum => {
+                        const dayNumbers = recurringData[weekNum];
+                        dayNumbers.forEach((dayNum) => {
+                            // Map day numbers back to day names (1=Mon, 2=Tue, ..., 7=Sun)
+                            const dayNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+                            const dayName = dayNames[parseInt(dayNum) - 1];
+                            if (dayName) {
+                                selectedDays.push(`Week${weekNum}-${dayName}`);
+                            }
+                        });
+                    });
+                } else if (data.roaster_type === 'Weekdays' && data.no_of_days && Array.isArray(data.no_of_days)) {
+                    // For weekdays: extract week numbers
+                    weekSelection = data.no_of_days.map((weekNum) => `${weekNum}${weekNum === '1' ? 'st' : weekNum === '2' ? 'nd' : weekNum === '3' ? 'rd' : 'th'} Week`);
+                } else if (data.roaster_type === 'Weekends' && data.no_of_days && Array.isArray(data.no_of_days)) {
+                    // For weekends: extract weekend numbers  
+                    weekSelection = data.no_of_days.map((weekendNum) => `${weekendNum}${weekendNum === '1' ? 'st' : weekendNum === '2' ? 'nd' : weekendNum === '3' ? 'rd' : 'th'} Weekend`);
+                }
+
+                const departments = data.departments && Array.isArray(data.departments)
+                    ? data.departments.map((dept) => dept.id)
+                    : (data.department_id ? (Array.isArray(data.department_id) ? data.department_id.map(Number) : [Number(data.department_id)]) : []);
+
+                const selectedEmployees = data.employees && Array.isArray(data.employees)
+                    ? data.employees.map((emp) => emp.id)
+                    : (data.resource_id ? [Number(data.resource_id)] : []);
+
                 // Map the fetched data to form state
                 setFormData(prev => ({
                     ...prev,
                     templateName: data.name || "",
                     location: data.location || "",
-                    departments: data.department_ids || [],
+                    departments,
                     shift: data.user_shift_id || null,
-                    selectedEmployees: data.user_ids || [],
+                    selectedEmployees,
                     dayType: data.roaster_type || "Weekdays",
                     rosterType: data.allocation_type || "Permanent",
-                    weekSelection: data.weekdays || data.weekends || [],
-                    selectedDays: data.recurring || [],
+                    weekSelection,
+                    selectedDays,
                 }));
 
                 if (data.start_date && data.end_date) {
@@ -128,8 +160,8 @@ const EditRoster = () => {
                 }
 
                 // Fetch filtered users for the selected departments
-                if (data.department_ids && data.department_ids.length > 0) {
-                    await fetchFilteredUsers(data.department_ids);
+                if (data.departments && data.departments.length > 0) {
+                    await fetchFilteredUsers(data.departments.map(dept => dept.id));
                 }
             } catch (error) {
                 console.error("Error fetching roster:", error);
@@ -140,12 +172,13 @@ const EditRoster = () => {
             }
         };
 
-        if (rosterId) {
+        if (id) {
             fetchRosterData();
         }
-    }, [rosterId, token, navigate]);
+    }, [id, token, navigate]);
 
     const fetchFilteredUsers = async (departmentIds) => {
+        console.log(departmentIds)
         if (!departmentIds || departmentIds.length === 0) {
             setFilteredUsers([]);
             return;
@@ -423,8 +456,6 @@ const EditRoster = () => {
             let payload;
             const baseUserRoaster = {
                 name: formData.templateName,
-                resource_id:
-                    selectedSite?.id || localStorage.getItem("selectedSiteId") || "",
                 user_shift_id: formData.shift || "",
                 seat_category_id: "1",
                 allocation_type: formData.rosterType,
@@ -498,9 +529,9 @@ const EditRoster = () => {
 
             // Make API call to update
             const response = await fetch(
-                `${baseURL}/user_roasters/${rosterId}.json`,
+                `${baseURL}/user_roasters/${id}.json`,
                 {
-                    method: "PATCH",
+                    method: "PUT",
                     headers: {
                         "Content-Type": "application/json",
                         Authorization: `Bearer ${token}`,
