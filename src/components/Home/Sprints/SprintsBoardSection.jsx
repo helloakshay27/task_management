@@ -76,7 +76,7 @@ const SprintsBoardSection = ({ selectedProject }) => {
     useEffect(() => {
         const getTasks = async () => {
             try {
-                const response = await dispatch(fetchKanbanTasksOfProject({ token, id: selectedProject.id })).unwrap()
+                const response = await dispatch(fetchKanbanTasksOfProject({ token, id: (selectedProject === "All" ? "" : selectedProject.id) })).unwrap()
                 setTasksOfSelectedProject(response)
             } catch (error) {
                 console.log(error)

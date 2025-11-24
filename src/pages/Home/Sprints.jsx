@@ -34,7 +34,7 @@ const Sprints = () => {
       !selectedProject?.id
     ) {
       const firstProject = fetchProject.fetchProjects[0];
-      setSelectedProject(firstProject);
+      setSelectedProject("All");
       dispatch(fetchTasksOfProject({ token, id: firstProject.id }));
       setHasFetchedInitial(true);
     }
@@ -108,6 +108,7 @@ const Sprints = () => {
               </div>
 
               <ul className="text-sm divide-y">
+                <li className="cursor-pointer px-3 py-2 hover:bg-red-50 hover:text-red-600 transition-colors" onClick={() => handleSelect("All")}>All</li>
                 {filteredProjects?.length ? (
                   filteredProjects.map((project) => (
                     <li
