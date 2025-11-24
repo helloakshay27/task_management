@@ -1474,7 +1474,7 @@ const IssuesTable = () => {
     );
   } else {
     pageContent = (
-      <div className="p-3">
+      <div>
         {localError && (
           <div className="mb-4 px-3 text-red-700 text-sm">{localError}</div>
         )}
@@ -1542,7 +1542,7 @@ const IssuesTable = () => {
                     {renderNewIssueRow()}
                   </tr>
                 )}
-                {!isAddingNewIssues && (
+                {/* {!isAddingNewIssues && (
                   <tr>
                     <td
                       colSpan={columns.length}
@@ -1557,7 +1557,7 @@ const IssuesTable = () => {
                       </button>
                     </td>
                   </tr>
-                )}
+                )} */}
               </tbody>
             </table>
           </div>

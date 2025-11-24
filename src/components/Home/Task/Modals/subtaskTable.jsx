@@ -1156,7 +1156,7 @@ const SubtaskTable = ({ projectId }) => {
                   </td>
                 </tr>
               )}
-              {!isAddingNewSubtask && parentTaskLookupStatus === "found" && (
+              {/* {!isAddingNewSubtask && parentTaskLookupStatus === "found" && (
                 <tr>
                   <td
                     colSpan={columns.length}
@@ -1170,7 +1170,7 @@ const SubtaskTable = ({ projectId }) => {
                     </button>
                   </td>
                 </tr>
-              )}
+              )} */}
             </tbody>
           </table>
         </div>

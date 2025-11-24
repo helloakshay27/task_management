@@ -329,6 +329,7 @@ const WorkflowStatus = ({ taskStatusLogs }) => {
 
 const Comments = ({ comments }) => {
     const token = localStorage.getItem("token");
+    const currentUser = JSON.parse(localStorage.getItem("user"));
     const { tid } = useParams();
     const [comment, setComment] = useState("");
     const [editingCommentId, setEditingCommentId] = useState(null);
@@ -466,7 +467,9 @@ const Comments = ({ comments }) => {
         <div className="text-[14px] flex flex-col gap-2">
             <div className="flex justify-start m-2 gap-5">
                 <div className="bg-[#01569E] h-[36px] w-[36px] rounded-full text-white text-center p-1.5">
-                    <span>CB</span>
+                    <span>
+                        {`${currentUser?.firstname?.charAt(0) || ''}${currentUser?.lastname?.charAt(0) || ''}`}
+                    </span>
                 </div>
                 <MentionsInput
                     inputRef={textareaRef}
@@ -553,7 +556,7 @@ const Comments = ({ comments }) => {
                 return (
                     <div key={cmt.id} className="relative flex justify-start m-2 gap-5">
                         <div className="bg-[#01569E] h-[36px] w-[36px] rounded-full text-white text-center p-1.5">
-                            <span>CB</span>
+                            <span>{cmt?.commentor_full_name?.split(" ")[0]?.charAt(0)}{cmt?.commentor_full_name?.split(" ")[1]?.charAt(0)}</span>
                         </div>
                         <div className="flex flex-col gap-2 w-full border-b-[2px] pb-3 border-[rgba(190, 190, 190, 1)]">
                             <h1 className="font-bold">{cmt.commentor_full_name}</h1>

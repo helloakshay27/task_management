@@ -128,7 +128,7 @@ const App = () => {
       console.log('⏰ Clearing subscription timer');
       clearTimeout(subscriptionTimer);
     };
-  }, [isSubscribed, webSocketManager, currentUser.id]);
+  }, [isSubscribed, webSocketManager, currentUser?.id]);
 
   return (
     <>
