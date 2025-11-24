@@ -125,6 +125,48 @@ const EditSubtaskModal = ({ isModalOpen, setIsModalOpen, title }) => {
     })
 
     useEffect(() => {
+        const el = startCollapsibleRef.current;
+        if (!el) return;
+
+        if (showStartDatePicker) {
+            gsap.to(el, {
+                height: "auto",
+                opacity: 1,
+                duration: 0.4,
+                ease: "power2.out",
+            });
+        } else {
+            gsap.to(el, {
+                height: 0,
+                opacity: 0,
+                duration: 0.3,
+                ease: "power2.in",
+            });
+        }
+    }, [showStartDatePicker]);
+
+    useEffect(() => {
+        const el = collapsibleRef.current;
+        if (!el) return;
+
+        if (showDatePicker) {
+            gsap.to(el, {
+                height: "auto",
+                opacity: 1,
+                duration: 0.4,
+                ease: "power2.out",
+            });
+        } else {
+            gsap.to(el, {
+                height: 0,
+                opacity: 0,
+                duration: 0.3,
+                ease: "power2.in",
+            });
+        }
+    }, [showDatePicker]);
+
+    useEffect(() => {
         if (projectTeamMembers) {
             const members = []
 
