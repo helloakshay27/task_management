@@ -393,7 +393,7 @@ const EditSubtaskModal = ({ isModalOpen, setIsModalOpen, title }) => {
         <div className="fixed inset-0 flex items-center justify-end bg-black bg-opacity-50 z-10">
             <div
                 ref={addTaskModalRef}
-                className="bg-white py-6 rounded-lg shadow-lg w-[35%] relative h-full right-0"
+                className="bg-white py-6 rounded-lg shadow-lg w-[50%] relative h-full right-0"
             >
                 <h3 className="text-lg font-medium text-center">{title}</h3>
                 <X
