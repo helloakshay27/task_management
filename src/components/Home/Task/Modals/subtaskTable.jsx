@@ -1005,7 +1005,7 @@ const SubtaskTable = ({ projectId }) => {
               ))}
             </thead>
             <tbody>
-              {table.getRowModel().rows.map((row) => (
+              {/* {table.getRowModel().rows.map((row) => (
                 <tr key={row.id} className="hover:bg-gray-50">
                   {row.getVisibleCells().map((cell) => (
                     <td
@@ -1024,7 +1024,32 @@ const SubtaskTable = ({ projectId }) => {
                     </td>
                   ))}
                 </tr>
-              ))}
+              ))} */}
+
+              {table.getRowModel().rows.length === 0 ? (
+                <tr>
+                  <td colSpan={table.getAllColumns().length} className="text-center py-4 text-gray-500">
+                    No Subtask
+                  </td>
+                </tr>
+              ) : (
+                table.getRowModel().rows.map((row) => (
+                  <tr key={row.id} className="hover:bg-gray-50">
+                    {row.getVisibleCells().map((cell) => (
+                      <td
+                        key={cell.id}
+                        className={`border p-0 align-middle ${cell.column.id === "actions" ? "text-center" : "text-left"
+                          }`}
+                      >
+                        <div className="p-1 h-full flex items-center">
+                          {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                        </div>
+                      </td>
+                    ))}
+                  </tr>
+                ))
+              )}
+
               {isAddingNewSubtask && (
                 <tr ref={newTaskFormRowRef}>
                   <td className="border p-1 text-xs text-gray-400 align-middle">
@@ -1156,7 +1181,7 @@ const SubtaskTable = ({ projectId }) => {
                   </td>
                 </tr>
               )}
-              {/* {!isAddingNewSubtask && parentTaskLookupStatus === "found" && (
+              {!isAddingNewSubtask && parentTaskLookupStatus === "found" && (
                 <tr>
                   <td
                     colSpan={columns.length}
@@ -1170,7 +1195,7 @@ const SubtaskTable = ({ projectId }) => {
                     </button>
                   </td>
                 </tr>
-              )} */}
+              )}
             </tbody>
           </table>
         </div>

@@ -188,6 +188,8 @@ export const DurationPicker = ({
                 const workingDays = allDays.filter((d) => d.isWorking);
                 const hrs = workingDays.length * hoursPerDay;
 
+                console.log(hrs)
+
                 setTotalWorkingHours(hrs);
                 if (onChange) onChange(hrs);
 

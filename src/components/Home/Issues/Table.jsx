@@ -1542,7 +1542,7 @@ const IssuesTable = () => {
                     {renderNewIssueRow()}
                   </tr>
                 )}
-                {/* {!isAddingNewIssues && (
+                {!isAddingNewIssues && (
                   <tr>
                     <td
                       colSpan={columns.length}
@@ -1557,7 +1557,7 @@ const IssuesTable = () => {
                       </button>
                     </td>
                   </tr>
-                )} */}
+                )}
               </tbody>
             </table>
           </div>

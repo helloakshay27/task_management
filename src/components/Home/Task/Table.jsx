@@ -1321,7 +1321,7 @@ const TaskTable = ({ isModalOpen, searchQuery }) => {
                   {renderNewTaskRow()}
                 </tr>
               )}
-              {/* {showTopLevelAddTaskButton && (
+              {showTopLevelAddTaskButton && (
                 <tr style={{ height: `${ROW_HEIGHT}px` }}>
                   <td colSpan={mainTableColumns.length} className="border text-left text-[12px]">
                     <button
@@ -1332,7 +1332,7 @@ const TaskTable = ({ isModalOpen, searchQuery }) => {
                     </button>
                   </td>
                 </tr>
-              )} */}
+              )}
               {/* {Array.from({ length: numEmptyRowsToFill }).map((_, i) => (
                 <tr key={`empty-${i}`} style={{ height: `${ROW_HEIGHT}px` }}>
                   <td colSpan={mainTableColumns.length} className="border-r-2 p-2"></td>
