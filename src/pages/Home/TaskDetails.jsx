@@ -1142,9 +1142,9 @@ const TaskDetails = () => {
                                     </div>
                                     <div className="w-1/2 flex items-center justify-start gap-3">
                                         <div className="text-right text-[12px] font-[500]">
-                                            MileStones:
+                                            {task.parent_id ? "Task" : "MileStones"}:
                                         </div>
-                                        <div className="text-left text-[12px]">{task.milestone?.title}</div>
+                                        <div className="text-left text-[12px]">{task.parent_id ? task.parent_task_title : task.milestone?.title}</div>
                                     </div>
                                 </div>
                                 <span className="border h-[1px] inline-block w-full my-4"></span>
