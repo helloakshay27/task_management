@@ -37,7 +37,7 @@ const GroupConversation = () => {
     });
     const [showGroupDetails, setShowGroupDetails] = useState(false);
     const [showEmojiPicker, setShowEmojiPicker] = useState(false);
-
+    const [messageImages, setMessageImages] = useState([])
     const [showMentionDropdown, setShowMentionDropdown] = useState(false);
     const [mentionSearch, setMentionSearch] = useState("");
     const [filteredUsers, setFilteredUsers] = useState([]);
@@ -82,6 +82,12 @@ const GroupConversation = () => {
                 fetchMessagesOfConversation({ token, id, page: 1, param: "project_space_id_eq" })
             ).unwrap();
             setMessages(response.messages);
+            const allAttachments = response.messages
+                ?.map((msg) => msg.attachments || [])
+                .flat()
+                .filter((a) => a && a.url);
+            console.log(allAttachments)
+            setMessageImages(allAttachments);
         } catch (error) {
             console.log(error);
             toast.error(error);
@@ -448,7 +454,7 @@ const GroupConversation = () => {
             <div className="flex-1 overflow-y-auto">
                 {activeTab === "chat" && id && <Chats messages={messages} onReply={handleReply} bottomRef={bottomRef} />}
                 {activeTab === "task" && <ChatTasks />}
-                {activeTab === "attachments" && <ChatAttachments />}
+                {activeTab === "attachments" && <ChatAttachments attachments={messageImages} />}
             </div>
 
             {activeTab === "chat" && (

@@ -26,6 +26,7 @@ const DMConversation = () => {
     const [input, setInput] = useState("");
     const [messages, setMessages] = useState([]);
     const [attachments, setAttachments] = useState([]);
+    const [messageImages, setMessageImages] = useState([])
     const [showEmojiPicker, setShowEmojiPicker] = useState(false);
     const [replyingTo, setReplyingTo] = useState(null);
     const [isSubscribed, setIsSubscribed] = useState(false);
@@ -69,6 +70,12 @@ const DMConversation = () => {
                 fetchMessagesOfConversation({ token, id, page: 1, param: "conversation_id_eq" })
             ).unwrap();
             setMessages(response.messages);
+            const allAttachments = response.messages
+                ?.map((msg) => msg.attachments || [])
+                .flat()
+                .filter((a) => a && a.url);
+            console.log(allAttachments)
+            setMessageImages(allAttachments);
         } catch (error) {
             toast.error(error);
         }
@@ -251,7 +258,7 @@ const DMConversation = () => {
             <div className="flex-1 overflow-y-auto">
                 {activeTab === "chat" && id && <Chats messages={messages} onReply={handleReply} bottomRef={bottomRef} />}
                 {activeTab === "task" && <ChatTasks />}
-                {activeTab === "attachments" && <ChatAttachments />}
+                {activeTab === "attachments" && <ChatAttachments attachments={messageImages} />}
             </div>
 
             {activeTab === "chat" && (
