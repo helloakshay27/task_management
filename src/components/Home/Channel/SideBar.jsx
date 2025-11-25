@@ -59,7 +59,7 @@ const SideBar = () => {
         }
     }, [newConversation])
 
-    const filteredUsers = users.filter((user) =>
+    const filteredUsers = users?.filter((user) =>
         user.firstname.toLowerCase().includes(searchQuery.toLowerCase()) ||
         user.lastname.toLowerCase().includes(searchQuery.toLowerCase())
     );

@@ -952,7 +952,7 @@ const TaskTable = ({ isModalOpen, searchQuery }) => {
       cell: ({ getValue, row }) => (
         <SelectBox
           options={(members?.filter(Boolean).length > 0 ? members.filter(Boolean) : users)
-            .map((user) => ({
+            ?.map((user) => ({
               value: user?.id,
               label: user?.name || `${user?.firstname} ${user?.lastname}`,
             }))}
@@ -1066,7 +1066,7 @@ const TaskTable = ({ isModalOpen, searchQuery }) => {
         <td key="responsiblePersonId" className="p-0 align-middle border-r-2">
           <SelectBox
             options={(members?.filter(Boolean).length > 0 ? members.filter(Boolean) : users)
-              .map((user) => ({
+              ?.map((user) => ({
                 value: user?.id,
                 label: user?.name || `${user?.firstname} ${user?.lastname}`,
               }))}

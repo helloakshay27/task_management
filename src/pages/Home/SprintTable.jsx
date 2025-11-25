@@ -253,7 +253,7 @@ const SprintTable = (setIsSidebarOpen) => {
                     onRefreshInlineData={handlefetchSpirints}
                     loading={sprintsLoading || createSprintLoading || usersLoading}
                     loadingMessage={loaderMessage}
-                    users={users}
+                    users={users || []}
                 />
             ) : (
                 <></>

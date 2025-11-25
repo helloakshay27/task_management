@@ -367,7 +367,7 @@ const MilestoneDependencyTable = () => {
                                                 </button>
                                                 {openOwnerDropdown === milestone.id && (
                                                     <div className="fixed bg-white border border-gray-200 rounded shadow-lg z-50 flex flex-col max-h-[150px] overflow-y-auto" style={{ top: dropdownPos.top, left: dropdownPos.left, width: dropdownPos.width }}>
-                                                        {userOptions.map(user => (
+                                                        {userOptions ? userOptions.map(user => (
                                                             <button
                                                                 key={user.id}
                                                                 onClick={() => {
@@ -382,7 +382,7 @@ const MilestoneDependencyTable = () => {
                                                             >
                                                                 {user.firstname + ' ' + user.lastname}
                                                             </button>
-                                                        ))}
+                                                        )) : <span className="w-full px-4 py-2 text-sm hover:bg-gray-100 text-left text-gray-800">No users found</span>}
                                                     </div>
                                                 )}
                                             </div>
@@ -505,7 +505,7 @@ const MilestoneDependencyTable = () => {
                                         </button>
                                         {openOwnerDropdown === 'new' && (
                                             <div className="fixed bg-white border border-gray-200 rounded shadow-lg z-50 flex flex-col max-h-[150px] overflow-y-auto" style={{ top: dropdownPos.top, left: dropdownPos.left, width: dropdownPos.width }}>
-                                                {userOptions.map(user => (
+                                                {userOptions ? userOptions.map(user => (
                                                     <button
                                                         key={user.id}
                                                         onClick={() => {
@@ -520,7 +520,7 @@ const MilestoneDependencyTable = () => {
                                                     >
                                                         {user.firstname + ' ' + user.lastname}
                                                     </button>
-                                                ))}
+                                                )) : <div className="w-full px-4 py-2 text-sm text-left text-gray-800">No users found</div>}
                                             </div>
                                         )}
                                     </div>

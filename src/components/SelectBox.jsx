@@ -89,7 +89,7 @@ export default function SelectBox({
     }))
     : options;
 
-  const selected = formattedOptions.find((opt) => opt.value === value) || null;
+  const selected = formattedOptions?.find((opt) => opt.value === value) || null;
 
   return (
     <div className={`${className}`} style={style} >

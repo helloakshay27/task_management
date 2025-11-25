@@ -34,7 +34,7 @@ const NewConversationModal = ({
             }
         });
 
-        return filteredUsers.filter((user) => user.id !== currentUserId && !conversationUserIds.has(user.id));
+        return filteredUsers?.filter((user) => user.id !== currentUserId && !conversationUserIds.has(user.id));
     }, [filteredUsers, conversations, currentUserId]);
 
     const handleCreateConversation = async (id) => {
@@ -158,7 +158,7 @@ const NewConversationModal = ({
                     </div>
 
                     <div className="flex-1 overflow-y-auto space-y-2 pr-1 min-h-0">
-                        {availableUsers.length > 0 ? (
+                        {availableUsers?.length > 0 ? (
                             availableUsers.map((user) => (
                                 <div
                                     key={user.id}
@@ -224,7 +224,7 @@ const NewConversationModal = ({
                     <div className="flex-1 flex flex-col min-h-0">
                         <div className="flex-1 space-y-2 overflow-y-auto pr-1 min-h-0">
                             {
-                                filteredUsers.length > 0 ? (
+                                filteredUsers?.length > 0 ? (
                                     filteredUsers.map((user) => (
                                         <div
                                             key={user.id}
