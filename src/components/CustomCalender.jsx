@@ -1,5 +1,5 @@
 import React, { useState, forwardRef, useEffect, useRef } from 'react';
-import { ChevronLeft, ChevronRight, ChevronUp } from 'lucide-react';
+import { ChevronLeft, ChevronRight, ChevronUp, X } from 'lucide-react';
 
 export const CustomCalender = forwardRef(({
     initialDate = new Date(), // Default to current month
@@ -195,7 +195,7 @@ export const CustomCalender = forwardRef(({
     return (
         <div ref={calendarRef} className="w-full mx-auto bg-white rounded-2xl shadow-lg py-4 my-3">
             {/* Header */}
-            <div className="flex items-center justify-end gap-1 mb-3">
+            <div className="flex items-center justify-end gap-1 mb-3 mr-4">
                 <button
                     type='button'
                     onClick={handlePrevMonth}
@@ -216,6 +216,14 @@ export const CustomCalender = forwardRef(({
                     aria-label="Next month"
                 >
                     <ChevronRight className="w-4 h-4" />
+                </button>
+                <button
+                    type='button'
+                    onClick={() => setShowCalender(false)}
+                    className="p-1 hover:bg-gray-100 rounded-full transition-colors"
+                    aria-label="Next month"
+                >
+                    <X className="w-4 h-4" />
                 </button>
             </div>
 
@@ -269,7 +277,7 @@ export const CustomCalender = forwardRef(({
             </div>
 
             {/* Collapse Button */}
-            <div className="flex justify-center mt-3">
+            {/* <div className="flex justify-center mt-3">
                 <button
                     type='button'
                     className="p-1 hover:bg-gray-100 rounded-full transition-colors"
@@ -277,7 +285,7 @@ export const CustomCalender = forwardRef(({
                 >
                     <ChevronUp className="w-5 h-5 text-gray-400" />
                 </button>
-            </div>
+            </div> */}
         </div>
     );
 });

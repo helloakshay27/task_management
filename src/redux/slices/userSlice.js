@@ -48,17 +48,18 @@ export const fetchUsers = createAsyncThunk('fetchUsers', async ({ token }) => {
     }
 });
 
-export const createInternalUser = createAsyncThunk('createInternalUser', async ({ token, payload }) => {
+export const createInternalUser = createAsyncThunk('createInternalUser', async ({ token, payload }, { rejectWithValue }) => {
     try {
         const response = await axios.post(`${baseURL}/users.json`, payload, {
             headers: {
                 Authorization: `Bearer ${token}`,
+                'Content-Type': 'Multipart/form-data',
             },
         });
 
         return response.data;
     } catch (error) {
-        return error.response.data
+        return rejectWithValue(error);
     }
 });
 

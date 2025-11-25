@@ -10,6 +10,9 @@ import toast from 'react-hot-toast';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { baseURL } from '../../../apiDomain';
+import { createInternalUser, fetchInternalUser } from '@/redux/slices/userSlice';
+import { fetchCompany } from '@/redux/slices/companySlice';
+import { fetchRoles } from '@/redux/slices/roleSlice';
 
 const uploadSections = [
     {
@@ -39,6 +42,12 @@ const uploadSections = [
     }
 ];
 
+const workTypeOptions = [
+    { label: 'Select Work Type', value: '' },
+    { label: 'Work from Office', value: 'Work from Office' },
+    { label: 'Work from Home/Office', value: 'Work from Home/Office' },
+];
+
 const EmployeeAddPage = () => {
     const navigate = useNavigate();
     const dispatch = useDispatch();
@@ -46,13 +55,17 @@ const EmployeeAddPage = () => {
 
     const [departments, setDepartments] = useState([])
     const [shifts, setShifts] = useState([])
-    const [buildigs, setBuildigs] = useState([])
-    const [floors, setFloors] = useState([])
+    const [company, setCompany] = useState([])
+    const [roles, setRoles] = useState([])
+    const [users, setUsers] = useState([])
     const [formData, setFormData] = useState({
         firstName: '',
         lastName: '',
         email: '',
         mobile: '',
+        company: '',
+        role: '',
+        reportTo: '',
         deskExtension: '',
         department: '',
         designation: '',
@@ -89,15 +102,36 @@ const EmployeeAddPage = () => {
             }
         };
 
-        // const fetchBuildings = async () => {
-        //     try {
-        //         const response = await dispatch(fetchBuilding({ token })).unwrap();
-        //         setBuildigs(response);
-        //     } catch (error) {
-        //         console.error('Error fetching buildings:', error);
-        //     }
-        // };
+        const getCompanies = async () => {
+            try {
+                const response = await dispatch(fetchCompany({ token })).unwrap();
+                setCompany(response);
+            } catch (error) {
+                console.error('Error fetching companies:', error);
+            }
+        };
 
+        const getRoles = async () => {
+            try {
+                const response = await dispatch(fetchRoles({ token })).unwrap();
+                setRoles(response);
+            } catch (error) {
+                console.error('Error fetching roles:', error);
+            }
+        };
+
+        const getUsers = async () => {
+            try {
+                const response = await dispatch(fetchInternalUser({ token })).unwrap();
+                setUsers(response);
+            } catch (error) {
+                console.error('Error fetching users:', error);
+            }
+        };
+
+        getUsers();
+        getRoles();
+        getCompanies();
         fetchShifts();
         fetchDepartments();
     }, [])
@@ -128,6 +162,7 @@ const EmployeeAddPage = () => {
     };
 
     const validateForm = () => {
+        toast.dismiss()
         if (!formData.firstName) {
             toast.error("First Name is required");
             return false;
@@ -142,6 +177,18 @@ const EmployeeAddPage = () => {
         }
         if (!formData.mobile) {
             toast.error("Mobile is required");
+            return false;
+        }
+        if (!formData.company) {
+            toast.error("Company is required");
+            return false;
+        }
+        if (!formData.role) {
+            toast.error("Role is required");
+            return false;
+        }
+        if (!formData.reportTo) {
+            toast.error("Report To is required");
             return false;
         }
         if (!formData.department) {
@@ -177,15 +224,22 @@ const EmployeeAddPage = () => {
                     lastname: formData.lastName,
                     email: formData.email,
                     mobile: formData.mobile,
+                    role_id: formData.role,
+                    employee_type: "internal",
+                    report_to_id: formData.reportTo,
+                    company_id: formData.company,
                     lock_user_permissions_attributes: [
                         {
+                            account_id: formData.company,
+                            user_type: "pms_admin",
                             department_id: formData.department,
                             designation: formData.designation,
                             user_shift_id: formData.shift,
                             employee_id: formData.employeeId,
+                            role_id: formData.role,
                             work_type: formData.workType,
-                            building_id: formData.building,
-                            floor_id: formData.floor,
+                            access_level: "Site",
+                            access_to: [],
                             on_boarding_attachments_attributes: [
                                 { document: formData.onBoardingFile }
                             ],
@@ -206,51 +260,17 @@ const EmployeeAddPage = () => {
                 }
             }
 
-            await axios.post(`${baseURL}/pms/manage/employees.json`, payload, {
-                headers: {
-                    "Authorization": `Bearer ${token}`,
-                    "Content-Type": "multipart/form-data"
-                }
-            })
+            await dispatch(createInternalUser({ token, payload })).unwrap();
 
             toast.success("Employee added successfully")
             navigate(-1)
         } catch (error) {
             console.log(error)
+            if (Array.isArray(error.response.data.errors) && error.response.data.errors.length > 0) {
+                toast.error(error.response.data.errors[0])
+            }
         }
     };
-
-    const departmentOptions = [
-        { label: 'Select Department', value: '' },
-        { label: 'Engineering', value: 'engineering' },
-        { label: 'HR', value: 'hr' },
-        { label: 'Sales', value: 'sales' },
-    ];
-
-    const shiftOptions = [
-        { label: 'Select Shift', value: '' },
-        { label: 'Morning', value: 'morning' },
-        { label: 'Evening', value: 'evening' },
-        { label: 'Night', value: 'night' },
-    ];
-
-    const workTypeOptions = [
-        { label: 'Select Work Type', value: '' },
-        { label: 'Work from Office', value: 'Work from Office' },
-        { label: 'Work from Home/Office', value: 'Work from Home/Office' },
-    ];
-
-    const buildingOptions = [
-        { label: 'Building A', value: 'building_a' },
-        { label: 'Building B', value: 'building_b' },
-        { label: 'Building C', value: 'building_c' },
-    ];
-
-    const floorOptions = [
-        { label: 'Ground', value: 'ground' },
-        { label: 'First', value: 'first' },
-        { label: 'Second', value: 'second' },
-    ];
 
     return (
         <div className="min-h-screen p-8">
@@ -275,7 +295,7 @@ const EmployeeAddPage = () => {
                                 placeholder="First Name"
                                 value={formData.firstName}
                                 onChange={handleInputChange}
-                                className="w-full px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-[#C72030]"
+                                className="w-full px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none"
                             />
                         </div>
                         <div>
@@ -288,7 +308,7 @@ const EmployeeAddPage = () => {
                                 placeholder="Last Name"
                                 value={formData.lastName}
                                 onChange={handleInputChange}
-                                className="w-full px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-[#C72030]"
+                                className="w-full px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none"
                             />
                         </div>
                         <div>
@@ -301,7 +321,7 @@ const EmployeeAddPage = () => {
                                 placeholder="Email"
                                 value={formData.email}
                                 onChange={handleInputChange}
-                                className="w-full px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-[#C72030]"
+                                className="w-full px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none"
                             />
                         </div>
                         <div>
@@ -314,22 +334,9 @@ const EmployeeAddPage = () => {
                                 placeholder="Mobile No."
                                 value={formData.mobile}
                                 onChange={handleInputChange}
-                                className="w-full px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-[#C72030]"
+                                className="w-full px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none"
                             />
                         </div>
-                        {/* <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                                Desk Extension<span className="text-red-500">*</span>
-                            </label>
-                            <input
-                                type="text"
-                                name="deskExtension"
-                                placeholder="Desk Extension"
-                                value={formData.deskExtension}
-                                onChange={handleInputChange}
-                                className="w-full px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-[#C72030]"
-                            />
-                        </div> */}
                     </div>
                 </div>
 
@@ -345,11 +352,27 @@ const EmployeeAddPage = () => {
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">
+                                Company<span className="text-red-500">*</span>
+                            </label>
+                            <SelectBox
+                                options={
+                                    company?.map((item) => ({
+                                        label: item.name,
+                                        value: item.id,
+                                    }))
+                                }
+                                value={formData.company}
+                                onChange={(val) => handleSelectChange('company', val)}
+                                placeholder="Select Company"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
                                 Department<span className="text-red-500">*</span>
                             </label>
                             <SelectBox
                                 options={
-                                    departments.map((item) => ({
+                                    departments?.map((item) => ({
                                         label: item.name,
                                         value: item.id,
                                     }))
@@ -357,6 +380,22 @@ const EmployeeAddPage = () => {
                                 value={formData.department}
                                 onChange={(val) => handleSelectChange('department', val)}
                                 placeholder="Select Department"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                                Role<span className="text-red-500">*</span>
+                            </label>
+                            <SelectBox
+                                options={
+                                    roles?.map((item) => ({
+                                        label: item.name,
+                                        value: item.id,
+                                    }))
+                                }
+                                value={formData.role}
+                                onChange={(val) => handleSelectChange('role', val)}
+                                placeholder="Select Role"
                             />
                         </div>
                         <div>
@@ -369,7 +408,7 @@ const EmployeeAddPage = () => {
                                 placeholder="Designation"
                                 value={formData.designation}
                                 onChange={handleInputChange}
-                                className="w-full px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-[#C72030]"
+                                className="w-full px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none"
                             />
                         </div>
                         <div>
@@ -390,6 +429,22 @@ const EmployeeAddPage = () => {
                         </div>
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">
+                                Reports to<span className="text-red-500">*</span>
+                            </label>
+                            <SelectBox
+                                options={
+                                    users?.map((item) => ({
+                                        label: item.firstname + ' ' + item.lastname,
+                                        value: item.id,
+                                    }))
+                                }
+                                value={formData.reportTo}
+                                onChange={(val) => handleSelectChange('reportTo', val)}
+                                placeholder="Select Reports to"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
                                 Employee ID<span className="text-red-500">*</span>
                             </label>
                             <input
@@ -398,7 +453,7 @@ const EmployeeAddPage = () => {
                                 placeholder="Employee ID"
                                 value={formData.employeeId}
                                 onChange={handleInputChange}
-                                className="w-full px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-[#C72030]"
+                                className="w-full px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none"
                             />
                         </div>
                         <div>

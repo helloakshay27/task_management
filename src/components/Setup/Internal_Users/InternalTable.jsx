@@ -98,8 +98,8 @@ const InternalTable = () => {
   const handleAddClick = () => {
     setIsEditMode(false);
     setSelectedUser(null);
-    setIsModalOpen(true);
-    // navigate('/setup/internal-users/add');
+    // setIsModalOpen(true);
+    navigate('/setup/internal-users/add');
   };
 
   const handleEditClick = (user) => {
