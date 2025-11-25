@@ -6,7 +6,7 @@ import AddInternalUser from './AddInternalUserModal';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchInternalUser, fetchUpdateUser, fetchUsers } from '../../../redux/slices/userSlice';
 import toast from 'react-hot-toast';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 const ActionIcons = ({ row, onEditClick }) => {
   const token = localStorage.getItem('token');
@@ -69,6 +69,7 @@ const ActionIcons = ({ row, onEditClick }) => {
 
 
 const InternalTable = () => {
+  const navigate = useNavigate();
   const token = localStorage.getItem('token');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
@@ -98,6 +99,7 @@ const InternalTable = () => {
     setIsEditMode(false);
     setSelectedUser(null);
     setIsModalOpen(true);
+    // navigate('/setup/internal-users/add');
   };
 
   const handleEditClick = (user) => {

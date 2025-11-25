@@ -264,7 +264,7 @@ const EmployeeAddPage = () => {
                         <h2 className="text-lg font-semibold text-gray-800">BASIC INFORMATION</h2>
                     </div>
 
-                    <div className="grid grid-cols-4 gap-2">
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">
                                 First Name<span className="text-red-500">*</span>
@@ -342,7 +342,7 @@ const EmployeeAddPage = () => {
                         <h2 className="text-lg font-semibold text-gray-800">FUNCTIONAL DETAILS</h2>
                     </div>
 
-                    <div className="grid grid-cols-4 gap-2">
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">
                                 Department<span className="text-red-500">*</span>
@@ -401,35 +401,6 @@ const EmployeeAddPage = () => {
                                 className="w-full px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-[#C72030]"
                             />
                         </div>
-                    </div>
-
-                    {/* <div className="grid grid-cols-2 gap-2 mt-4">
-                        <div className="flex items-center gap-2">
-                            <input
-                                type="checkbox"
-                                id="lateComing"
-                                name="lateComing"
-                                checked={formData.lateComing}
-                                onChange={handleInputChange}
-                                className="w-4 h-4 border border-gray-300 rounded cursor-pointer"
-                            />
-                            <label htmlFor="lateComing" className="text-sm font-medium text-gray-700 cursor-pointer">
-                                Late Coming
-                            </label>
-                        </div>
-                    </div> */}
-                </div>
-
-                {/* Seat Management Section */}
-                <div className="mb-8">
-                    <div className="flex items-center gap-2 mb-4">
-                        <div className="w-7 h-7 bg-[#C72030] rounded-full flex items-center justify-center text-white text-sm font-bold">
-                            3
-                        </div>
-                        <h2 className="text-lg font-semibold text-gray-800">Seat Management</h2>
-                    </div>
-
-                    <div className="grid grid-cols-3 gap-2">
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">
                                 Work Type<span className="text-red-500">*</span>
@@ -439,28 +410,6 @@ const EmployeeAddPage = () => {
                                 value={formData.workType}
                                 onChange={(val) => handleSelectChange('workType', val)}
                                 placeholder="Select Work Type"
-                            />
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                                Building<span className="text-red-500">*</span>
-                            </label>
-                            <MultiSelectBox
-                                options={buildingOptions}
-                                value={formData.building}
-                                onChange={(val) => handleSelectChange('building', val)}
-                                placeholder="Select Building"
-                            />
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                                Floor<span className="text-red-500">*</span>
-                            </label>
-                            <MultiSelectBox
-                                options={floorOptions}
-                                value={formData.floor}
-                                onChange={(val) => handleSelectChange('floor', val)}
-                                placeholder="Select Floor"
                             />
                         </div>
                     </div>
@@ -475,7 +424,7 @@ const EmployeeAddPage = () => {
                         <h2 className="text-lg font-semibold text-gray-800">ATTACHMENTS</h2>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                         {uploadSections.map((section) => (
                             <div
                                 key={section.id}
@@ -512,7 +461,6 @@ const EmployeeAddPage = () => {
                                             type="file"
                                             onChange={(e) => handleFileChange(e, section.id)}
                                             className="hidden"
-                                            accept=".pdf,.doc,.docx"
                                         />
                                     </label>
                                 </div>
