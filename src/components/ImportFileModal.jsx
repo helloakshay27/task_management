@@ -106,7 +106,7 @@ export const FileUploadModal = ({ isOpen, onClose, acceptedTypes = '*', multiple
         setSelectedFiles(prev => prev.filter((_, i) => i !== index));
     };
 
-    const handleSubmit = () => {
+    const handleSubmit = async () => {
         try {
             if (selectedFiles.length > 0) {
                 const formData = new FormData();
@@ -114,19 +114,40 @@ export const FileUploadModal = ({ isOpen, onClose, acceptedTypes = '*', multiple
                     formData.append('file', file);
                 })
                 if (type === "Task") {
-                    axios.post(`${baseURL}/task_managements/import.json`, formData, {
+                    const response = await axios.post(`${baseURL}/task_managements/import.xlsx`, formData, {
                         headers: {
                             "Authorization": `Bearer ${localStorage.getItem('token')}`
-                        }
+                        },
+                        responseType: 'blob'
                     })
+
+                    const blob = new Blob([response.data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+                    const url = window.URL.createObjectURL(blob);
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.download = 'tasks_response.xlsx';
+                    link.click();
+                    window.URL.revokeObjectURL(url);
+
+                    window.location.reload();
                 } else if (type === "Issues") {
-                    axios.post(`${baseURL}/issues/import_issues.json`, formData, {
+                    const response = await axios.post(`${baseURL}/issues/import_issues.xlsx`, formData, {
                         headers: {
                             "Authorization": `Bearer ${localStorage.getItem('token')}`
-                        }
+                        },
+                        responseType: 'blob'
                     })
+
+                    const blob = new Blob([response.data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+                    const url = window.URL.createObjectURL(blob);
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.download = 'issues_response.xlsx';
+                    link.click();
+                    window.URL.revokeObjectURL(url);
+
+                    window.location.reload();
                 }
-                window.location.reload();
             }
         } catch (error) {
             console.log(error)
