@@ -8,14 +8,27 @@ const MileStoneMain = () => {
     const [selectedType, setSelectedType] = useState(
         "Gantt");
     const [searchQuery, setSearchQuery] = useState("")
+    const [selectedColumns, setSelectedColumns] = useState({})
+
+    const handleColumnsChange = (columns) => {
+        setSelectedColumns(columns);
+    };
+
     return (
         <div>
-            <MilestoneHeader selectedType={selectedType} setSelectedType={setSelectedType} searchQuery={searchQuery} setSearchQuery={setSearchQuery} />
+            <MilestoneHeader
+                selectedType={selectedType}
+                setSelectedType={setSelectedType}
+                searchQuery={searchQuery}
+                setSearchQuery={setSearchQuery}
+                onColumnsChange={handleColumnsChange}
+                selectedColumns={selectedColumns}
+            />
             {
                 selectedType === "Gantt" ? (
                     <MilestoneBody />
                 ) : selectedType === "List" ? (
-                    <MilestoneList searchQuery={searchQuery} />
+                    <MilestoneList searchQuery={searchQuery} selectedColumns={selectedColumns} />
                 ) : (
                     <MilestoneKanban />
                 )

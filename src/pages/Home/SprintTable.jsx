@@ -20,6 +20,19 @@ const globalStatusOptions = [
     // "overdue",
 ];
 
+// Define available columns for Sprint table - must match columns in useMemo
+const SPRINT_TABLE_COLUMNS = [
+    { id: "id", label: "Sprint Id", key: "id" },
+    { id: "name", label: "Sprint Title", key: "name" },
+    { id: "status", label: "Status", key: "status" },
+    { id: "sprint_owner_name", label: "Sprint Owner", key: "sprint_owner_name" },
+    { id: "start_date", label: "Start Date", key: "start_date" },
+    { id: "end_date", label: "End Date", key: "end_date" },
+    { id: "duration", label: "Duration", key: "duration" },
+    { id: "priority", label: "Priority", key: "priority" },
+    { id: "associated_projects_count", label: "Number Of Projects", key: "associated_projects_count" },
+];
+
 const SprintTable = (setIsSidebarOpen) => {
     const token = localStorage.getItem("token");
     const dispatch = useDispatch();
@@ -39,6 +52,14 @@ const SprintTable = (setIsSidebarOpen) => {
 
     const [data, setData] = useState([]);
     const [loaderMessage, setLoaderMessage] = useState("");
+    const [selectedType, setSelectedType] = useState(() => {
+        return localStorage.getItem("selectedSprintType") || "List";
+    });
+    const [selectedColumns, setSelectedColumns] = useState({});
+
+    const handleColumnsChange = (columns) => {
+        setSelectedColumns(columns);
+    };
 
     const handlefetchSpirints = async () => {
         try {
@@ -207,8 +228,7 @@ const SprintTable = (setIsSidebarOpen) => {
 
                     return <span className="text-green-700 font-mono">{countdown}</span>;
                 },
-            }
-            ,
+            },
             {
                 accessorKey: "priority",
                 header: "Priority",
@@ -227,8 +247,13 @@ const SprintTable = (setIsSidebarOpen) => {
         [data]
     );
 
-    const [selectedType, setSelectedType] = useState(() => {
-        return localStorage.getItem("selectedTaskType") || "List";
+    // Filter columns based on selectedColumns
+    const filteredColumns = columns.filter((col) => {
+        if (!selectedColumns || Object.keys(selectedColumns).length === 0) {
+            return true;
+        }
+        const columnId = col.id || col.accessorKey;
+        return selectedColumns[columnId] !== false;
     });
 
     return (
@@ -239,6 +264,8 @@ const SprintTable = (setIsSidebarOpen) => {
                 setSelectedType={setSelectedType}
                 addType={"Sprint-Gantt"}
                 context="Tasks"
+                onColumnsChange={handleColumnsChange}
+                availableColumns={SPRINT_TABLE_COLUMNS}
             />
 
             {selectedType === "Sprint-Gantt" ? (
@@ -246,7 +273,7 @@ const SprintTable = (setIsSidebarOpen) => {
             ) : selectedType === "List" ? (
                 <CustomTable
                     data={data}
-                    columns={columns}
+                    columns={filteredColumns}
                     layout="inline"
                     onAdd={() => setIsModalOpen(true)}
                     onCreateInlineItem={handleCreateSprints}
@@ -254,6 +281,7 @@ const SprintTable = (setIsSidebarOpen) => {
                     loading={sprintsLoading || createSprintLoading || usersLoading}
                     loadingMessage={loaderMessage}
                     users={users || []}
+                    isSprint={true}
                 />
             ) : (
                 <></>

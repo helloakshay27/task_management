@@ -7,6 +7,21 @@ import { useParams } from 'react-router-dom';
 import { fetchProjectDetails } from '../../redux/slices/projectSlice.js';
 import { fetchMilestoneById } from '../../redux/slices/milestoneSlice.js';
 
+// Define available columns for Task table - must match mainTableColumns in Table.jsx
+const TASK_TABLE_COLUMNS = [
+    { id: "expander", label: "Expander", key: "expander" },
+    { id: "id", label: "Task Id", key: "id" },
+    { id: "taskTitle", label: "Task Title", key: "taskTitle" },
+    { id: "status", label: "Status", key: "status" },
+    { id: "responsiblePersonId", label: "Responsible Person", key: "responsiblePersonId" },
+    { id: "startDate", label: "Start Date", key: "startDate" },
+    { id: "endDate", label: "End Date", key: "endDate" },
+    { id: "duration", label: "Duration", key: "duration" },
+    { id: "priority", label: "Priority", key: "priority" },
+    { id: "predecessor", label: "Predecessor", key: "predecessor" },
+    { id: "successor", label: "Successor", key: "successor" },
+];
+
 const Tasks = ({ setIsSidebarOpen }) => {
     const token = localStorage.getItem("token");
     const { id, mid } = useParams();
@@ -21,6 +36,7 @@ const Tasks = ({ setIsSidebarOpen }) => {
     const [searchQuery, setSearchQuery] = useState("")
     // debouncedSearchQuery updates after a short delay to avoid firing API calls on every keystroke
     const [debouncedSearchQuery, setDebouncedSearchQuery] = useState(searchQuery);
+    const [selectedColumns, setSelectedColumns] = useState({});
 
     useEffect(() => {
         const handler = setTimeout(() => setDebouncedSearchQuery(searchQuery), 300);
@@ -35,6 +51,10 @@ const Tasks = ({ setIsSidebarOpen }) => {
     const [selectedType, setSelectedType] = useState(() => {
         return localStorage.getItem("selectedTaskType") || "List";
     });
+
+    const handleColumnsChange = (columns) => {
+        setSelectedColumns(columns);
+    };
 
     return (
         <div className="h-full overflow-y-auto no-scrollbar">
@@ -55,13 +75,15 @@ const Tasks = ({ setIsSidebarOpen }) => {
                 setIsModalOpen={setIsModalOpen}
                 searchQuery={searchQuery}
                 setSearchQuery={setSearchQuery}
+                onColumnsChange={handleColumnsChange}
+                availableColumns={TASK_TABLE_COLUMNS}
             />
 
             {
                 selectedType === "Kanban" ? (
                     <BoardsSection section={"Tasks"} />
                 ) : selectedType === "List" ? (
-                    <TasksList isModalOpen={isModalOpen} searchQuery={debouncedSearchQuery} />
+                    <TasksList isModalOpen={isModalOpen} searchQuery={debouncedSearchQuery} selectedColumns={selectedColumns} />
                 ) : <></>
             }
         </div>

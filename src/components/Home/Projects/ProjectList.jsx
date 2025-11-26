@@ -270,7 +270,7 @@ const DraggableColumnHeader = ({ header, onReorderColumns, columnOrder }) => {
     );
 };
 
-const ProjectList = ({ searchQuery }) => {
+const ProjectList = ({ searchQuery, selectedColumns }) => {
     const token = localStorage.getItem("token");
     const fixedRowsPerPage = 10;
     const dispatch = useDispatch();
@@ -905,7 +905,15 @@ const ProjectList = ({ searchQuery }) => {
     // Reorder columns based on columnOrder state
     const columns = columnOrder
         .map((columnId) => allColumns.find((col) => col.id === columnId || col.accessorKey === columnId))
-        .filter(Boolean);
+        .filter(Boolean)
+        .filter((col) => {
+            // If selectedColumns is empty or not provided, show all columns
+            if (!selectedColumns || Object.keys(selectedColumns).length === 0) {
+                return true;
+            }
+            const columnId = col.id || col.accessorKey;
+            return selectedColumns[columnId] !== false;
+        });
 
     const renderNewProjectRow = () => {
         const newProjectFields = {

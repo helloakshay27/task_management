@@ -317,7 +317,7 @@ const processTaskData = (task) => {
   };
 };
 
-const TaskTable = ({ isModalOpen, searchQuery }) => {
+const TaskTable = ({ isModalOpen, searchQuery, selectedColumns }) => {
   const token = localStorage.getItem("token");
   const { id, mid } = useParams();
   const dispatch = useDispatch();
@@ -1025,7 +1025,15 @@ const TaskTable = ({ isModalOpen, searchQuery }) => {
   // Reorder columns based on columnOrder state
   const orderedColumns = columnOrder
     .map((columnId) => mainTableColumns.find((col) => col.id === columnId || col.accessorKey === columnId))
-    .filter(Boolean);
+    .filter(Boolean)
+    .filter((col) => {
+      // If selectedColumns is empty or not provided, show all columns
+      if (!selectedColumns || Object.keys(selectedColumns).length === 0) {
+        return true;
+      }
+      const columnId = col.id || col.accessorKey;
+      return selectedColumns[columnId] !== false;
+    });
 
   const renderNewTaskRow = () => {
     const newTaskFields = {

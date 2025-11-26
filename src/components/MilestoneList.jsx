@@ -259,7 +259,7 @@ const DraggableColumnHeader = ({ header, onReorderColumns, columnOrder }) => {
     );
 };
 
-const MilestoneList = ({ searchQuery }) => {
+const MilestoneList = ({ searchQuery, selectedColumns }) => {
     const token = localStorage.getItem("token");
     const { id } = useParams();
     const fixedRowsPerPage = 10;
@@ -720,7 +720,15 @@ const MilestoneList = ({ searchQuery }) => {
     // Reorder columns based on columnOrder state
     const columns = columnOrder
         .map((columnId) => allColumns.find((col) => col.id === columnId || col.accessorKey === columnId))
-        .filter(Boolean);
+        .filter(Boolean)
+        .filter((col) => {
+            // If selectedColumns is empty or not provided, show all columns
+            if (!selectedColumns || Object.keys(selectedColumns).length === 0) {
+                return true;
+            }
+            const columnId = col.id || col.accessorKey;
+            return selectedColumns[columnId] !== false;
+        });
 
     const renderNewMilestoneRow = () => {
         const newMilestoneFields = {

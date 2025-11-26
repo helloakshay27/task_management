@@ -27,6 +27,7 @@ import Switch from '@mui/joy/Switch';
 import { FileUploadModal } from "../ImportFileModal";
 import axios from "axios";
 import { baseURL } from "../../../apiDomain";
+import ColumnSelector from "../ColumnSelector";
 
 // Define status options for each addType
 const STATUS_OPTIONS_MAP = {
@@ -59,6 +60,8 @@ const TaskActions = ({
     setSearchQuery,
     isModalOpen,
     setIsModalOpen,
+    onColumnsChange,
+    availableColumns,
 }) => {
     const { mid } = useParams();
     const [isTypeOpen, setIsTypeOpen] = useState(false);
@@ -449,6 +452,7 @@ const TaskActions = ({
                             </div>
                         )}
                     {addType !== "Milestone" && addType !== "templates" && addType !== "archived" && renderStatusDropdown()}
+
                     {
                         (addType === "Task" || addType === "Issues") && (
                             <div className="flex items-center gap-1 divide-x divide-gray-400">
@@ -466,6 +470,21 @@ const TaskActions = ({
                                 >
                                     <Download size={17} className="text-gray-600" />
                                 </div>
+                            </div>
+                        )
+                    }
+
+                    {
+                        (addType === "Task" || addType === "Project" || addType === "Issues" || addType === "Milestone" || addType === "Sprint-Gantt") &&
+                        selectedType === "List" &&
+                        availableColumns &&
+                        availableColumns.length > 0 && (
+                            <div className="pl-4">
+                                <ColumnSelector
+                                    tableType={addType}
+                                    availableColumns={availableColumns}
+                                    onColumnsChange={onColumnsChange}
+                                />
                             </div>
                         )
                     }

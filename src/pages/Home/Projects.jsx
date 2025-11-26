@@ -8,6 +8,22 @@ import BoardsSection from "../../components/Home/BoardsSection";
 import { useNavigate } from "react-router-dom";
 import ProjectTemplates from "../Setup/ProjectTemplates";
 
+// Define available columns for Project table - must match allColumns in ProjectList.jsx
+const PROJECT_TABLE_COLUMNS = [
+    { id: "id", label: "Project ID", key: "id" },
+    { id: "title", label: "Project Title", key: "title" },
+    { id: "status", label: "Status", key: "status" },
+    { id: "type", label: "Project Type", key: "type" },
+    { id: "manager", label: "Project Manager", key: "manager" },
+    { id: "milestones", label: "Milestones", key: "milestones" },
+    { id: "tasks", label: "Tasks", key: "tasks" },
+    { id: "issues", label: "Issues", key: "issues" },
+    { id: "startDate", label: "Start Date", key: "startDate" },
+    { id: "endDate", label: "End Date", key: "endDate" },
+    { id: "priority", label: "Priority", key: "priority" },
+    { id: "actions", label: "Actions", key: "actions" },
+];
+
 const Projects = ({ setIsSidebarOpen }) => {
     const [activeTab, setActiveTab] = useState(tabs[0].id);
     const [activeTabLabel, setActiveTabLabel] = useState(tabs[0].id);
@@ -15,6 +31,7 @@ const Projects = ({ setIsSidebarOpen }) => {
         "List");
     const [filters, setFilters] = useState({});
     const [searchQuery, setSearchQuery] = useState("")
+    const [selectedColumns, setSelectedColumns] = useState({});
 
     const tabRefs = useRef({});
     const underlineRef = useRef(null);
@@ -32,6 +49,10 @@ const Projects = ({ setIsSidebarOpen }) => {
             });
         }
     }, [activeTab]);
+
+    const handleColumnsChange = (columns) => {
+        setSelectedColumns(columns);
+    };
 
     return (
         <div className="h-full overflow-y-auto no-scrollbar">
@@ -68,12 +89,14 @@ const Projects = ({ setIsSidebarOpen }) => {
                 context={"Projects"}
                 searchQuery={searchQuery}
                 setSearchQuery={setSearchQuery}
+                onColumnsChange={handleColumnsChange}
+                availableColumns={PROJECT_TABLE_COLUMNS}
             />
 
             {activeTab === tabs[0].id && (
                 <>
                     {selectedType === "List" ? (
-                        <ProjectList searchQuery={searchQuery} />
+                        <ProjectList searchQuery={searchQuery} selectedColumns={selectedColumns} />
                     ) : (
                         <BoardsSection section={"Projects"} />
                     )}
