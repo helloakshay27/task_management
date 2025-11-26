@@ -73,6 +73,7 @@ const ExternalTable = () => {
   const token = localStorage.getItem('token');
   const dispatch = useDispatch();
   const { fetchExternalUser: externalUsers } = useSelector(state => state.fetchExternalUser);
+  const [searchQuery, setSearchQuery] = useState('')
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -93,6 +94,11 @@ const ExternalTable = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
+
+  const filteredUsers = externalUsers?.filter(user => (
+    user.firstname.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    user.lastname.toLowerCase().includes(searchQuery.toLowerCase())
+  ));
 
   const handleAddUser = () => {
     setIsEditMode(false);
@@ -190,13 +196,15 @@ const ExternalTable = () => {
   return (
     <div>
       <CustomTable
-        data={externalUsers || []}
+        data={filteredUsers || []}
         columns={columns}
         title="User Table"
         layout="inline"
         buttonText="Add Users"
         showDropdown
         onAdd={handleAddUser}
+        searchQuery={searchQuery}
+        setSearchQuery={setSearchQuery}
       />
       {
         isModalOpen && (

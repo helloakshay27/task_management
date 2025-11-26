@@ -10,6 +10,8 @@ import StatusBadge from "../Home/Projects/statusBadge";
 import { useLocation } from "react-router-dom";
 import Loader from "../Loader";
 import SelectBox from "../SelectBox";
+import { Search } from "lucide-react";
+import { useDrag, useDrop } from "react-dnd";
 // --- Input Components for Inline Add Row ---
 const InlineAddTextField = ({
     value,
@@ -80,6 +82,59 @@ const globalStatusOptionsForInlineAdd = [
 ];
 const globalPriorityOptions = ["low", "medium", "high"];
 
+// Draggable Column Header Component
+const DraggableColumnHeader = ({ header, onReorderColumns, columnOrder }) => {
+    const [{ isDragging }, dragRef] = useDrag(
+        () => ({
+            type: "column",
+            item: { id: header.id },
+            collect: (monitor) => ({
+                isDragging: monitor.isDragging(),
+            }),
+        }),
+        []
+    );
+
+    const [{ isOver }, dropRef] = useDrop(
+        () => ({
+            accept: "column",
+            hover: (item) => {
+                if (item.id !== header.id) {
+                    onReorderColumns(item.id, header.id);
+                }
+            },
+            collect: (monitor) => ({
+                isOver: monitor.isOver(),
+            }),
+        }),
+        [header.id, columnOrder]
+    );
+
+    const combinedRef = (el) => {
+        dragRef(el);
+        dropRef(el);
+    };
+
+    return (
+        <th
+            ref={combinedRef}
+            colSpan={header.colSpan}
+            style={{
+                width: header.column.getSize(),
+                opacity: isDragging ? 0.5 : 1,
+                transition: "all 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
+                transform: isOver ? "scale(1.02)" : "scale(1)",
+            }}
+            className={`bg-[#D5DBDB] px-3 py-3.5 text-center font-[500] border-r-2 border-[#FFFFFF66] cursor-move select-none ${isDragging ? "shadow-lg opacity-50" : ""
+                } ${isOver ? "bg-[#C5CBCB]" : ""}`}
+        >
+            {header.isPlaceholder
+                ? null
+                : flexRender(header.column.columnDef.header, header.getContext())}
+        </th>
+    );
+};
+
 const CustomTable = ({
     data,
     columns,
@@ -97,6 +152,11 @@ const CustomTable = ({
     loadingMessage = "",
     loading = false,
     users = null,
+    searchQuery,
+    setSearchQuery,
+    isSprint = false,
+    columnOrder = null,
+    onReorderColumns = null,
 }) => {
     const location = useLocation();
     const [pagination, setPagination] = useState({
@@ -279,15 +339,12 @@ const CustomTable = ({
                     className={`px-4 pl-7 ${!location.pathname.startsWith("/sprint-list") && "pt-4"
                         } ${isInline ? "flex justify-between items-center" : ""}`}
                 >
-                    <div
-                        className={
-                            isInline ? "" : "bg-[#bebfbf] px-3 py-1 rounded inline-block"
-                        }
-                    >
-                        <h1 className="text-sm text-gray-800 flex items-center gap-1">
-                            {title}
-                        </h1>
-                    </div>
+                    {
+                        !isSprint && <div className='relative'>
+                            <input value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} type="text" className="border border-gray-300 ps-10 pe-2 py-2 w-[400px] focus:outline-none text-sm" placeholder="Search..." />
+                            <Search className="absolute left-2 top-2 text-gray-400" size={20} color="#C72030" />
+                        </div>
+                    }
                     {!isInline && <div className="border-b border-gray-200 mt-2"></div>}
                     {buttonText && onAdd && (
                         <div className={`${isInline ? "" : "flex justify-end mt-4 mr-3"}`}>
@@ -321,26 +378,40 @@ const CustomTable = ({
                             <thead>
                                 {table.getHeaderGroups().map((headerGroup) => (
                                     <tr key={headerGroup.id}>
-                                        {headerGroup.headers.map((header) => (
-                                            <th
-                                                key={header.id}
-                                                colSpan={header.colSpan}
-                                                style={{
-                                                    width: header.column.getSize(),
-                                                    height: `${headerHeight}px`,
-                                                }} // Use header.column.getSize() for consistency
-                                                className="bg-[#D5DBDB] px-3 py-3.5 text-center font-[500] border-r-2 border-[#FFFFFF66]"
-                                            >
-                                                {header.isPlaceholder ? null : (
-                                                    <div>
-                                                        {flexRender(
-                                                            header.column.columnDef.header,
-                                                            header.getContext()
-                                                        )}
-                                                    </div>
-                                                )}
-                                            </th>
-                                        ))}
+                                        {headerGroup.headers.map((header) => {
+                                            // Use DraggableColumnHeader if columnOrder and onReorderColumns are provided
+                                            if (columnOrder && onReorderColumns) {
+                                                return (
+                                                    <DraggableColumnHeader
+                                                        key={header.id}
+                                                        header={header}
+                                                        onReorderColumns={onReorderColumns}
+                                                        columnOrder={columnOrder}
+                                                    />
+                                                );
+                                            }
+                                            // Otherwise use regular th element
+                                            return (
+                                                <th
+                                                    key={header.id}
+                                                    colSpan={header.colSpan}
+                                                    style={{
+                                                        width: header.column.getSize(),
+                                                        height: `${headerHeight}px`,
+                                                    }} // Use header.column.getSize() for consistency
+                                                    className="bg-[#D5DBDB] px-3 py-3.5 text-center font-[500] border-r-2 border-[#FFFFFF66]"
+                                                >
+                                                    {header.isPlaceholder ? null : (
+                                                        <div>
+                                                            {flexRender(
+                                                                header.column.columnDef.header,
+                                                                header.getContext()
+                                                            )}
+                                                        </div>
+                                                    )}
+                                                </th>
+                                            );
+                                        })}
                                     </tr>
                                 ))}
                             </thead>
@@ -385,113 +456,142 @@ const CustomTable = ({
                                         ref={newInlineItemFormRowRef}
                                         style={{ height: `${rowHeight}px` }}
                                     >
-                                        <td
-                                            className="px-1 py-0 align-middle h-full"
-                                            style={{ width: getColWidth(0) }}
-                                        >
-                                            &nbsp;
-                                        </td>
-                                        <td
-                                            className="px-1 py-0 align-middle h-full"
-                                            style={{ width: getColWidth(1) }}
-                                        >
-                                            <InlineAddTextField
-                                                inputRef={newInlineItemTitleInputRef}
-                                                value={newInlineItemTitle}
-                                                onChange={(e) => {
-                                                    setNewInlineItemTitle(e.target.value);
-                                                    if (inlineItemLocalError)
-                                                        setInlineItemLocalError(null);
-                                                }}
-                                                onEnterPress={handleSaveInlineItem}
-                                                placeholder="Title"
-                                                validator={validator}
-                                            />
-                                        </td>
-                                        <td
-                                            className="px-1 py-0 align-middle h-full"
-                                            style={{ width: getColWidth(2) }}
-                                        >
-                                            <StatusBadge
-                                                statusOptions={globalStatusOptionsForInlineAdd}
-                                                status={newInlineItemStatus}
-                                                onStatusChange={setNewInlineItemStatus}
-                                            />
-                                        </td>
-                                        <td
-                                            className="px-1 py-0 align-middle h-full"
-                                            style={{ width: getColWidth(3) }}
-                                        >
-                                            <SelectBox
-                                                table={true}
-                                                options={users.map((user) => {
-                                                    return {
-                                                        label: user.firstname + " " + user.lastname,
-                                                        value: user.id,
-                                                    };
-                                                })}
-                                                value={newInlineItemResponsibleId}
-                                                onChange={(selectedOptionValue) =>
-                                                    setNewInlineItemResponsibleId(selectedOptionValue)
-                                                }
-                                            />
-                                        </td>
-                                        <td
-                                            className="px-1 py-0 align-middle h-full"
-                                            style={{ width: getColWidth(4) }}
-                                        >
-                                            <InlineAddDateEditor
-                                                value={newInlineItemStartDate}
-                                                min={new Date().toISOString().split("T")[0]}
-                                                onChange={(e) =>
-                                                    setNewInlineItemStartDate(e.target.value)
-                                                }
-                                                onEnterPress={handleSaveInlineItem}
-                                                placeholder="Start Date"
-                                                validator={validator}
-                                            />
-                                        </td>
-                                        <td
-                                            className="px-1 py-0 align-middle h-full"
-                                            style={{ width: getColWidth(5) }}
-                                        >
-                                            <InlineAddDateEditor
-                                                value={newInlineItemEndDate}
-                                                min={newInlineItemStartDate}
-                                                onChange={(e) =>
-                                                    setNewInlineItemEndDate(e.target.value)
-                                                }
-                                                onEnterPress={handleSaveInlineItem}
-                                                placeholder="End Date"
-                                                validator={validator}
-                                            />
-                                        </td>
-                                        <td
-                                            className="px-1 py-0 align-middle h-full"
-                                            style={{ width: getColWidth(6) }}
-                                        ></td>
-                                        <td
-                                            className="px-1 py-0 align-middle h-full"
-                                            style={{ width: getColWidth(7) }}
-                                        >
-                                            <StatusBadge
-                                                statusOptions={globalPriorityOptions}
-                                                status={newInlineItemPriority}
-                                                onStatusChange={setNewInlineItemPriority}
-                                            />
-                                        </td>
-                                        {/* <td className="px-1 py-0 align-middle h-full" style={{ width: getColWidth(8) }}>&nbsp;</td> */}
+                                        {tableColumns.map((column) => {
+                                            const columnId = column.id || column.columnDef?.accessorKey;
 
-                                        {totalTableColumns > 8 &&
-                                            tableColumns.slice(8).map((column, index) => (
-                                                <td
-                                                    key={`new-inline-extra-empty-${column.id}`}
-                                                    className="px-1 py-0 align-middle h-full"
-                                                    style={{ width: column.getSize() }}
-                                                >
-                                                    &nbsp;
-                                                </td>
-                                            ))}
+                                            // Render appropriate input based on column ID
+                                            if (columnId === "id" || columnId === 0) {
+                                                return (
+                                                    <td
+                                                        key={column.id}
+                                                        className="px-1 py-0 align-middle h-full"
+                                                        style={{ width: column.getSize() }}
+                                                    >
+                                                        &nbsp;
+                                                    </td>
+                                                );
+                                            } else if (columnId === "name" || columnId === "title") {
+                                                return (
+                                                    <td
+                                                        key={column.id}
+                                                        className="px-1 py-0 align-middle h-full"
+                                                        style={{ width: column.getSize() }}
+                                                    >
+                                                        <InlineAddTextField
+                                                            inputRef={newInlineItemTitleInputRef}
+                                                            value={newInlineItemTitle}
+                                                            onChange={(e) => {
+                                                                setNewInlineItemTitle(e.target.value);
+                                                                if (inlineItemLocalError)
+                                                                    setInlineItemLocalError(null);
+                                                            }}
+                                                            onEnterPress={handleSaveInlineItem}
+                                                            placeholder="Title"
+                                                            validator={validator}
+                                                        />
+                                                    </td>
+                                                );
+                                            } else if (columnId === "status") {
+                                                return (
+                                                    <td
+                                                        key={column.id}
+                                                        className="px-1 py-0 align-middle h-full"
+                                                        style={{ width: column.getSize() }}
+                                                    >
+                                                        <StatusBadge
+                                                            statusOptions={globalStatusOptionsForInlineAdd}
+                                                            status={newInlineItemStatus}
+                                                            onStatusChange={setNewInlineItemStatus}
+                                                        />
+                                                    </td>
+                                                );
+                                            } else if (columnId === "sprint_owner_name" || columnId === "manager" || columnId === "owner_id") {
+                                                return (
+                                                    <td
+                                                        key={column.id}
+                                                        className="px-1 py-0 align-middle h-full"
+                                                        style={{ width: column.getSize() }}
+                                                    >
+                                                        <SelectBox
+                                                            table={true}
+                                                            options={users && users.map((user) => {
+                                                                return {
+                                                                    label: user.firstname + " " + user.lastname,
+                                                                    value: user.id,
+                                                                };
+                                                            })}
+                                                            value={newInlineItemResponsibleId}
+                                                            onChange={(selectedOptionValue) =>
+                                                                setNewInlineItemResponsibleId(selectedOptionValue)
+                                                            }
+                                                        />
+                                                    </td>
+                                                );
+                                            } else if (columnId === "start_date") {
+                                                return (
+                                                    <td
+                                                        key={column.id}
+                                                        className="px-1 py-0 align-middle h-full"
+                                                        style={{ width: column.getSize() }}
+                                                    >
+                                                        <InlineAddDateEditor
+                                                            value={newInlineItemStartDate}
+                                                            min={new Date().toISOString().split("T")[0]}
+                                                            onChange={(e) =>
+                                                                setNewInlineItemStartDate(e.target.value)
+                                                            }
+                                                            onEnterPress={handleSaveInlineItem}
+                                                            placeholder="Start Date"
+                                                            validator={validator}
+                                                        />
+                                                    </td>
+                                                );
+                                            } else if (columnId === "end_date") {
+                                                return (
+                                                    <td
+                                                        key={column.id}
+                                                        className="px-1 py-0 align-middle h-full"
+                                                        style={{ width: column.getSize() }}
+                                                    >
+                                                        <InlineAddDateEditor
+                                                            value={newInlineItemEndDate}
+                                                            min={newInlineItemStartDate}
+                                                            onChange={(e) =>
+                                                                setNewInlineItemEndDate(e.target.value)
+                                                            }
+                                                            onEnterPress={handleSaveInlineItem}
+                                                            placeholder="End Date"
+                                                            validator={validator}
+                                                        />
+                                                    </td>
+                                                );
+                                            } else if (columnId === "priority") {
+                                                return (
+                                                    <td
+                                                        key={column.id}
+                                                        className="px-1 py-0 align-middle h-full"
+                                                        style={{ width: column.getSize() }}
+                                                    >
+                                                        <StatusBadge
+                                                            statusOptions={globalPriorityOptions}
+                                                            status={newInlineItemPriority}
+                                                            onStatusChange={setNewInlineItemPriority}
+                                                        />
+                                                    </td>
+                                                );
+                                            } else {
+                                                // Empty cell for other columns
+                                                return (
+                                                    <td
+                                                        key={column.id}
+                                                        className="px-1 py-0 align-middle h-full"
+                                                        style={{ width: column.getSize() }}
+                                                    >
+                                                        &nbsp;
+                                                    </td>
+                                                );
+                                            }
+                                        })}
                                     </tr>
                                 )}
 

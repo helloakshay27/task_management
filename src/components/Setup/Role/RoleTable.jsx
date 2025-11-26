@@ -123,9 +123,14 @@ const RoleTable = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedRole, setSelectedRole] = useState(null);
   const [modalMode, setModalMode] = useState('create');
+  const [searchQuery, setSearchQuery] = useState('')
 
   const dispatch = useDispatch();
   const { fetchRoles: roles = [] } = useSelector((state) => state.fetchRoles);
+
+  const filteredRoles = roles?.filter(role => (
+    role.display_name.toLowerCase().includes(searchQuery.toLowerCase())
+  ));
 
   useEffect(() => {
     const fetchData = async () => {
@@ -204,16 +209,18 @@ const RoleTable = () => {
   return (
     <>
       <CustomTable
-        data={[...(roles || [])].reverse()}
+        data={[...(filteredRoles || [])].reverse()}
         columns={columns}
         title="Roles"
         buttonText="Add Role"
-        layout="block"
+        layout="inline"
         onAdd={() => {
           setSelectedRole(null);
           setModalMode('create');
           setIsModalOpen(true);
         }}
+        searchQuery={searchQuery}
+        setSearchQuery={setSearchQuery}
       />
       <RoleModal
         open={isModalOpen}

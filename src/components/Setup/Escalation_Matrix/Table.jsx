@@ -82,7 +82,7 @@ const EscalationTableWrapper = () => {
         columns={columns}
         title="Matrix"
         buttonText="Add Escalation"
-        layout="block"
+        layout="inline"
         onAdd={() => setIsModalOpen(true)} />
 
       {isModalOpen && (

@@ -1,6 +1,8 @@
 import { useDispatch, useSelector } from 'react-redux';
 import CustomTable from '../../components/Setup/CustomTable'
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, useCallback } from 'react';
+import { DndProvider } from 'react-dnd';
+import { HTML5Backend } from 'react-dnd-html5-backend';
 import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined';
 import { editProject, fetchTemplates } from '../../redux/slices/projectSlice';
 import toast from 'react-hot-toast';
@@ -63,7 +65,27 @@ const ProjectTemplates = () => {
         }
     }, [success])
 
-    const columns = useMemo(
+    const [columnOrder, setColumnOrder] = useState(() => {
+        const savedOrder = localStorage.getItem('projectTemplatesTableColumnOrder');
+        return savedOrder
+            ? JSON.parse(savedOrder)
+            : ['title', 'project_owner_name', 'priority', 'project_team.project_team_members', 'actions'];
+    });
+
+    const handleReorderColumns = useCallback((draggedId, targetId) => {
+        setColumnOrder((prevOrder) => {
+            const draggedIndex = prevOrder.indexOf(draggedId);
+            const targetIndex = prevOrder.indexOf(targetId);
+            if (draggedIndex === -1 || targetIndex === -1) return prevOrder;
+            const newOrder = [...prevOrder];
+            newOrder.splice(draggedIndex, 1);
+            newOrder.splice(targetIndex, 0, draggedId);
+            localStorage.setItem('projectTemplatesTableColumnOrder', JSON.stringify(newOrder));
+            return newOrder;
+        });
+    }, []);
+
+    const allColumns = useMemo(
         () => [
             {
                 accessorKey: 'title', // still needed for sorting/search
@@ -106,15 +128,22 @@ const ProjectTemplates = () => {
         ],
         []
     );
+
+    const columns = columnOrder
+        .map((columnId) => allColumns.find((col) => col.accessorKey === columnId || col.id === columnId))
+        .filter(Boolean);
+
     return (
-        <>
+        <DndProvider backend={HTML5Backend}>
             <CustomTable
                 data={templates}
                 columns={columns}
                 title="Templates"
                 layout="inline"
+                columnOrder={columnOrder}
+                onReorderColumns={handleReorderColumns}
             />
-        </>
+        </DndProvider>
     )
 }
 

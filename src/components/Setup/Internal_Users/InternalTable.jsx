@@ -74,6 +74,7 @@ const InternalTable = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
+  const [searchQuery, setSearchQuery] = useState("")
 
   const dispatch = useDispatch();
   const { fetchInternalUser: internalUser } = useSelector(state => state.fetchInternalUser);
@@ -94,6 +95,12 @@ const InternalTable = () => {
       fetchData();
     }
   }, [dispatch, token]);
+
+  const filteredUsers = users?.filter(user => (
+    user.firstname.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    user.lastname.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    user.email.toLowerCase().includes(searchQuery.toLowerCase())
+  ))
 
   const handleAddClick = () => {
     setIsEditMode(false);
@@ -195,13 +202,15 @@ const InternalTable = () => {
   return (
     <>
       <CustomTable
-        data={internalUser || []}
+        data={filteredUsers || []}
         columns={columns}
         title="Active Users"
         buttonText="Add User"
         layout="inline"
         onAdd={handleAddClick}
         showDropdown
+        searchQuery={searchQuery}
+        setSearchQuery={setSearchQuery}
       />
       <AddInternalUser
         open={isModalOpen}

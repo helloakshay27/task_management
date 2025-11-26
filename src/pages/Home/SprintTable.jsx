@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import StatusBadge from "../../components/Home/Projects/statusBadge";
 import CustomTable from "../../components/Setup/CustomTable";
@@ -11,6 +11,8 @@ import { Link } from "react-router-dom";
 import TaskActions from "../../components/Home/TaskActions";
 import SprintGantt from "../../components/Sprints/SprintGantt";
 import { fetchUsers } from "../../redux/slices/userSlice";
+import { DndProvider } from "react-dnd";
+import { HTML5Backend } from "react-dnd-html5-backend";
 
 const globalStatusOptions = [
     "active",
@@ -56,10 +58,36 @@ const SprintTable = (setIsSidebarOpen) => {
         return localStorage.getItem("selectedSprintType") || "List";
     });
     const [selectedColumns, setSelectedColumns] = useState({});
+    const [columnOrder, setColumnOrder] = useState(() => {
+        // Load column order from local storage or use default
+        const savedOrder = localStorage.getItem("sprintTableColumnOrder");
+        return savedOrder
+            ? JSON.parse(savedOrder)
+            : ["id", "name", "status", "sprint_owner_name", "start_date", "end_date", "duration", "priority", "associated_projects_count"];
+    });
 
     const handleColumnsChange = (columns) => {
         setSelectedColumns(columns);
     };
+
+    // Handle column reordering
+    const handleReorderColumns = useCallback((draggedId, targetId) => {
+        setColumnOrder((prevOrder) => {
+            const draggedIndex = prevOrder.indexOf(draggedId);
+            const targetIndex = prevOrder.indexOf(targetId);
+
+            if (draggedIndex === -1 || targetIndex === -1) return prevOrder;
+
+            const newOrder = [...prevOrder];
+            newOrder.splice(draggedIndex, 1);
+            newOrder.splice(targetIndex, 0, draggedId);
+
+            // Save to local storage
+            localStorage.setItem("sprintTableColumnOrder", JSON.stringify(newOrder));
+
+            return newOrder;
+        });
+    }, []);
 
     const handlefetchSpirints = async () => {
         try {
@@ -97,9 +125,10 @@ const SprintTable = (setIsSidebarOpen) => {
         }
     }, [newSpirints]);
 
-    const columns = useMemo(
+    const allColumns = useMemo(
         () => [
             {
+                id: "id",
                 accessorKey: "id",
                 header: "Sprint Id",
                 size: 110,
@@ -127,6 +156,7 @@ const SprintTable = (setIsSidebarOpen) => {
                 },
             },
             {
+                id: "name",
                 accessorKey: "name",
                 header: "Sprint Title",
                 size: 250,
@@ -145,9 +175,9 @@ const SprintTable = (setIsSidebarOpen) => {
                         </Link>
                     );
                 },
-            }
-            ,
+            },
             {
+                id: "status",
                 accessorKey: "status",
                 header: "Status",
                 size: 150,
@@ -170,22 +200,25 @@ const SprintTable = (setIsSidebarOpen) => {
                 ),
             },
             {
+                id: "sprint_owner_name",
                 accessorKey: "sprint_owner_name",
                 header: "Sprint Owner",
                 size: 150,
-
             },
             {
+                id: "start_date",
                 accessorKey: "start_date",
                 header: "Start Date",
                 size: 180,
             },
             {
+                id: "end_date",
                 accessorKey: "end_date",
                 header: "End Date",
                 size: 130,
             },
             {
+                id: "duration",
                 accessorKey: "end_date",
                 header: "Duration",
                 size: 150,
@@ -230,6 +263,7 @@ const SprintTable = (setIsSidebarOpen) => {
                 },
             },
             {
+                id: "priority",
                 accessorKey: "priority",
                 header: "Priority",
                 size: 100,
@@ -239,25 +273,30 @@ const SprintTable = (setIsSidebarOpen) => {
                 },
             },
             {
+                id: "associated_projects_count",
                 accessorKey: "associated_projects_count",
                 header: "Number Of Projects",
                 size: 120,
             },
         ],
-        [data]
+        [data, dispatch, token]
     );
 
-    // Filter columns based on selectedColumns
-    const filteredColumns = columns.filter((col) => {
-        if (!selectedColumns || Object.keys(selectedColumns).length === 0) {
-            return true;
-        }
-        const columnId = col.id || col.accessorKey;
-        return selectedColumns[columnId] !== false;
-    });
+    // Reorder columns based on columnOrder state
+    const columns = columnOrder
+        .map((columnId) => allColumns.find((col) => col.id === columnId || col.accessorKey === columnId))
+        .filter(Boolean)
+        .filter((col) => {
+            // If selectedColumns is empty or not provided, show all columns
+            if (!selectedColumns || Object.keys(selectedColumns).length === 0) {
+                return true;
+            }
+            const columnId = col.id || col.accessorKey;
+            return selectedColumns[columnId] !== false;
+        });
 
     return (
-        <>
+        <DndProvider backend={HTML5Backend}>
             <TaskActions
                 setIsSidebarOpen={setIsSidebarOpen}
                 selectedType={selectedType}
@@ -273,7 +312,7 @@ const SprintTable = (setIsSidebarOpen) => {
             ) : selectedType === "List" ? (
                 <CustomTable
                     data={data}
-                    columns={filteredColumns}
+                    columns={columns}
                     layout="inline"
                     onAdd={() => setIsModalOpen(true)}
                     onCreateInlineItem={handleCreateSprints}
@@ -282,11 +321,13 @@ const SprintTable = (setIsSidebarOpen) => {
                     loadingMessage={loaderMessage}
                     users={users || []}
                     isSprint={true}
+                    columnOrder={columnOrder}
+                    onReorderColumns={handleReorderColumns}
                 />
             ) : (
                 <></>
             )}
-        </>
+        </DndProvider>
     );
 };
 

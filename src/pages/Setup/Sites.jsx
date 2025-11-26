@@ -7,6 +7,8 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
+import { DndProvider } from 'react-dnd';
+import { HTML5Backend } from 'react-dnd-html5-backend';
 
 const ActionIcons = ({ row, onEdit }) => {
     const token = localStorage.getItem('token');
@@ -150,7 +152,27 @@ const Sites = () => {
         setIsModalOpen(true);
     }, []);
 
-    const columns = useMemo(() => [
+    const [columnOrder, setColumnOrder] = useState(() => {
+        const savedOrder = localStorage.getItem('sitesTableColumnOrder');
+        return savedOrder
+            ? JSON.parse(savedOrder)
+            : ['name', 'created_at', 'actions'];
+    });
+
+    const handleReorderColumns = useCallback((draggedId, targetId) => {
+        setColumnOrder((prevOrder) => {
+            const draggedIndex = prevOrder.indexOf(draggedId);
+            const targetIndex = prevOrder.indexOf(targetId);
+            if (draggedIndex === -1 || targetIndex === -1) return prevOrder;
+            const newOrder = [...prevOrder];
+            newOrder.splice(draggedIndex, 1);
+            newOrder.splice(targetIndex, 0, draggedId);
+            localStorage.setItem('sitesTableColumnOrder', JSON.stringify(newOrder));
+            return newOrder;
+        });
+    }, []);
+
+    const allColumns = useMemo(() => [
         {
             accessorKey: "name",
             header: "Site Name",
@@ -179,25 +201,33 @@ const Sites = () => {
         },
     ], []);
 
-    return (
-        <div className="flex flex-col gap-2 text-[14px]">
-            <CustomTable
-                data={sites}
-                columns={columns}
-                title="Sites"
-                buttonText="Add Site"
-                layout="inline"
-                onAdd={() => setIsModalOpen(true)}
-            />
+    const columns = columnOrder
+        .map((columnId) => allColumns.find((col) => col.accessorKey === columnId || col.id === columnId))
+        .filter(Boolean);
 
-            <SiteCreateModal
-                open={isModalOpen}
-                onClose={() => setIsModalOpen(false)}
-                onSuccess={handleSuccess}
-                site={selectedSite}
-                mode={modalMode}
-            />
-        </div>
+    return (
+        <DndProvider backend={HTML5Backend}>
+            <div className="flex flex-col gap-2 text-[14px]">
+                <CustomTable
+                    data={sites}
+                    columns={columns}
+                    title="Sites"
+                    buttonText="Add Site"
+                    layout="inline"
+                    onAdd={() => setIsModalOpen(true)}
+                    columnOrder={columnOrder}
+                    onReorderColumns={handleReorderColumns}
+                />
+
+                <SiteCreateModal
+                    open={isModalOpen}
+                    onClose={() => setIsModalOpen(false)}
+                    onSuccess={handleSuccess}
+                    site={selectedSite}
+                    mode={modalMode}
+                />
+            </div>
+        </DndProvider>
     )
 }
 
