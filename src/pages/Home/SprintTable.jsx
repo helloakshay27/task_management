@@ -35,6 +35,61 @@ const SPRINT_TABLE_COLUMNS = [
     { id: "associated_projects_count", label: "Number Of Projects", key: "associated_projects_count" },
 ];
 
+const calculateDuration = (start, end) => {
+    const now = new Date();
+    const startDate = new Date(start);
+    const endDate = new Date(end);
+
+    // Set end date to end of the day
+    endDate.setHours(23, 59, 59, 999);
+
+    // Check if task hasn't started yet
+    if (now < startDate) {
+        return { text: "Not started", isOverdue: false };
+    }
+
+    // Calculate time differences (use absolute value to show overdue time)
+    const diffMs = endDate - now;
+    const absDiffMs = Math.abs(diffMs);
+    const isOverdue = diffMs <= 0;
+
+    // Calculate time differences
+    const seconds = Math.floor(absDiffMs / 1000);
+    const minutes = Math.floor(seconds / 60);
+    const hours = Math.floor(minutes / 60);
+    const days = Math.floor(hours / 24);
+
+    const remainingHours = hours % 24;
+    const remainingMinutes = minutes % 60;
+    const remainingSeconds = seconds % 60;
+
+    const timeStr = `${days > 0 ? days + "d " : "0d "}${remainingHours > 0 ? remainingHours + "h " : "0h "}${remainingMinutes > 0 ? remainingMinutes + "m " : "0m"}`;
+
+    return {
+        text: isOverdue ? `${timeStr}` : timeStr,
+        isOverdue: isOverdue,
+    };
+};
+
+// Live Timer Component that updates every second
+const CountdownTimer = ({ startDate, targetDate }) => {
+    const [countdown, setCountdown] = useState(calculateDuration(startDate, targetDate));
+
+    useEffect(() => {
+        const interval = setInterval(() => {
+            setCountdown(calculateDuration(startDate, targetDate));
+        }, 1000);
+
+        return () => clearInterval(interval);
+    }, [targetDate]);
+
+    return (
+        <div className={`text-left text-[12px] ${countdown.isOverdue ? "text-red-600 font-medium" : ""}`}>
+            {countdown.text}
+        </div>
+    );
+};
+
 const SprintTable = (setIsSidebarOpen) => {
     const token = localStorage.getItem("token");
     const dispatch = useDispatch();
@@ -222,45 +277,7 @@ const SprintTable = (setIsSidebarOpen) => {
                 accessorKey: "end_date",
                 header: "Duration",
                 size: 150,
-                cell: ({ row }) => {
-                    const [countdown, setCountdown] = useState("");
-
-                    useEffect(() => {
-                        const updateCountdown = () => {
-                            const now = new Date();
-                            const endDate = new Date(row.original.end_date);
-
-                            // Set to midnight of the day AFTER the end_date
-                            const target = new Date(endDate);
-                            target.setDate(endDate.getDate() + 1);
-                            target.setHours(0, 0, 0, 0); // Midnight
-
-                            const diff = target - now;
-
-                            if (diff <= 0) {
-                                setCountdown("00d:00h:00m:00s");
-                                return;
-                            }
-
-                            const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-                            const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
-                            const minutes = Math.floor((diff / (1000 * 60)) % 60);
-                            const seconds = Math.floor((diff / 1000) % 60);
-
-                            setCountdown(
-                                `${String(days).padStart(2, "0")}d:${String(hours).padStart(2, "0")}h:${String(
-                                    minutes
-                                ).padStart(2, "0")}m:${String(seconds).padStart(2, "0")}s`
-                            );
-                        };
-
-                        updateCountdown();
-                        const interval = setInterval(updateCountdown, 1000);
-                        return () => clearInterval(interval);
-                    }, [row.original.end_date]);
-
-                    return <span className="text-green-700 font-mono">{countdown}</span>;
-                },
+                cell: ({ row }) => <CountdownTimer startDate={row.original.start_date} targetDate={row.original.end_date} />
             },
             {
                 id: "priority",
