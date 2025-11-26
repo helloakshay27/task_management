@@ -1,9 +1,11 @@
 /* eslint-disable react/prop-types */
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useCallback } from 'react';
 import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import CustomTable from '../CustomTable';
 import { useNavigate } from 'react-router-dom';
+import { DndProvider } from 'react-dnd';
+import { HTML5Backend } from 'react-dnd-html5-backend';
 
 const ActionIcons = ({ row }) => (
   <div className="flex gap-3 items-center">
@@ -22,11 +24,6 @@ const ProjectTable = () => {
 
   const navigate = useNavigate()
 
-  const handleRowClick = (rowData) => {
-    sessionStorage.setItem('ProjectUser', JSON.stringify(rowData)); 
-    navigate('/setup/project-teams/project-details', { state: rowData });
-  };
-
   const [projectData] = useState([
     {
       teamName: 'Customer app dev',
@@ -36,7 +33,32 @@ const ProjectTable = () => {
     },
   ]);
 
-  const columns = useMemo(() => [
+  const [columnOrder, setColumnOrder] = useState(() => {
+    const savedOrder = localStorage.getItem('projectTableColumnOrder');
+    return savedOrder
+      ? JSON.parse(savedOrder)
+      : ['teamName', 'teamLead', 'associatedProjects', 'teamMembers', 'actions'];
+  });
+
+  const handleReorderColumns = useCallback((draggedId, targetId) => {
+    setColumnOrder((prevOrder) => {
+      const draggedIndex = prevOrder.indexOf(draggedId);
+      const targetIndex = prevOrder.indexOf(targetId);
+      if (draggedIndex === -1 || targetIndex === -1) return prevOrder;
+      const newOrder = [...prevOrder];
+      newOrder.splice(draggedIndex, 1);
+      newOrder.splice(targetIndex, 0, draggedId);
+      localStorage.setItem('projectTableColumnOrder', JSON.stringify(newOrder));
+      return newOrder;
+    });
+  }, []);
+
+  const handleRowClick = (rowData) => {
+    sessionStorage.setItem('ProjectUser', JSON.stringify(rowData));
+    navigate('/setup/project-teams/project-details', { state: rowData });
+  };
+
+  const allColumns = useMemo(() => [
     {
       accessorKey: 'teamName',
       header: 'Team Name',
@@ -89,15 +111,23 @@ const ProjectTable = () => {
     },
   ], []);
 
+  const columns = columnOrder
+    .map((columnId) => allColumns.find((col) => col.accessorKey === columnId || col.id === columnId))
+    .filter(Boolean);
+
   return (
-    <CustomTable
-      data={projectData}
-      columns={columns}
-      title="Active Users"
-      layout="inline"
-      buttonText="Add Team"
-      showDropdown
-    />
+    <DndProvider backend={HTML5Backend}>
+      <CustomTable
+        data={projectData}
+        columns={columns}
+        title="Active Users"
+        layout="inline"
+        buttonText="Add Team"
+        showDropdown
+        columnOrder={columnOrder}
+        onReorderColumns={handleReorderColumns}
+      />
+    </DndProvider>
   );
 };
 

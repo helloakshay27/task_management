@@ -1,10 +1,12 @@
 import CustomTable from '@/components/Setup/CustomTable';
 import { baseURL } from '../../../apiDomain';
 import axios from 'axios';
-import React, { useEffect, useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useState, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import { Eye } from 'lucide-react';
+import { DndProvider } from 'react-dnd';
+import { HTML5Backend } from 'react-dnd-html5-backend';
 
 const ActionIcons = ({ row, onView, onEdit }) => {
     return (
@@ -31,6 +33,26 @@ const Roster = () => {
     const [rosters, setRosters] = useState([])
     const navigate = useNavigate();
 
+    const [columnOrder, setColumnOrder] = useState(() => {
+        const savedOrder = localStorage.getItem('rosterTableColumnOrder');
+        return savedOrder
+            ? JSON.parse(savedOrder)
+            : ['name', 'location', 'department', 'shift', 'roaster_type', 'created_on', 'actions'];
+    });
+
+    const handleReorderColumns = useCallback((draggedId, targetId) => {
+        setColumnOrder((prevOrder) => {
+            const draggedIndex = prevOrder.indexOf(draggedId);
+            const targetIndex = prevOrder.indexOf(targetId);
+            if (draggedIndex === -1 || targetIndex === -1) return prevOrder;
+            const newOrder = [...prevOrder];
+            newOrder.splice(draggedIndex, 1);
+            newOrder.splice(targetIndex, 0, draggedId);
+            localStorage.setItem('rosterTableColumnOrder', JSON.stringify(newOrder));
+            return newOrder;
+        });
+    }, []);
+
     useEffect(() => {
         const getRosters = async () => {
             try {
@@ -56,7 +78,7 @@ const Roster = () => {
         navigate(`/setup/roster/edit/${row.original.id}`, { state: row.original });
     };
 
-    const columns = useMemo(() => [
+    const allColumns = useMemo(() => [
         {
             accessorKey: "name",
             header: "Template",
@@ -101,17 +123,25 @@ const Roster = () => {
         },
     ], []);
 
+    const columns = columnOrder
+        .map((columnId) => allColumns.find((col) => col.accessorKey === columnId || col.id === columnId))
+        .filter(Boolean);
+
     return (
-        <div className="flex flex-col gap-2 text-[14px]">
-            <CustomTable
-                data={rosters}
-                columns={columns}
-                title="Roster Management"
-                buttonText="Add"
-                layout="inline"
-                onAdd={() => navigate('/setup/roster/add-roster')}
-            />
-        </div>
+        <DndProvider backend={HTML5Backend}>
+            <div className="flex flex-col gap-2 text-[14px]">
+                <CustomTable
+                    data={rosters}
+                    columns={columns}
+                    title="Roster Management"
+                    buttonText="Add"
+                    layout="inline"
+                    onAdd={() => navigate('/setup/roster/add-roster')}
+                    columnOrder={columnOrder}
+                    onReorderColumns={handleReorderColumns}
+                />
+            </div>
+        </DndProvider>
     )
 }
 

@@ -9,6 +9,8 @@ import {
     fetchOrganizations,
     editOrganization
 } from "../../redux/slices/organizationSlice";
+import { DndProvider } from 'react-dnd';
+import { HTML5Backend } from 'react-dnd-html5-backend';
 
 const ActionIcons = ({ row, onEdit }) => (
     <div className="flex justify-center gap-5">
@@ -30,6 +32,26 @@ const Organizations = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editData, setEditData] = useState(null);
     const [lastAction, setLastAction] = useState(null); // { type: 'toggle' | 'modalEdit', status?: boolean }
+
+    const [columnOrder, setColumnOrder] = useState(() => {
+        const savedOrder = localStorage.getItem('organizationsTableColumnOrder');
+        return savedOrder
+            ? JSON.parse(savedOrder)
+            : ['name', 'domain', 'attachment', 'created_at', 'status', 'actions'];
+    });
+
+    const handleReorderColumns = useCallback((draggedId, targetId) => {
+        setColumnOrder((prevOrder) => {
+            const draggedIndex = prevOrder.indexOf(draggedId);
+            const targetIndex = prevOrder.indexOf(targetId);
+            if (draggedIndex === -1 || targetIndex === -1) return prevOrder;
+            const newOrder = [...prevOrder];
+            newOrder.splice(draggedIndex, 1);
+            newOrder.splice(targetIndex, 0, draggedId);
+            localStorage.setItem('organizationsTableColumnOrder', JSON.stringify(newOrder));
+            return newOrder;
+        });
+    }, []);
 
     useEffect(() => {
         const loadOrganizations = async () => {
@@ -90,7 +112,7 @@ const Organizations = () => {
         return `${String(date.getDate()).padStart(2, "0")}/${String(date.getMonth() + 1).padStart(2, "0")}/${date.getFullYear()}`;
     };
 
-    const columns = useMemo(() => [
+    const allColumns = useMemo(() => [
         {
             accessorKey: "name",
             header: "Organization Name",
@@ -152,26 +174,34 @@ const Organizations = () => {
         },
     ], [handleEditClick, handleToggle]);
 
+    const columns = columnOrder
+        .map((columnId) => allColumns.find((col) => col.accessorKey === columnId || col.id === columnId))
+        .filter(Boolean);
+
     return (
-        <div className="flex flex-col gap-2 text-[14px]">
-            <CustomTable
-                data={organizations}
-                columns={columns}
-                title="Organizations"
-                buttonText="Add Organization"
-                layout="inline"
-                onAdd={() => {
-                    setEditData(null);
-                    setIsModalOpen(true);
-                }}
-            />
-            <OrganizationModal
-                open={isModalOpen}
-                setOpenModal={setIsModalOpen}
-                editData={editData}
-                onEditSubmit={handleModalEdit}
-            />
-        </div>
+        <DndProvider backend={HTML5Backend}>
+            <div className="flex flex-col gap-2 text-[14px]">
+                <CustomTable
+                    data={organizations}
+                    columns={columns}
+                    title="Organizations"
+                    buttonText="Add Organization"
+                    layout="inline"
+                    onAdd={() => {
+                        setEditData(null);
+                        setIsModalOpen(true);
+                    }}
+                    columnOrder={columnOrder}
+                    onReorderColumns={handleReorderColumns}
+                />
+                <OrganizationModal
+                    open={isModalOpen}
+                    setOpenModal={setIsModalOpen}
+                    editData={editData}
+                    onEditSubmit={handleModalEdit}
+                />
+            </div>
+        </DndProvider>
     );
 };
 

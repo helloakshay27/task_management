@@ -9,6 +9,8 @@ import {
     editCompany,
     fetchCompany,
 } from "../../redux/slices/companySlice";
+import { DndProvider } from 'react-dnd';
+import { HTML5Backend } from 'react-dnd-html5-backend';
 
 const ActionIcons = ({ row, onEdit }) => (
     <div className="flex justify-center gap-5">
@@ -30,6 +32,26 @@ const Company = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editData, setEditData] = useState(null);
     const [lastAction, setLastAction] = useState(null); // 'toggle' or 'modalEdit'
+
+    const [columnOrder, setColumnOrder] = useState(() => {
+        const savedOrder = localStorage.getItem('companyTableColumnOrder');
+        return savedOrder
+            ? JSON.parse(savedOrder)
+            : ['name', 'organization_name', 'created_at', 'status', 'actions'];
+    });
+
+    const handleReorderColumns = useCallback((draggedId, targetId) => {
+        setColumnOrder((prevOrder) => {
+            const draggedIndex = prevOrder.indexOf(draggedId);
+            const targetIndex = prevOrder.indexOf(targetId);
+            if (draggedIndex === -1 || targetIndex === -1) return prevOrder;
+            const newOrder = [...prevOrder];
+            newOrder.splice(draggedIndex, 1);
+            newOrder.splice(targetIndex, 0, draggedId);
+            localStorage.setItem('companyTableColumnOrder', JSON.stringify(newOrder));
+            return newOrder;
+        });
+    }, []);
 
     // Initial data fetch
     useEffect(() => {
@@ -97,7 +119,7 @@ const Company = () => {
         ).padStart(2, "0")}/${date.getFullYear()}`;
     };
 
-    const columns = useMemo(() => [
+    const allColumns = useMemo(() => [
         {
             accessorKey: "name",
             header: "Company Name",
@@ -148,26 +170,34 @@ const Company = () => {
         },
     ], [handleEditClick, handleToggle]);
 
+    const columns = columnOrder
+        .map((columnId) => allColumns.find((col) => col.accessorKey === columnId || col.id === columnId))
+        .filter(Boolean);
+
     return (
-        <div className="flex flex-col gap-2 text-[14px]">
-            <CustomTable
-                data={companies}
-                columns={columns}
-                title="Companies"
-                buttonText="Add Company"
-                layout="inline"
-                onAdd={() => {
-                    setEditData(null);
-                    setIsModalOpen(true);
-                }}
-            />
-            <CompanyModal
-                open={isModalOpen}
-                setOpenModal={setIsModalOpen}
-                editData={editData}
-                onEditSubmit={handleModalEdit}
-            />
-        </div>
+        <DndProvider backend={HTML5Backend}>
+            <div className="flex flex-col gap-2 text-[14px]">
+                <CustomTable
+                    data={companies}
+                    columns={columns}
+                    title="Companies"
+                    buttonText="Add Company"
+                    layout="inline"
+                    onAdd={() => {
+                        setEditData(null);
+                        setIsModalOpen(true);
+                    }}
+                    columnOrder={columnOrder}
+                    onReorderColumns={handleReorderColumns}
+                />
+                <CompanyModal
+                    open={isModalOpen}
+                    setOpenModal={setIsModalOpen}
+                    editData={editData}
+                    onEditSubmit={handleModalEdit}
+                />
+            </div>
+        </DndProvider>
     );
 };
 
