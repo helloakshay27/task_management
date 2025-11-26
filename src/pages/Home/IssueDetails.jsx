@@ -476,6 +476,8 @@ const STATUS_COLORS = {
     "on_hold": "bg-[#7BD2B5] text-black",
     overdue: "bg-[#FF2733] text-white",
     completed: "bg-[#83D17A] text-white",
+    reopen: "bg-yellow-500 text-white",
+    closed: "bg-green-700 text-white",
 };
 
 const mapStatusToDisplay = (rawStatus) => {
@@ -484,6 +486,8 @@ const mapStatusToDisplay = (rawStatus) => {
         in_progress: "In Progress",
         on_hold: "On Hold",
         completed: "Completed",
+        reopen: "Reopen",
+        closed: "Closed",
     };
     return statusMap[rawStatus?.toLowerCase()] || "Open";
 };
@@ -494,6 +498,8 @@ const mapDisplayToApiStatus = (displayStatus) => {
         "In Progress": "in_progress",
         "On Hold": "on_hold",
         Completed: "completed",
+        Reopen: "reopen",
+        Closed: "closed",
     };
     return reverseStatusMap[displayStatus] || "open";
 };
@@ -503,6 +509,7 @@ const IssueDetails = () => {
     const { id } = useParams();
     const navigate = useNavigate()
 
+    const [isFirstCollapsed, setIsFirstCollapsed] = useState(false);
     const [isSecondCollapsed, setIsSecondCollapsed] = useState(false);
     const [tab, setTab] = useState("Comments");
 
@@ -552,7 +559,7 @@ const IssueDetails = () => {
         };
     }, []);
 
-    const dropdownOptions = ["Open", "In Progress", "On Hold", "Completed"];
+    const dropdownOptions = ["Open", "In Progress", "On Hold", "Completed", "Reopen", "Closed"];
 
     const handleOptionSelect = async (option) => {
         setSelectedOption(option);
@@ -575,6 +582,25 @@ const IssueDetails = () => {
         gsap.set(firstContentRef.current, { height: "auto" });
         gsap.set(secondContentRef.current, { height: "auto" });
     }, []);
+
+    const toggleFirstCollapse = () => {
+        if (isFirstCollapsed) {
+            gsap.to(firstContentRef.current, {
+                height: "auto",
+                opacity: 1,
+                duration: 0.5,
+                ease: "power2.inOut",
+            });
+        } else {
+            gsap.to(firstContentRef.current, {
+                height: 0,
+                opacity: 0,
+                duration: 0.5,
+                ease: "power2.inOut",
+            });
+        }
+        setIsFirstCollapsed(!isFirstCollapsed);
+    };
 
     const toggleSecondCollapse = () => {
         if (isSecondCollapsed) {
@@ -664,6 +690,24 @@ const IssueDetails = () => {
 
                 </div>
                 <div className="border-b-[3px] border-grey my-3 "></div>
+
+                <div className="border rounded-md shadow-custom p-5 mb-4 text-[14px]">
+                    <div
+                        className="font-[600] text-[16px] flex items-center gap-4"
+                    >
+                        <ChevronDownCircle
+                            color="#E95420"
+                            size={30}
+                            className={`${isFirstCollapsed ? "rotate-180" : "rotate-0"
+                                } transition-transform cursor-pointer`}
+                            onClick={toggleFirstCollapse}
+                        />{" "}
+                        Description
+                    </div>
+                    <div className="mt-3 overflow-hidden" ref={firstContentRef}>
+                        <p>{issueDetails?.description}</p>
+                    </div>
+                </div>
 
                 <div className="border rounded-md shadow-custom p-5 mb-4">
                     <div

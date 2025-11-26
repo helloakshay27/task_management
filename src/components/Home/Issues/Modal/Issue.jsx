@@ -118,6 +118,7 @@ const Issues = ({ closeModal }) => {
   const [startDate, setStartDate] = useState(null);
   const [type, setType] = useState("");
   const [priority, setPriority] = useState("");
+  const [description, setDescription] = useState("")
   const [comments, setComments] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [newIssuesProjectId, setNewIssuesProjectId] = useState("");
@@ -528,6 +529,7 @@ const Issues = ({ closeModal }) => {
         "issue[task_management_id]",
         newIssuesSubtaskId || newIssuesTaskId || ""
       );
+      formData.append("issue[description]", description || "");
       formData.append("issue[start_date]", formattedStartDate || "");
       formData.append("issue[end_date]", formattedEndDate || "");
       formData.append(
@@ -649,6 +651,17 @@ const Issues = ({ closeModal }) => {
               placeholder={"Select Subtask"}
             />
           </div>
+        </div>
+        <div className="mt-4 space-y-2 h-[100px]">
+          <label className="block">Description</label>
+          <textarea
+            name="description"
+            rows={5}
+            placeholder="Enter Description"
+            className="w-full border outline-none border-gray-300 p-2 text-[13px] h-[80px] overflow-y-auto resize-none"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+          />
         </div>
         <div className="flex flex-col justify-between mt-4">
           <label className="block mb-2">

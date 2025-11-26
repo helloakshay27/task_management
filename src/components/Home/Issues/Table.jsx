@@ -199,7 +199,7 @@ const Attachments = ({
 
 // Constants
 const globalPriorityOptions = ["None", "Low", "Medium", "High", "Urgent"];
-const globalStatusOptions = ["open", "in_progress", "completed", "on_hold"];
+const globalStatusOptions = ["open", "in_progress", "completed", "on_hold", "reopen", "closed"];
 const globalTypesOptions = ["bug", "task", "feature", "UI", "UX"];
 
 // Draggable Column Header Component
