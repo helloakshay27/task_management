@@ -96,11 +96,18 @@ const InternalTable = () => {
     }
   }, [dispatch, token]);
 
-  const filteredUsers = users?.filter(user => (
-    user.firstname.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    user.lastname.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    user.email.toLowerCase().includes(searchQuery.toLowerCase())
-  ))
+  const filteredUsers = users?.filter(user => {
+    const fullName = `${user.firstname} ${user.lastname}`.toLowerCase();
+    const query = searchQuery.toLowerCase();
+
+    return (
+      user.firstname.toLowerCase().includes(query) ||
+      user.lastname.toLowerCase().includes(query) ||
+      fullName.includes(query) ||
+      user.email.toLowerCase().includes(query)
+    );
+  });
+
 
   const handleAddClick = () => {
     setIsEditMode(false);

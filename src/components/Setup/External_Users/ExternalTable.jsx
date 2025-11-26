@@ -95,10 +95,17 @@ const ExternalTable = () => {
   const [isEditMode, setIsEditMode] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
 
-  const filteredUsers = externalUsers?.filter(user => (
-    user.firstname.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    user.lastname.toLowerCase().includes(searchQuery.toLowerCase())
-  ));
+  const filteredUsers = externalUsers?.filter(user => {
+    const fullName = `${user.firstname} ${user.lastname}`.toLowerCase();
+    const query = searchQuery.toLowerCase();
+
+    return (
+      user.firstname.toLowerCase().includes(query) ||
+      user.lastname.toLowerCase().includes(query) ||
+      fullName.includes(query) ||
+      user.email.toLowerCase().includes(query)
+    );
+  });
 
   const handleAddUser = () => {
     setIsEditMode(false);

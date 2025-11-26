@@ -9,6 +9,7 @@ export const CustomCalender = forwardRef(({
     onDateSelect = () => { },
     onMonthChange = () => { },
     setShowCalender,
+    shift = {},
 }, forwardedRef) => {
     const today = new Date();
     const calendarRef = useRef(null);
@@ -159,6 +160,59 @@ export const CustomCalender = forwardRef(({
         return checkDate < todayDate;
     };
 
+    const parseShiftNoOfDays = (shift) => {
+        if (!shift || !shift.no_of_days) return null;
+
+        const roasterType = (shift.roaster_type || shift.roasterType || "").toString();
+
+        if (roasterType === "Recurring") {
+            let obj = null;
+            if (Array.isArray(shift.no_of_days) && typeof shift.no_of_days[0] === "object") {
+                obj = shift.no_of_days[0] || {};
+            } else if (typeof shift.no_of_days === "object") {
+                obj = shift.no_of_days;
+            }
+            if (!obj) return { roasterType };
+
+            const recurring = {};
+            Object.keys(obj).forEach((k) => {
+                const arr = Array.isArray(obj[k]) ? obj[k] : [];
+                recurring[k] = arr.map((v) => Number(v)).filter(Boolean);
+            });
+
+            return { roasterType: "Recurring", recurring };
+        }
+
+        const arr = Array.isArray(shift.no_of_days) ? shift.no_of_days : [];
+        const working = arr.map((v) => Number(v)).filter(Boolean);
+        return { roasterType: roasterType || "Weekdays/Weekends", working };
+    };
+
+    const getWeekOfMonth = (date) => {
+        const day = date.getDate();
+        return Math.floor((day - 1) / 7) + 1;
+    };
+
+    const isDateWorking = (date, shift) => {
+        const parsed = parseShiftNoOfDays(shift);
+        if (!parsed) {
+            const jsDay = date.getDay();
+            return jsDay !== 0 && jsDay !== 6;
+        }
+
+        const jsDay = date.getDay();
+        const dayNumber = jsDay === 0 ? 7 : jsDay;
+
+        if (parsed.roasterType === "Recurring") {
+            const week = String(getWeekOfMonth(date));
+            const arr = parsed.recurring[week] || [];
+            return arr.includes(dayNumber);
+        }
+
+        // Weekdays/Weekends mode
+        return parsed.working.includes(dayNumber);
+    };
+
     const handleDateClick = (dayObj) => {
         // Prevent selecting dates before today
         if (isDateBeforeToday(dayObj.day, dayObj.month, dayObj.year)) {
@@ -244,6 +298,7 @@ export const CustomCalender = forwardRef(({
                     const isSelected = isSameDay(dateObj, selectedObj);
                     const isToday = isSameDay(dateObj, today);
                     const isDisabled = isDateBeforeToday(dayObj.day, dayObj.month, dayObj.year);
+                    const isWeekoff = !isDateWorking(dateObj, shift);
                     const taskData = getTaskHoursForDate(dayObj.day, dayObj.month, dayObj.year);
 
                     const isCurrentMonth = dayObj.month === currentDate.getMonth() && dayObj.year === currentDate.getFullYear();
@@ -253,12 +308,12 @@ export const CustomCalender = forwardRef(({
                             type='button'
                             key={index}
                             onClick={() => handleDateClick(dayObj)}
-                            disabled={isDisabled}
+                            disabled={isDisabled || isWeekoff}
                             className={`
                                 relative flex flex-col items-center justify-center rounded-md text-xs font-medium transition-all py-1 mx-2 min-h-[56px]
                                 ${!dayObj.isCurrentMonth ? 'text-gray-300' : 'text-gray-900'}
-                                ${isDisabled ? 'opacity-50 cursor-not-allowed text-gray-400' : isSelected ? 'border-[#c72030] bg-red-50' : 'hover:bg-gray-100'}
-                                ${isToday && !isSelected && !isDisabled ? 'border border-red-300' : ''}
+                                ${isDisabled ? 'opacity-50 cursor-not-allowed text-gray-400' : isWeekoff ? 'bg-red-50 opacity-60 cursor-not-allowed' : isSelected ? 'border-[#c72030] bg-red-50' : 'hover:bg-gray-100'}
+                                ${isToday && !isSelected && !isDisabled && !isWeekoff ? 'border border-red-300' : ''}
                             `}
                         >
                             <span className={`text-sm font-semibold ${isSelected ? 'text-gray-800' : isCurrentMonth ? 'text-gray-800' : 'text-gray-400'}`}>

@@ -37,7 +37,7 @@ import { fetchProjectTeamMembers } from "../../../redux/slices/projectSlice";
 import axios from "axios";
 import toast from "react-hot-toast";
 import { baseURL } from "../../../../apiDomain";
-import { X } from "lucide-react";
+import { X, Play } from "lucide-react";
 import { useDrag, useDrop, DndProvider } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
 
@@ -384,6 +384,7 @@ const TaskTable = ({ isModalOpen, searchQuery, selectedColumns }) => {
     totalRecords: 0,
     currentPage: 1,
   });
+  const [startingTaskId, setStartingTaskId] = useState(null);
   const MIN_DISPLAY_ROWS = 10;
   const ROW_HEIGHT = 40;
   const HEADER_HEIGHT = 40;
@@ -579,6 +580,33 @@ const TaskTable = ({ isModalOpen, searchQuery, selectedColumns }) => {
       await updateParentTaskStatus(task.id, task.newStatus);
     }
   }, [updateParentTaskStatus]);
+
+  // Start task API call
+  const handleStartTask = useCallback(async (taskId, e) => {
+    e.stopPropagation();
+    setStartingTaskId(taskId);
+    try {
+      const payload = { status: "started" };
+      await axios.put(
+        `${baseURL}/task_managements/${taskId}/update_status.json`,
+        payload,
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      toast.success("Task started successfully!");
+      lastFetchedPageRef.current = null;
+      await handleFetchTasks();
+    } catch (error) {
+      console.error("Error starting task:", error);
+      toast.error("Failed to start task. Please try again.");
+    } finally {
+      setStartingTaskId(null);
+    }
+  }, [token, handleFetchTasks]);
 
   useEffect(() => {
     const fetchMembers = async () => {
@@ -922,14 +950,34 @@ const TaskTable = ({ isModalOpen, searchQuery, selectedColumns }) => {
       size: 200,
       cell: ({ getValue, row }) => {
         const [editTitle, setEditTitle] = useState(getValue());
+        const [isHovering, setIsHovering] = useState(false);
+        const isStarting = startingTaskId === row.original.id;
+        const canStart = row.original.status !== "in_progress" && row.original.status !== "completed";
+
         return (
-          <EditableTextField
-            value={editTitle}
-            onUpdate={(title) => setEditTitle(title)}
-            onEnterPress={() => handleUpdateTaskFieldCell(row.original.id, "title", editTitle, row)}
-            data-task-id={row.original.id}
-            data-field-name="title"
-          />
+          <div
+            className="flex items-center gap-2 group"
+            onMouseEnter={() => setIsHovering(true)}
+            onMouseLeave={() => setIsHovering(false)}
+          >
+            <EditableTextField
+              value={editTitle}
+              onUpdate={(title) => setEditTitle(title)}
+              onEnterPress={() => handleUpdateTaskFieldCell(row.original.id, "title", editTitle, row)}
+              data-task-id={row.original.id}
+              data-field-name="title"
+            />
+            {isHovering && canStart && (
+              <button
+                onClick={(e) => handleStartTask(row.original.id, e)}
+                disabled={isStarting}
+                className="ml-2 px-2 py-1 bg-green-500 text-white rounded flex items-center gap-1 text-xs whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                title="Start this task"
+              >
+                {isStarting ? "Starting..." : "Start"}
+              </button>
+            )}
+          </div>
         );
       },
     },

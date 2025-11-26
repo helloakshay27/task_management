@@ -187,15 +187,7 @@ const ShiftTable = ({ openModal, setOpenModal, editMode, setEditMode }) => {
         accessorKey: 'created_at',
         header: 'Created On',
         size: 150,
-        cell: ({ row, getValue }) => {
-          if (!row.original || !getValue()) return null;
-          const date = new Date(getValue());
-          return date.toLocaleDateString('en-GB', {
-            day: '2-digit',
-            month: '2-digit',
-            year: 'numeric'
-          });
-        },
+        cell: ({ row, getValue }) => getValue() || null,
       },
       {
         id: 'actions',

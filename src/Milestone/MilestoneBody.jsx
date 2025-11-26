@@ -95,6 +95,53 @@ const ganttStyles = `
         background-color: #ff0000 !important;
         opacity: 0.8 !important;
     }
+
+    /* Progress Bar Styles */
+    .gantt-progress-bar-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 6px;
+        font-size: 11px;
+        color: #666;
+    }
+
+    .gantt-progress-bar {
+        overflow: hidden;
+        border-radius: 10px;
+        background-color: rgba(232, 232, 232, 1);
+        height: 17px;
+        width: 80px;
+        position: relative;
+    }
+
+    .gantt-progress-bar-fill {
+        background-color: #ffd844;
+        height: 100%;
+        overflow: hidden;
+        border-radius: 10px;
+        z-index: 1;
+        font-weight: bold;
+        width: 100%;
+        position: absolute;
+        top: 0px;
+        left: 0px;
+    }
+
+    .gantt-progress-bar-label {
+        z-index: 2;
+        position: absolute;
+        top: 0px;
+        left: 0px;
+        color: black;
+        font-size: 10px;
+        width: 100%;
+        height: 100%;
+        text-align: center;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
 `;
 
 // Add styles to document head
@@ -181,7 +228,7 @@ const GanttChart = () => {
         return "open";
     };
 
-    // Combined handler for all navigation clicks
+    // Combined handler for all navigation clicks (Eye icon - navigate to details page)
     useEffect(() => {
         const handleNavigationClick = (e) => {
             const btn = e.target.closest(".gantt-open-task");
@@ -191,9 +238,9 @@ const GanttChart = () => {
                 const milestoneId = btn.getAttribute("data-milestone-id");
 
                 if (itemId && itemType) {
-                    console.log(`Navigating to ${itemType}:`, itemId);
+                    console.log(`Navigating to details page for ${itemType}:`, itemId);
                     if (itemType === "milestone") {
-                        navigate(`${itemId}/tasks`);
+                        navigate(`${itemId}`);
                     } else if (itemType === "task" || itemType === "sub_task") {
                         navigate(`${milestoneId}/tasks/${itemId}`);
                     }
@@ -273,7 +320,7 @@ const GanttChart = () => {
             if (btn) {
                 const itemId = btn.getAttribute("data-id");
                 if (itemId) {
-                    navigate(`${itemId}`);
+                    navigate(`${itemId}/tasks`);
                 }
             }
         };
@@ -296,56 +343,10 @@ const GanttChart = () => {
         // Columns
         gantt.config.columns = [
             {
-                name: "text",
-                label: "Id",
-                tree: true,
-                width: 130,
-                resize: true,
-                template: function (task) {
-                    if (task.type === "milestone") {
-                        return `<span class="gantt-milestone-link" data-id="${task.navigationid}" style="cursor: pointer; font-size: 14px;" title="${task.text}">M-${task.id.split('-')[1]}</span>`;
-                    }
-                    return `<span style="cursor: pointer; font-size: 14px;" title="${task.text}">T-${task.id.split('-')[1]}</span>`;
-                },
-            },
-            {
-                name: "text",
-                label: "Milestone / Task Title",
-                width: 250,
-                resize: true,
-                template: function (task) {
-                    if (task.type === "milestone") {
-                        return `<span class="gantt-milestone-link" style="cursor: pointer; font-size: 14px;" title="${task.text}">${task.text}</span>`;
-                    }
-                    return `<span style="cursor: pointer; font-size: 14px;" title="${task.text}">${task.text}</span>`;
-                },
-            },
-            {
-                name: "progress",
-                label: "Progress",
-                align: "center",
-                width: 100,
-                template: function (task) {
-                    if (task.type === "milestone" || task.type === "task") {
-                        return `${Math.round(task.progress * 100)}%`;
-                    }
-                    return "";
-                },
-            },
-            {
-                name: "status",
-                label: "Status",
-                align: "center",
-                width: 100,
-                template: function (task) {
-                    const status = task.status;
-                    return status?.replace(/_/g, ' ').replace(/\b\w/g, char => char.toUpperCase());
-                },
-            },
-            {
                 name: "actions",
                 label: "Actions",
-                align: "center",
+                tree: true,
+                align: "left",
                 width: 130,
                 resize: true,
                 template: function (task) {
@@ -374,15 +375,74 @@ const GanttChart = () => {
                                 title="${titleText}"
                                 style="background: none; border: none; cursor: pointer;"
                             >
-                                <svg width="16" height="16" viewBox="0 0 16 16" fill="none"
-                                    xmlns="http://www.w3.org/2000/svg">
-                                    <path d="M8 14.875H11.5417C12.4257 14.875 13.2736 14.5238 13.8987 13.8987C14.5238 13.2736 14.875 12.4257 14.875 11.5417V9.45833M8 14.875H4.45833C3.57428 14.875 2.72643 14.5238 2.10131 13.8987C1.47619 13.2736 1.125 12.4257 1.125 11.5417V8M8 14.875V10.5C8 9.83696 7.73661 9.20107 7.26777 8.73223C6.79893 8.26339 6.16304 8 5.5 8H1.125M1.125 8V4.45833C1.125 3.57428 1.47619 2.72643 2.10131 2.10131C2.72643 1.47619 3.57428 1.125 4.45833 1.125H6.54167M9.45833 1.125H14.0417C14.2717 1.125 14.48 1.21833 14.6308 1.36917M14.6308 1.36917C14.7871 1.52541 14.875 1.73734 14.875 1.95833V6.54167M14.6308 1.36917L14.0417 1.95833L9.45833 6.54167" stroke="black" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
-                                </svg>
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-eye-icon lucide-eye"><path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"/><circle cx="12" cy="12" r="3"/></svg>
                             </button>
                         </span>
                     `;
                 },
             },
+            {
+                name: "text",
+                label: "Id",
+                width: 130,
+                resize: true,
+                template: function (task) {
+                    if (task.type === "milestone") {
+                        return `<span style="cursor: pointer; font-size: 14px;" title="${task.text}">M-${task.id.split('-')[1]}</span>`;
+                    }
+                    return `<span style="cursor: pointer; font-size: 14px;" title="${task.text}">T-${task.id.split('-')[1]}</span>`;
+                },
+            },
+            {
+                name: "text",
+                label: "Milestone / Task Title",
+                width: 250,
+                resize: true,
+                template: function (task) {
+                    if (task.type === "milestone") {
+                        return `<span class="gantt-milestone-link" data-id="${task.navigationid}" style="cursor: pointer; font-size: 14px;" title="${task.text}">${task.text}</span>`;
+                    }
+                    return `<span style="cursor: pointer; font-size: 14px;" title="${task.text}">${task.text}</span>`;
+                },
+            },
+            {
+                name: "progress",
+                label: "Progress",
+                align: "center",
+                width: 180,
+                template: function (task) {
+                    if (task.type === "milestone" || task.type === "task") {
+                        const progressPercentage = Math.round(task.progress * 100);
+                        const isValidPercentage = !isNaN(progressPercentage) && progressPercentage >= 0 && progressPercentage <= 100;
+                        return `
+                            <div class="gantt-progress-bar-container">
+                                <span>${task.completedTasks}</span>
+                                <div class="gantt-progress-bar">
+                                    <div
+                                        class="gantt-progress-bar-fill"
+                                        style="width: ${isValidPercentage ? progressPercentage : 0}%"
+                                    ></div>
+                                    <div class="gantt-progress-bar-label">
+                                        ${isValidPercentage ? progressPercentage + '%' : '0%'}
+                                    </div>
+                                </div>
+                                <span>${task.totalTasks}</span>
+                            </div>
+                        `;
+                    }
+                    return "";
+                },
+            },
+            {
+                name: "status",
+                label: "Status",
+                align: "center",
+                width: 150,
+                template: function (task) {
+                    const status = task.status;
+                    return status?.replace(/_/g, ' ').replace(/\b\w/g, char => char.toUpperCase());
+                },
+            }
         ];
 
         // <button 
@@ -405,6 +465,7 @@ const GanttChart = () => {
         gantt.config.scroll_size = 20;
         gantt.config.smart_rendering = true;
         gantt.config.smart_scales = true;
+        gantt.config.open_tree_initially = false;
 
         gantt.config.layout = {
             css: "gantt_container",

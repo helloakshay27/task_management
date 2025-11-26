@@ -30,6 +30,7 @@ import gsap from "gsap";
 import { TaskDatePicker } from "@/components/TaskDatePicker";
 import TasksOfDate from "@/components/TasksOfDate";
 import { CustomCalender } from "@/components/CustomCalender";
+import TaskTitleAutocomplete from "../../../TaskTitleAutocomplete";
 
 const TaskForm = ({
   formData,
@@ -58,6 +59,7 @@ const TaskForm = ({
   setStartDate,
   endDate,
   setEndDate,
+  mid,
 }) => {
   const { fetchUserAvailability: userAvailability } = useSelector(
     (state) => state.fetchUserAvailability
@@ -363,14 +365,12 @@ const TaskForm = ({
           <label className="block mb-2">
             Task Title <span className="text-red-600">*</span>
           </label>
-          <input
-            type="text"
-            name="taskTitle"
-            placeholder="Enter Task Title"
-            className="w-full border h-[40px] outline-none border-gray-300 p-2 text-[13px]"
+          <TaskTitleAutocomplete
             value={formData.taskTitle}
             onChange={handleInputChange}
             disabled={isReadOnly}
+            token={token}
+            milestone_id={mid || formData.milestone}
           />
         </div>
       </div>
@@ -436,36 +436,6 @@ const TaskForm = ({
 
       <div className="flex justify-between mt-3 gap-2 text-[12px]">
         <div className="space-y-2 w-full">
-          <label className="block">Start Date</label>
-          <button
-            type="button"
-            className="w-full border outline-none border-gray-300 px-2 py-[7px] text-[13px] flex items-center gap-3 text-gray-400"
-            onClick={() => {
-              if (showDatePicker) {
-                setShowDatePicker(false);
-              }
-              setShowStartDatePicker(!showStartDatePicker);
-            }}
-            ref={startDateRef}
-          >
-            {startDate ? (
-              <div className="text-black flex items-center justify-between w-full">
-                <CalendarIcon className="w-4 h-4" />
-                <div>
-                  Start Date : {startDate?.date?.toString().padStart(2, "0")}{" "}
-                  {monthNames[startDate.month]}
-                </div>
-                <X className="w-4 h-4" onClick={() => setStartDate(null)} />
-              </div>
-            ) : (
-              <>
-                <CalendarIcon className="w-4 h-4" /> Select Start Date
-              </>
-            )}
-          </button>
-        </div>
-
-        <div className="space-y-2 w-full">
           <label className="block">
             Target Date <span className="text-red-600">*</span>
           </label>
@@ -492,6 +462,36 @@ const TaskForm = ({
             ) : (
               <>
                 <CalendarIcon className="w-4 h-4" /> Select Target Date
+              </>
+            )}
+          </button>
+        </div>
+
+        <div className="space-y-2 w-full">
+          <label className="block">Start Date</label>
+          <button
+            type="button"
+            className="w-full border outline-none border-gray-300 px-2 py-[7px] text-[13px] flex items-center gap-3 text-gray-400"
+            onClick={() => {
+              if (showDatePicker) {
+                setShowDatePicker(false);
+              }
+              setShowStartDatePicker(!showStartDatePicker);
+            }}
+            ref={startDateRef}
+          >
+            {startDate ? (
+              <div className="text-black flex items-center justify-between w-full">
+                <CalendarIcon className="w-4 h-4" />
+                <div>
+                  Start Date : {startDate?.date?.toString().padStart(2, "0")}{" "}
+                  {monthNames[startDate.month]}
+                </div>
+                <X className="w-4 h-4" onClick={() => setStartDate(null)} />
+              </div>
+            ) : (
+              <>
+                <CalendarIcon className="w-4 h-4" /> Select Start Date
               </>
             )}
           </button>
@@ -530,6 +530,7 @@ const TaskForm = ({
               selectedDate={startDate}
               taskHoursData={calendarTaskHours}
               ref={startDateRef}
+              shift={shift}
             />
           ) : (
             <TaskDatePicker
@@ -538,6 +539,7 @@ const TaskForm = ({
               startDate={null}
               userAvailability={userAvailability}
               setShowCalender={setShowStartCalender}
+              shift={shift}
             />
           )
         ) : (
@@ -564,6 +566,7 @@ const TaskForm = ({
               selectedDate={endDate}
               taskHoursData={calendarTaskHours}
               ref={endDateRef}
+              shift={shift}
             />
           ) : (
             <TaskDatePicker
@@ -572,6 +575,7 @@ const TaskForm = ({
               startDate={startDate}
               userAvailability={userAvailability}
               setShowCalender={setShowCalender}
+              shift={shift}
             />
           )
         ) : (
@@ -950,6 +954,7 @@ const Tasks = ({ isEdit, onCloseModal }) => {
             setStartDate={setStartDate}
             endDate={endDate}
             setEndDate={setEndDate}
+            mid={mid}
           />
         ))}
 
@@ -981,6 +986,7 @@ const Tasks = ({ isEdit, onCloseModal }) => {
             setStartDate={setStartDate}
             endDate={endDate}
             setEndDate={setEndDate}
+            mid={mid}
           />
         )}
 
