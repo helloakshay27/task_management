@@ -32,7 +32,7 @@ import ColumnSelector from "../ColumnSelector";
 // Define status options for each addType
 const STATUS_OPTIONS_MAP = {
     Project: ["All", "Active", "In Progress", "Completed", "On Hold", "Overdue"],
-    Issues: ["All", "Open", "In Progress", "Completed", "On Hold"],
+    Issues: ["All", "Open", "In Progress", "Completed", "On Hold", "Reopen", "Closed"],
     Task: ["All", "Open", "In Progress", "On Hold", "Completed", "Overdue"],
     "Sprint-Gantt": ["All", "Active", "Completed"],
 };
