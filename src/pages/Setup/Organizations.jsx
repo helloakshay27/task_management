@@ -29,6 +29,7 @@ const Organizations = () => {
     const { fetchOrganizations: organizations } = useSelector(state => state.fetchOrganizations);
     const { success: editSuccess } = useSelector(state => state.editOrganization);
 
+    const [searchQuery, setSearchQuery] = useState("")
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editData, setEditData] = useState(null);
     const [lastAction, setLastAction] = useState(null); // { type: 'toggle' | 'modalEdit', status?: boolean }
@@ -178,11 +179,15 @@ const Organizations = () => {
         .map((columnId) => allColumns.find((col) => col.accessorKey === columnId || col.id === columnId))
         .filter(Boolean);
 
+    const filteredOrganizations = organizations.filter((org) =>
+        org.name.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+
     return (
         <DndProvider backend={HTML5Backend}>
             <div className="flex flex-col gap-2 text-[14px]">
                 <CustomTable
-                    data={organizations}
+                    data={filteredOrganizations}
                     columns={columns}
                     title="Organizations"
                     buttonText="Add Organization"
@@ -193,6 +198,8 @@ const Organizations = () => {
                     }}
                     columnOrder={columnOrder}
                     onReorderColumns={handleReorderColumns}
+                    searchQuery={searchQuery}
+                    setSearchQuery={setSearchQuery}
                 />
                 <OrganizationModal
                     open={isModalOpen}

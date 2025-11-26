@@ -31,6 +31,7 @@ const ActionIcons = ({ row, onView, onEdit }) => {
 
 const Roster = () => {
     const [rosters, setRosters] = useState([])
+    const [searchQuery, setSearchQuery] = useState("")
     const navigate = useNavigate();
 
     const [columnOrder, setColumnOrder] = useState(() => {
@@ -127,11 +128,17 @@ const Roster = () => {
         .map((columnId) => allColumns.find((col) => col.accessorKey === columnId || col.id === columnId))
         .filter(Boolean);
 
+    const filteredRosters = rosters.filter((roster) => {
+        return (
+            roster.name.toLowerCase().includes(searchQuery.toLowerCase())
+        );
+    })
+
     return (
         <DndProvider backend={HTML5Backend}>
             <div className="flex flex-col gap-2 text-[14px]">
                 <CustomTable
-                    data={rosters}
+                    data={filteredRosters}
                     columns={columns}
                     title="Roster Management"
                     buttonText="Add"
@@ -139,6 +146,8 @@ const Roster = () => {
                     onAdd={() => navigate('/setup/roster/add-roster')}
                     columnOrder={columnOrder}
                     onReorderColumns={handleReorderColumns}
+                    searchQuery={searchQuery}
+                    setSearchQuery={setSearchQuery}
                 />
             </div>
         </DndProvider>
