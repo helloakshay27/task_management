@@ -475,8 +475,8 @@ export const DurationPicker = ({
                             onClick={() => {
                                 if (taskType === "standard") {
                                     // Handle end-date-only with manual duration
-                                    if (!startDate && endDate && manualDuration) {
-                                        const parsedHours = parseHours(manualDuration);
+                                    if (!startDate && endDate) {
+                                        const parsedHours = manualDuration ? parseHours(manualDuration) : hoursPerDay;
                                         setTotalWorkingHours(parsedHours);
                                         if (onChange) onChange(parsedHours);
 
