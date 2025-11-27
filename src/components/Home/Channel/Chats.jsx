@@ -700,6 +700,7 @@ const Chats = ({ messages, onReply, bottomRef }) => {
                                 No
                             </Button>
                             <Button
+                                className="bg-[#C72030]"
                                 onClick={() => {
                                     setSelectedMessageForTask(selectedMessage);
                                     setChatTaskModalOpen(true);
