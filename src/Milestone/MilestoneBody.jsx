@@ -396,7 +396,7 @@ const GanttChart = () => {
             {
                 name: "text",
                 label: "Milestone / Task Title",
-                width: 250,
+                width: 280,
                 resize: true,
                 template: function (task) {
                     if (task.type === "milestone") {
@@ -667,7 +667,7 @@ const GanttChart = () => {
                         type: "milestone",
                         owner: item.owner_name,
                         parent: 0,
-                        open: true,
+                        open: false,
                     });
 
                     console.log(tasksData)
