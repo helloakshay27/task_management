@@ -20,13 +20,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { ClipboardPlus, FileText, X, Reply, Forward, Search, Users, MessageCircle, CornerDownRight, Pin, PinOff } from "lucide-react";
-// import CreateChatTask from "./CreateChatTask";
-// import PinnedMessagesHeader from "./PinnedMessagesHeader";
 import { toast } from "react-hot-toast";
 import { useParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { createMessage, updateMessage } from "@/redux/slices/channelSlice";
 import PinnedMessagesHeader from "./PinMessageHeader";
+import ChatTaskModal from "./ChatTaskModal";
 
 const Chats = ({ messages, onReply, bottomRef }) => {
     const { id } = useParams();
@@ -47,6 +46,8 @@ const Chats = ({ messages, onReply, bottomRef }) => {
     const [messageToForward, setMessageToForward] = useState(null);
     const [searchQuery, setSearchQuery] = useState("");
     const [selectedForwardTargets, setSelectedForwardTargets] = useState([]);
+    const [chatTaskModalOpen, setChatTaskModalOpen] = useState(false);
+    const [selectedMessageForTask, setSelectedMessageForTask] = useState(null);
     const hoverTimeoutRef = useRef(null);
 
     useEffect(() => {
@@ -700,8 +701,9 @@ const Chats = ({ messages, onReply, bottomRef }) => {
                             </Button>
                             <Button
                                 onClick={() => {
-                                    setSelectedMessage(selectedMessage);
-                                    setOpenTaskModal(true);
+                                    setSelectedMessageForTask(selectedMessage);
+                                    setChatTaskModalOpen(true);
+                                    setSelectedMessage(null);
                                 }}
                             >
                                 Yes
@@ -710,13 +712,15 @@ const Chats = ({ messages, onReply, bottomRef }) => {
                     </DialogContent>
                 </Dialog>
 
-                {/* <CreateChatTask
-                    openTaskModal={openTaskModal}
-                    setOpenTaskModal={setOpenTaskModal}
-                    onCreateTask={handleCreateTask}
-                    message={selectedMessage}
-                    id={id}
-                /> */}
+                {/* Chat Task Modal */}
+                <ChatTaskModal
+                    message={selectedMessageForTask}
+                    isOpen={chatTaskModalOpen}
+                    onClose={() => {
+                        setChatTaskModalOpen(false);
+                        setSelectedMessageForTask(null);
+                    }}
+                />
 
                 <div ref={bottomRef} className="h-0" />
             </div>
