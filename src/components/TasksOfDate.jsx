@@ -42,11 +42,88 @@ const CountdownTimer = ({ targetDate }) => {
 };
 
 // ===================== TaskCard =====================
+// const TaskCard = ({ task, selectedDate }) => {
+//     console.log(task)
+//     const date = `${selectedDate.year}-${String(selectedDate.month + 1).padStart(
+//         2,
+//         "0"
+//     )}-${String(selectedDate.date).padStart(2, "0")}`;
+
+//     // Calculate today's total allocation
+//     const todayAllocation = (task.allocation_times || [])
+//         .filter(a => a.date === date)
+//         .reduce(
+//             (acc, a) => {
+//                 const totalMins = acc.minutes + (a.minutes || 0);
+//                 const totalHours = acc.hours + (a.hours || 0) + Math.floor(totalMins / 60);
+//                 return { hours: totalHours, minutes: totalMins % 60 };
+//             },
+//             { hours: 0, minutes: 0 }
+//         );
+
+//     const hours = String(todayAllocation?.hours ?? 0).padStart(2, "0");
+//     const minutes = String(todayAllocation?.minutes ?? 0).padStart(2, "0");
+
+//     const [{ isDragging }, drag] = useDrag(() => ({
+//         type: "TASK",
+//         item: { task },
+//         collect: (monitor) => ({
+//             isDragging: !!monitor.isDragging(),
+//         }),
+//     }));
+
+//     return (
+//         <div
+//             ref={drag}
+//             className={`p-3 mb-2 border-l-4 ${task.priority === "High" ? "border-[#C72030]" : task.priority === "Medium" ? "border-[#ED9017]" : "border-[#1FCFB3]"} bg-[#D5DBDB] ${isDragging ? "opacity-50" : ""
+//                 }`}
+//         >
+//             <div className="text-xs font-medium text-gray-800 mb-2 text-ellipsis whitespace-nowrap overflow-hidden">{task.title} ({task.type ? task?.type?.charAt(0).toUpperCase() + task?.type?.slice(1) : "Task"})</div>
+//             <div className="flex items-center gap-4 text-xs text-gray-600">
+//                 <div className="flex items-center gap-1">
+//                     <Calendar className="w-4 h-4" />
+//                     <span>{task.type === "issue" ? task.end_date : task.target_date}</span>
+//                 </div>
+//                 <div className="flex items-center gap-1">
+//                     <CalendarCheck2 className="w-4 h-4" />
+//                     <span>{`${hours}:${minutes} Hrs`}</span>
+//                 </div>
+//                 <div className="flex items-center gap-1">
+//                     <Timer className="w-4 h-4" />
+//                     <CountdownTimer targetDate={task.target_date} />
+//                 </div>
+//                 <div className="flex items-center gap-1">
+//                     <Timer className="w-4 h-4" />
+//                     <span>{`${task.estimated_hour} Hrs`}</span>
+//                 </div>
+//             </div>
+//         </div>
+//     );
+// };
+
+
 const TaskCard = ({ task, selectedDate }) => {
-    const date = `${selectedDate.year}-${String(selectedDate.month + 1).padStart(
-        2,
-        "0"
-    )}-${String(selectedDate.date).padStart(2, "0")}`;
+    console.log(task);
+
+    // Convert selected date to YYYY-MM-DD
+    const date = `${selectedDate.year}-${String(selectedDate.month + 1).padStart(2, "0")}-${String(
+        selectedDate.date
+    ).padStart(2, "0")}`;
+
+    // 🔥 Helper to format date consistently (YYYY-MM-DD)
+    const formatDate = (dateStr) => {
+        if (!dateStr) return "";
+        const d = new Date(dateStr);
+
+        // If parsing fails (e.g., already YYYY-MM-DD), return original
+        if (isNaN(d)) return dateStr;
+
+        const year = d.getFullYear();
+        const month = String(d.getMonth() + 1).padStart(2, "0");
+        const day = String(d.getDate()).padStart(2, "0");
+
+        return `${year}-${month}-${day}`;
+    };
 
     // Calculate today's total allocation
     const todayAllocation = (task.allocation_times || [])
@@ -71,29 +148,49 @@ const TaskCard = ({ task, selectedDate }) => {
         }),
     }));
 
+    // 🔥 Choose correct date & format it
+    const displayDate = formatDate(
+        task.type === "issue" ? task.end_date : task.target_date
+    );
+
     return (
         <div
             ref={drag}
-            className={`p-3 mb-2 border-l-4 ${task.priority === "High" ? "border-[#C72030]" : task.priority === "Medium" ? "border-[#ED9017]" : "border-[#1FCFB3]"} bg-[#D5DBDB] ${isDragging ? "opacity-50" : ""
-                }`}
+            className={`p-3 mb-2 border-l-4 ${task.priority === "High"
+                ? "border-[#C72030]"
+                : task.priority === "Medium"
+                    ? "border-[#ED9017]"
+                    : "border-[#1FCFB3]"
+                } bg-[#D5DBDB] ${isDragging ? "opacity-50" : ""}`}
         >
-            <div className="text-xs font-medium text-gray-800 mb-2 text-ellipsis whitespace-nowrap overflow-hidden">{task.title}</div>
+            <div className="text-xs font-medium text-gray-800 mb-2 text-ellipsis whitespace-nowrap overflow-hidden">
+                {task.title} (
+                {task.type ? task.type.charAt(0).toUpperCase() + task.type.slice(1) : "Task"})
+            </div>
+
             <div className="flex items-center gap-4 text-xs text-gray-600">
+                {/* Date */}
                 <div className="flex items-center gap-1">
                     <Calendar className="w-4 h-4" />
-                    <span>{task.target_date}</span>
+                    <span>{displayDate}</span>
                 </div>
+
+                {/* Allocated Today */}
                 <div className="flex items-center gap-1">
                     <CalendarCheck2 className="w-4 h-4" />
                     <span>{`${hours}:${minutes} Hrs`}</span>
                 </div>
+
+                {/* Countdown */}
                 <div className="flex items-center gap-1">
                     <Timer className="w-4 h-4" />
-                    <CountdownTimer targetDate={task.target_date} />
+                    <CountdownTimer targetDate={displayDate} />
                 </div>
+
+                {/* Estimated Hours */}
                 <div className="flex items-center gap-1">
                     <Timer className="w-4 h-4" />
-                    <span>{`${task.estimated_hour} Hrs`}</span>
+                    <span>{`${task.type === "issue" ? task.total_allocated_hours : task.estimated_hour} Hrs`}</span>
                 </div>
             </div>
         </div>
