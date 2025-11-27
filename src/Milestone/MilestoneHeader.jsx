@@ -16,6 +16,15 @@ const MILESTONE_TABLE_COLUMNS = [
     { id: "actions", label: "Actions", key: "actions" },
 ];
 
+// Define available columns for Gantt view
+const MILESTONE_GANTT_COLUMNS = [
+    { id: "actions", label: "Actions", key: "actions" },
+    { id: "text", label: "Id", key: "text" },
+    { id: "title", label: "Milestone / Task Title", key: "title" },
+    { id: "progress", label: "Progress", key: "progress" },
+    { id: "status", label: "Status", key: "status" },
+];
+
 const MilestoneHeader = ({ selectedType, setSelectedType, searchQuery, setSearchQuery, onColumnsChange, selectedColumns }) => {
     const token = localStorage.getItem("token");
     const { id } = useParams();
@@ -32,6 +41,9 @@ const MilestoneHeader = ({ selectedType, setSelectedType, searchQuery, setSearch
             onColumnsChange(columns);
         }
     };
+    
+    // Determine which columns to show based on selected type
+    const availableColumnsForType = selectedType === "Gantt" ? MILESTONE_GANTT_COLUMNS : MILESTONE_TABLE_COLUMNS;
 
     return (
         <div>
@@ -45,7 +57,7 @@ const MilestoneHeader = ({ selectedType, setSelectedType, searchQuery, setSearch
                 searchQuery={searchQuery}
                 setSearchQuery={setSearchQuery}
                 onColumnsChange={handleColumnsChange}
-                availableColumns={MILESTONE_TABLE_COLUMNS}
+                availableColumns={availableColumnsForType}
             />
         </div>
     );

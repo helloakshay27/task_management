@@ -26,7 +26,7 @@ const MileStoneMain = () => {
             />
             {
                 selectedType === "Gantt" ? (
-                    <MilestoneBody />
+                    <MilestoneBody selectedColumns={selectedColumns} />
                 ) : selectedType === "List" ? (
                     <MilestoneList searchQuery={searchQuery} selectedColumns={selectedColumns} />
                 ) : (

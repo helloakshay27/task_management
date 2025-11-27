@@ -615,8 +615,8 @@ const TaskForm = ({
           </label>
           <MultiSelectBox
             options={users.map((user) => ({
-              label: user?.user?.name || user.name,
-              value: user.user_id || user.id,
+              label: user.name ? user.name : user?.firstname + " " + user?.lastname,
+              value: user.id,
             }))}
             value={formData.observer}
             placeholder="Select Observer"

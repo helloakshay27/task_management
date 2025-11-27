@@ -152,11 +152,30 @@ if (typeof document !== 'undefined') {
     document.head.appendChild(styleSheet);
 }
 
-const GanttChart = () => {
+const GanttChart = ({ selectedColumns = {} }) => {
     const { id } = useParams();
     const ganttContainer = useRef(null);
     const [scale, setScale] = React.useState("week");
     const navigate = useNavigate();
+    
+    // Define columns for Gantt chart
+    const ganttColumns = [
+        { id: "actions", label: "Actions", visible: true },
+        { id: "text", label: "Id", visible: true },
+        { id: "title", label: "Milestone / Task Title", visible: true },
+        { id: "progress", label: "Progress", visible: true },
+        { id: "status", label: "Status", visible: true },
+    ];
+    
+    // Filter columns based on selectedColumns
+    const getVisibleColumns = () => {
+        if (!selectedColumns || Object.keys(selectedColumns).length === 0) {
+            return ganttColumns;
+        }
+        return ganttColumns.filter(col => selectedColumns[col.id] !== false);
+    };
+    
+    const visibleColumns = getVisibleColumns();
 
     // Helper function to calculate progress for milestones or tasks
     const calculateProgress = (entityId, tasksData, entityType) => {
@@ -341,7 +360,8 @@ const GanttChart = () => {
         gantt.config.task_height = 16;
 
         // Columns
-        gantt.config.columns = [
+        // Build columns array based on visible columns
+        const allColumnsConfig = [
             {
                 name: "actions",
                 label: "Actions",
@@ -444,6 +464,20 @@ const GanttChart = () => {
                 },
             }
         ];
+        
+        // Filter columns based on visibleColumns
+        const filteredColumns = allColumnsConfig.filter(col => {
+            const colId = col.name;
+            if (colId === "text" && col.label === "Milestone / Task Title") {
+                return visibleColumns.some(vc => vc.id === "title");
+            }
+            if (colId === "text" && col.label === "Id") {
+                return visibleColumns.some(vc => vc.id === "text");
+            }
+            return visibleColumns.some(vc => vc.id === colId);
+        });
+        
+        gantt.config.columns = filteredColumns;
 
         // <button 
         //                         class="gantt-delete-task" 

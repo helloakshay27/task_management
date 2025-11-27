@@ -476,7 +476,7 @@ const TaskActions = ({
 
                     {
                         (addType === "Task" || addType === "Project" || addType === "Issues" || addType === "Milestone" || addType === "Sprint-Gantt") &&
-                        selectedType === "List" &&
+                        (selectedType === "List" || selectedType === "Gantt") &&
                         availableColumns &&
                         availableColumns.length > 0 && (
                             <div className="pl-4">
