@@ -1,9 +1,9 @@
 import {
     ChevronUp,
     ChevronDown,
-    Calendar,
     CalendarCheck2,
     Timer,
+    FlagTriangleRight,
 } from "lucide-react";
 import { useState, useMemo, useEffect } from "react";
 import { DndProvider, useDrag, useDrop } from "react-dnd";
@@ -40,66 +40,6 @@ const CountdownTimer = ({ targetDate }) => {
         <div className="text-left text-xs">{countdown}</div>
     );
 };
-
-// ===================== TaskCard =====================
-// const TaskCard = ({ task, selectedDate }) => {
-//     console.log(task)
-//     const date = `${selectedDate.year}-${String(selectedDate.month + 1).padStart(
-//         2,
-//         "0"
-//     )}-${String(selectedDate.date).padStart(2, "0")}`;
-
-//     // Calculate today's total allocation
-//     const todayAllocation = (task.allocation_times || [])
-//         .filter(a => a.date === date)
-//         .reduce(
-//             (acc, a) => {
-//                 const totalMins = acc.minutes + (a.minutes || 0);
-//                 const totalHours = acc.hours + (a.hours || 0) + Math.floor(totalMins / 60);
-//                 return { hours: totalHours, minutes: totalMins % 60 };
-//             },
-//             { hours: 0, minutes: 0 }
-//         );
-
-//     const hours = String(todayAllocation?.hours ?? 0).padStart(2, "0");
-//     const minutes = String(todayAllocation?.minutes ?? 0).padStart(2, "0");
-
-//     const [{ isDragging }, drag] = useDrag(() => ({
-//         type: "TASK",
-//         item: { task },
-//         collect: (monitor) => ({
-//             isDragging: !!monitor.isDragging(),
-//         }),
-//     }));
-
-//     return (
-//         <div
-//             ref={drag}
-//             className={`p-3 mb-2 border-l-4 ${task.priority === "High" ? "border-[#C72030]" : task.priority === "Medium" ? "border-[#ED9017]" : "border-[#1FCFB3]"} bg-[#D5DBDB] ${isDragging ? "opacity-50" : ""
-//                 }`}
-//         >
-//             <div className="text-xs font-medium text-gray-800 mb-2 text-ellipsis whitespace-nowrap overflow-hidden">{task.title} ({task.type ? task?.type?.charAt(0).toUpperCase() + task?.type?.slice(1) : "Task"})</div>
-//             <div className="flex items-center gap-4 text-xs text-gray-600">
-//                 <div className="flex items-center gap-1">
-//                     <Calendar className="w-4 h-4" />
-//                     <span>{task.type === "issue" ? task.end_date : task.target_date}</span>
-//                 </div>
-//                 <div className="flex items-center gap-1">
-//                     <CalendarCheck2 className="w-4 h-4" />
-//                     <span>{`${hours}:${minutes} Hrs`}</span>
-//                 </div>
-//                 <div className="flex items-center gap-1">
-//                     <Timer className="w-4 h-4" />
-//                     <CountdownTimer targetDate={task.target_date} />
-//                 </div>
-//                 <div className="flex items-center gap-1">
-//                     <Timer className="w-4 h-4" />
-//                     <span>{`${task.estimated_hour} Hrs`}</span>
-//                 </div>
-//             </div>
-//         </div>
-//     );
-// };
 
 
 const TaskCard = ({ task, selectedDate }) => {
@@ -163,15 +103,17 @@ const TaskCard = ({ task, selectedDate }) => {
                     : "border-[#1FCFB3]"
                 } bg-[#D5DBDB] ${isDragging ? "opacity-50" : ""}`}
         >
-            <div className="text-xs font-medium text-gray-800 mb-2 text-ellipsis whitespace-nowrap overflow-hidden">
-                {task.title} (
-                {task.type ? task.type.charAt(0).toUpperCase() + task.type.slice(1) : "Task"})
+            <div className="mb-2">
+                <a className="text-xs font-medium text-gray-800 text-ellipsis whitespace-nowrap overflow-hidden cursor-pointer" href={task.type === "issue" ? `/issues/${task.id}` : `/tasks/${task.id}`} target="_blank">
+                    {task.type === "issue" ? "I" : "T"}{task.id} - {task.title} (
+                    {task.type ? task.type.charAt(0).toUpperCase() + task.type.slice(1) : "Task"})
+                </a>
             </div>
 
             <div className="flex items-center gap-4 text-xs text-gray-600">
                 {/* Date */}
                 <div className="flex items-center gap-1">
-                    <Calendar className="w-4 h-4" />
+                    <FlagTriangleRight className="w-3.5 h-3.5" />
                     <span>{displayDate}</span>
                 </div>
 
@@ -198,7 +140,7 @@ const TaskCard = ({ task, selectedDate }) => {
 };
 
 // ===================== DroppableDay =====================
-const DroppableDay = ({ dateInfo, onDrop, assignedTasks, onDateClick }) => {
+const DroppableDay = ({ dateInfo, onDrop, assignedTasks, onDateClick, shift }) => {
     const [{ isOver }, drop] = useDrop(
         () => ({
             accept: "TASK",
@@ -207,8 +149,40 @@ const DroppableDay = ({ dateInfo, onDrop, assignedTasks, onDateClick }) => {
                 isOver: !!monitor.isOver(),
             }),
         }),
-        [dateInfo] // ✅ ensures drop updates when weekDates change
+        [dateInfo]
     );
+
+    // Helper function to check if a date is a working day
+    const isDateWorking = (dateString, shiftData) => {
+        if (!shiftData) {
+            // Default: Monday to Friday (1-5)
+            const date = new Date(dateString);
+            const jsDay = date.getDay();
+            return jsDay !== 0 && jsDay !== 6;
+        }
+
+        const date = new Date(dateString);
+        const jsDay = date.getDay();
+        const dayNumber = jsDay === 0 ? 7 : jsDay;
+
+        try {
+            const noOfDays = shiftData?.no_of_days;
+            if (!noOfDays) return true;
+
+            const arr = Array.isArray(noOfDays) ? noOfDays : [];
+            const working = arr.map((v) => Number(v)).filter(Boolean);
+
+            if (working.length === 0) {
+                return jsDay !== 0 && jsDay !== 6;
+            }
+
+            return working.includes(dayNumber);
+        } catch (error) {
+            return true;
+        }
+    };
+
+    const isWeekOff = !isDateWorking(dateInfo.fullDate, shift);
 
     const calculationHrs = (typeof dateInfo.allocated_hours_num !== 'undefined')
         ? dateInfo.allocated_hours_num
@@ -217,11 +191,13 @@ const DroppableDay = ({ dateInfo, onDrop, assignedTasks, onDateClick }) => {
 
     const bgClass = dateInfo.isSelected
         ? "bg-blue-50"
-        : dateInfo.overloaded
-            ? "bg-red-100"
-            : assignedTasks[dateInfo.fullDate]
-                ? "bg-[#D5DBDB]"
-                : "hover:bg-gray-50";
+        : isWeekOff
+            ? "bg-red-50"
+            : dateInfo.overloaded
+                ? "bg-red-100"
+                : assignedTasks[dateInfo.fullDate]
+                    ? "bg-[#D5DBDB]"
+                    : "hover:bg-gray-50";
 
     const handleClick = () => {
         onDateClick(dateInfo.fullDate);
@@ -235,16 +211,18 @@ const DroppableDay = ({ dateInfo, onDrop, assignedTasks, onDateClick }) => {
                 } cursor-pointer`}
         >
             <span
-                className={`absolute left-0 top-0 h-full w-[4px] ${durationPercentage <= 33
-                    ? "bg-[#1FCFB3]"
-                    : durationPercentage <= 66
-                        ? "bg-[#ED9017]"
-                        : "bg-[#C72030]"
+                className={`absolute left-0 top-0 h-full w-[4px] ${isWeekOff
+                    ? "bg-red-500"
+                    : durationPercentage <= 33
+                        ? "bg-[#1FCFB3]"
+                        : durationPercentage <= 66
+                            ? "bg-[#ED9017]"
+                            : "bg-[#C72030]"
                     }`}
             />
             <div className="font-medium text-xs text-left">{dateInfo.day}</div>
             <div className="text-xs text-gray-600 text-left">{dateInfo.date}</div>
-            <div className="font-semibold text-xs text-right">{dateInfo.hours}</div>
+            <div className="font-semibold text-xs text-right">{isWeekOff ? "Week Off" : dateInfo.hours}</div>
             {dateInfo.isPending && (
                 <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                     <div className="bg-yellow-50 text-yellow-800 text-xs px-2 py-1 rounded">Processing...</div>
@@ -262,6 +240,7 @@ const CalendarWeekView = ({
     onDrop,
     assignedTasks,
     onDateClick,
+    shift,
 }) => {
     return (
         <div className="bg-white border-gray-300 relative">
@@ -280,11 +259,12 @@ const CalendarWeekView = ({
             <div className="space-y-1 my-4">
                 {weekDates.map((dateInfo) => (
                     <DroppableDay
-                        key={dateInfo.fullDate} // ✅ key ensures remount on scroll
+                        key={dateInfo.fullDate}
                         dateInfo={dateInfo}
                         onDrop={onDrop}
                         assignedTasks={assignedTasks}
                         onDateClick={onDateClick}
+                        shift={shift}
                     />
                 ))}
             </div>
@@ -304,7 +284,7 @@ const CalendarWeekView = ({
 };
 
 // ===================== TasksOfDate =====================
-const TasksOfDate = ({ selectedDate, onClose, tasks, userAvailability, selectedUser }) => {
+const TasksOfDate = ({ selectedDate, onClose, tasks, userAvailability, selectedUser, shift }) => {
     const dispatch = useDispatch();
     const token = localStorage.getItem("token");
 
@@ -541,7 +521,7 @@ const TasksOfDate = ({ selectedDate, onClose, tasks, userAvailability, selectedU
                         </span>
                     </div>
                     <div className="font-semibold">
-                        Total Task Hours: {totalTaskHours}
+                        Total Allocated Task Hours: {totalTaskHours}
                     </div>
                 </div>
 
@@ -609,6 +589,7 @@ const TasksOfDate = ({ selectedDate, onClose, tasks, userAvailability, selectedU
                             onDrop={handleDrop}
                             assignedTasks={assignedTasks}
                             onDateClick={handleDateClick}
+                            shift={shift}
                         />
                     </div>
                 </div>

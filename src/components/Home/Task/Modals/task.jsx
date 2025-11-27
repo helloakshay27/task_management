@@ -501,7 +501,7 @@ const TaskForm = ({
       <div className="flex justify-between mt-3 gap-2 text-[12px]">
         <div className="space-y-2 w-full">
           <label className="block">
-            Duration <span className="text-red-600">*</span>
+            Efforts Duration <span className="text-red-600">*</span>
           </label>
           <DurationPicker
             value={taskDuration}
@@ -549,6 +549,7 @@ const TaskForm = ({
             tasks={startDateTasks}
             selectedUser={formData.responsiblePerson}
             userAvailability={userAvailability}
+            shift={shift}
           />
         )}
       </div>
@@ -585,6 +586,7 @@ const TaskForm = ({
             tasks={targetDateTasks}
             selectedUser={formData.responsiblePerson}
             userAvailability={userAvailability}
+            shift={shift}
           />
         )}
       </div>

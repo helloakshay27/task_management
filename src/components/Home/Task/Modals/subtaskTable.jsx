@@ -869,7 +869,11 @@ const SubtaskTable = ({ projectId }) => {
         header: "Duration",
         size: 100,
         cell: (info) => {
-          return <CountdownTimer startDate={info.row.original.startDate} targetDate={info.row.original.endDate} />
+          return info.row.original.startDate && info.row.original.endDate ? (
+            <CountdownTimer startDate={info.row.original.startDate} targetDate={info.row.original.endDate} />
+          ) : (
+            <span className="text-xs text-gray-400">-</span>
+          );
         }
       },
       {
@@ -1163,7 +1167,7 @@ const SubtaskTable = ({ projectId }) => {
                     />
                   </td>
                   <td className="border p-1 text-xs align-middle">
-                    {newSubtaskDuration}
+                    {newSubtaskDuration?.text || "-"}
                   </td>
                   <td className="border p-1 align-middle">
                     <SelectBox
