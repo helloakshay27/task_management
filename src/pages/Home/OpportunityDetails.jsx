@@ -720,12 +720,16 @@ const OpportunityDetails = () => {
 
                         <span className="h-6 w-[1px] border border-gray-300"></span>
 
-                        <span
-                            className="cursor-pointer flex items-center gap-1"
-                            onClick={handleConvertToTask}
-                        >
-                            <CircleCheckBig className="mx-1" size={15} /> Convert to Task
-                        </span>
+                        {
+                            !opportunityDetails.task_created && (
+                                <span
+                                    className="cursor-pointer flex items-center gap-1"
+                                    onClick={handleConvertToTask}
+                                >
+                                    <CircleCheckBig className="mx-1" size={15} /> Convert to Task
+                                </span>
+                            )
+                        }
                     </div>
                 </div>
                 <div className="border-b-[3px] border-grey my-3"></div>
