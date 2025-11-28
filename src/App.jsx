@@ -59,6 +59,8 @@ import Shift from "./pages/Setup/Shift";
 import EmployeeAddPage from "./pages/Setup/EmployeeAddPage";
 import { useWebSocket } from "./hooks/useWebSocket";
 import { socketUrl } from "../apiDomain";
+import Opportunity from "./pages/Home/Opportunity";
+import OpportunityDetails from "./pages/Home/OpportunityDetails";
 
 const App = () => {
   const token = localStorage.getItem("token");
@@ -218,6 +220,8 @@ const App = () => {
                   <Route path="/mom" element={<MinutesOfMeeting />} />
                   <Route path="/mom/:id" element={<MomDetails />} />
                   <Route path="/new-mom" element={<MoMAdd />} />
+                  <Route path="/opportunity" element={<Opportunity />} />
+                  <Route path="/opportunity/:opportunityId" element={<OpportunityDetails />} />
 
                   {/* <Route path="/channels/*" element={<Channel />} /> */}
                   <Route path="/channels" element={<Channel />} >

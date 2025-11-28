@@ -99,6 +99,12 @@ const Sidebar = ({ isSidebarOpen, setIsSidebarOpen }) => {
                                 {isSidebarOpen ? "Documents" : ""}
                             </li>
                         </NavLink>
+                        <NavLink to="/opportunity">
+                            <li className={`sidebar-link ${!isSidebarOpen ? "justify-center" : ""}`}>
+                                <File size={20} />
+                                {isSidebarOpen ? "Opportunity Register" : ""}
+                            </li>
+                        </NavLink>
                     </ul>
                 </div>
             </div>

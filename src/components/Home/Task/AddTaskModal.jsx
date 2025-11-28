@@ -4,7 +4,7 @@ import { X } from "lucide-react";
 import gsap from "gsap";
 import Tasks from "./Modals/task";
 
-const AddTaskModal = ({ title, isEdit, isModalOpen, setIsModalOpen }) => {
+const AddTaskModal = ({ title, isEdit, isModalOpen, setIsModalOpen, prefillData }) => {
     const addTaskModalRef = useRef(null);
 
     useGSAP(() => {
@@ -40,7 +40,7 @@ const AddTaskModal = ({ title, isEdit, isModalOpen, setIsModalOpen }) => {
 
                 <hr className="border border-[#E95420] my-4" />
 
-                <Tasks isEdit={isEdit} onCloseModal={closeModal} />
+                <Tasks isEdit={isEdit} onCloseModal={closeModal} prefillData={prefillData} />
             </div>
         </div>
     );

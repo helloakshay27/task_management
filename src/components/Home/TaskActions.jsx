@@ -28,6 +28,7 @@ import { FileUploadModal } from "../ImportFileModal";
 import axios from "axios";
 import { baseURL } from "../../../apiDomain";
 import ColumnSelector from "../ColumnSelector";
+import AddOpportunityModal from "../AddOpportunityModal";
 
 // Define status options for each addType
 const STATUS_OPTIONS_MAP = {
@@ -74,6 +75,7 @@ const TaskActions = ({
     const [isProjectFilter, setIsProjectFilter] = useState(false);
     const [importModalOpen, setImportModalOpen] = useState(false)
     const [isIssueFilter, setIsIssueFilter] = useState(false);
+    const [isOpporunityModalOpen, setIsOpporunityModalOpen] = useState(false)
     const [myTasks, setMyTasks] = useState(false);
     const token = localStorage.getItem("token");
     localStorage.setItem("myTasks", myTasks.toString());
@@ -284,6 +286,9 @@ const TaskActions = ({
             case "Issues":
                 setIsAddIssueModalOpen(true);
                 break;
+            case "Opportunity":
+                setIsOpporunityModalOpen(true);
+                break;
             default:
                 setIsModalOpen(true);
         }
@@ -415,6 +420,7 @@ const TaskActions = ({
                         addType !== "templates" &&
                         addType !== "archived" &&
                         addType !== "Sprint-Gantt" &&
+                        addType !== "Opportunity" &&
                         !mid && (
                             <div className="flex justify-center items-center">
                                 <label className="mr-2">All task</label>
@@ -429,15 +435,17 @@ const TaskActions = ({
                         )}
                     {addType !== "Issues" &&
                         addType !== "Sprint-Gantt" &&
+                        addType !== "Opportunity" &&
                         !["templates", "archived"].includes(addType) &&
                         renderTypeDropdown()}
-                    {addType !== "Issues" &&
+                    {addType !== "Issues" && addType !== "Opportunity" &&
                         !["Milestone", "Project", "Task", "active_projects", "templates", "archived"].includes(addType) &&
                         renderSprintTypeDropdown()}
                     {addType !== "Milestone" &&
                         addType !== "templates" &&
                         addType !== "archived" &&
-                        addType !== "Sprint-Gantt" && ( // Added Sprint-Gantt exclusion
+                        addType !== "Sprint-Gantt" &&
+                        addType !== "Opportunity" && ( // Added Sprint-Gantt exclusion
                             <div
                                 className="flex items-center gap-1 cursor-pointer pl-4"
                                 onClick={() =>
@@ -451,7 +459,7 @@ const TaskActions = ({
                                 <Filter size={18} className={`${filter ? "text-[#C72030]" : "text-gray-600"}`} />
                             </div>
                         )}
-                    {addType !== "Milestone" && addType !== "templates" && addType !== "archived" && renderStatusDropdown()}
+                    {addType !== "Opportunity" && addType !== "Milestone" && addType !== "templates" && addType !== "archived" && renderStatusDropdown()}
 
                     {
                         (addType === "Task" || addType === "Issues") && (
@@ -475,7 +483,7 @@ const TaskActions = ({
                     }
 
                     {
-                        (addType === "Task" || addType === "Project" || addType === "Issues" || addType === "Milestone" || addType === "Sprint-Gantt") &&
+                        (addType === "Task" || addType === "Project" || addType === "Issues" || addType === "Milestone" || addType === "Sprint-Gantt" || addType === "Opportunity") &&
                         (selectedType === "List" || selectedType === "Gantt") &&
                         availableColumns &&
                         availableColumns.length > 0 && (
@@ -503,7 +511,9 @@ const TaskActions = ({
                                         ? "Add Milestone"
                                         : addType === "Issues"
                                             ? "Add Issue"
-                                            : "Add Task"}
+                                            : addType === "Opportunity"
+                                                ? "Add Opportunity"
+                                                : "Add Task"}
                         </button>
                     )}
                 </div>
@@ -572,6 +582,13 @@ const TaskActions = ({
                 <IssueFilter
                     isModalOpen={isIssueFilter}
                     setIsModalOpen={setIsIssueFilter}
+                />
+            )}
+
+            {isOpporunityModalOpen && (
+                <AddOpportunityModal
+                    isModalOpen={isOpporunityModalOpen}
+                    setIsModalOpen={setIsOpporunityModalOpen}
                 />
             )}
 

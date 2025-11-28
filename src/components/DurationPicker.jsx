@@ -32,6 +32,12 @@ export const DurationPicker = ({
     const [manualDuration, setManualDuration] = useState("");
     const pickerRef = useRef(null);
 
+    useEffect(() => {
+        if (endDate) {
+            setIsOpen(true)
+        }
+    }, [endDate])
+
     const parseHours = (val) => {
         if (!val) return 0;
         if (typeof val === "number") return val;

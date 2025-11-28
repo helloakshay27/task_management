@@ -9,7 +9,7 @@ import { useState, useMemo, useEffect } from "react";
 import { DndProvider, useDrag, useDrop } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
 import { useDispatch } from "react-redux";
-import { updateTask, fetchTargetDateTasks } from "@/redux/slices/taskSlice";
+import { updateTask, updateIssue, fetchTargetDateTasks } from "@/redux/slices/taskSlice";
 import toast from "react-hot-toast";
 
 const calculateDuration = (end) => {
@@ -392,23 +392,40 @@ const TasksOfDate = ({ selectedDate, onClose, tasks, userAvailability, selectedU
             // mark as pending so UI doesn't show assignment until success
             setPendingDrops((p) => ({ ...p, [fullDate]: true }));
 
-            await dispatch(
-                updateTask({
-                    token,
-                    id: task.id,
-                    payload: {
-                        ...(task.target_date == formatedSelectedDate && {
-                            target_date: fullDate,
-                            allocation_date: fullDate,
-                        }),
-                        task_allocation_times_attributes: task.allocation_times.map((t) =>
-                            t.date == formatedSelectedDate
-                                ? { ...t, date: fullDate }
-                                : t
-                        ),
-                    },
+            const dateField = task.type === "issue" ? "end_date" : "target_date";
+
+            const payload = {
+                ...(task[dateField] == formatedSelectedDate && {
+                    [dateField]: fullDate,
+                    allocation_date: fullDate,
+                }),
+                task_allocation_times_attributes: task.allocation_times.map((t) =>
+                    t.date == formatedSelectedDate
+                        ? { ...t, date: fullDate }
+                        : t
+                ),
+                ...(task.type === "issue" && {
+                    task_management_id: task.task_management_id,
                 })
-            ).unwrap();
+            };
+
+            if (task.type === "issue") {
+                await dispatch(
+                    updateIssue({
+                        token,
+                        id: task.id,
+                        payload,
+                    })
+                ).unwrap();
+            } else {
+                await dispatch(
+                    updateTask({
+                        token,
+                        id: task.id,
+                        payload,
+                    })
+                ).unwrap();
+            }
 
             // only after success update local UI state
             setAssignedTasks((prev) => ({ ...prev, [fullDate]: task }));

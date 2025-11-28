@@ -646,7 +646,7 @@ const TaskForm = ({
   );
 };
 
-const Tasks = ({ isEdit, onCloseModal }) => {
+const Tasks = ({ isEdit, onCloseModal, prefillData }) => {
   const token = localStorage.getItem("token");
   const { id, mid, tid } = useParams();
   const dispatch = useDispatch();
@@ -695,6 +695,19 @@ const Tasks = ({ isEdit, onCloseModal }) => {
       duration: Math.round(totalWorkingHours),
     });
   }, [totalWorkingHours]);
+
+  useEffect(() => {
+    if (prefillData) {
+      setFormData((prevFormData) => ({
+        ...prevFormData,
+        taskTitle: prefillData?.title || "",
+        project: prefillData?.project || "",
+        task: prefillData?.task || "",
+        description: prefillData?.description || "",
+        opportunityId: prefillData?.opportunityId || "",
+      }));
+    }
+  }, [prefillData]);
 
   const [prevTags, setPrevTags] = useState([]);
   const [prevObservers, setPrevObservers] = useState([]);
@@ -772,7 +785,7 @@ const Tasks = ({ isEdit, onCloseModal }) => {
       }`;
     const formatedStartDate = `${startDate.year}-${startDate.month + 1}-${startDate.date
       }`;
-    return {
+    const payload = {
       title: data.taskTitle,
       description: data.description,
       responsible_person_id: data.responsiblePerson,
@@ -788,6 +801,12 @@ const Tasks = ({ isEdit, onCloseModal }) => {
       estimated_hour: totalWorkingHours,
       task_allocation_times_attributes: dateWiseHours,
     };
+
+    if (data.opportunityId) {
+      payload.opportunity_id = data.opportunityId;
+    }
+
+    return payload;
   };
 
   const isFormEmpty = () => {

@@ -157,7 +157,7 @@ const GanttChart = ({ selectedColumns = {} }) => {
     const ganttContainer = useRef(null);
     const [scale, setScale] = React.useState("week");
     const navigate = useNavigate();
-    
+
     // Define columns for Gantt chart
     const ganttColumns = [
         { id: "actions", label: "Actions", visible: true },
@@ -166,7 +166,7 @@ const GanttChart = ({ selectedColumns = {} }) => {
         { id: "progress", label: "Progress", visible: true },
         { id: "status", label: "Status", visible: true },
     ];
-    
+
     // Filter columns based on selectedColumns
     const getVisibleColumns = () => {
         if (!selectedColumns || Object.keys(selectedColumns).length === 0) {
@@ -174,7 +174,7 @@ const GanttChart = ({ selectedColumns = {} }) => {
         }
         return ganttColumns.filter(col => selectedColumns[col.id] !== false);
     };
-    
+
     const visibleColumns = getVisibleColumns();
 
     // Helper function to calculate progress for milestones or tasks
@@ -464,7 +464,7 @@ const GanttChart = ({ selectedColumns = {} }) => {
                 },
             }
         ];
-        
+
         // Filter columns based on visibleColumns
         const filteredColumns = allColumnsConfig.filter(col => {
             const colId = col.name;
@@ -476,7 +476,7 @@ const GanttChart = ({ selectedColumns = {} }) => {
             }
             return visibleColumns.some(vc => vc.id === colId);
         });
-        
+
         gantt.config.columns = filteredColumns;
 
         // <button 

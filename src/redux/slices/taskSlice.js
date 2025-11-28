@@ -151,6 +151,24 @@ export const updateTask = createAsyncThunk('updateTask', async ({ token, id, pay
     }
 })
 
+export const updateIssue = createAsyncThunk('updateIssue', async ({ token, id, payload }) => {
+    try {
+        const response = await axios.put(`${baseURL}/issues/${id}.json`,
+            { issue: payload },
+            {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+
+        return response.data;
+    } catch (error) {
+        console.log(error);
+        return error.response.data;
+    }
+})
+
 export const taskDetails = createAsyncThunk('taskDetails', async ({ token, id }) => {
     try {
         const response = await axios.get(`${baseURL}/task_managements/${id}.json`, {
@@ -231,9 +249,10 @@ export const createTaskComment = createAsyncThunk('createTaskComment', async ({ 
     }
 })
 
-export const fetchKanbanTasks = createAsyncThunk('fetchKanbanTasks', async ({ token, id }) => {
+export const fetchKanbanTasks = createAsyncThunk('fetchKanbanTasks', async ({ token, id, projectId }) => {
+    const queryParam = projectId ? `q[project_management_id_eq]=${projectId}` : `q[milestone_id_eq]=${id}`;
     try {
-        const response = await axios.get(`${baseURL}/task_managements/kanban.json?q[milestone_id_eq]=${id}`, {
+        const response = await axios.get(`${baseURL}/task_managements/kanban.json?${queryParam}`, {
             headers: {
                 Authorization: `Bearer ${token}`,
             }

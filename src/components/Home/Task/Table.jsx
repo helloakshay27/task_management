@@ -314,6 +314,7 @@ const processTaskData = (task) => {
     hasSubtasks,
     subRows,
     subRowsLoaded: true,
+    isStarted: task.is_started || false,
   };
 };
 
@@ -582,12 +583,12 @@ const TaskTable = ({ isModalOpen, searchQuery, selectedColumns }) => {
   }, [updateParentTaskStatus]);
 
   // Start task API call
-  const handleStartTask = useCallback(async (taskId, e) => {
+  const handleStartTask = useCallback(async (taskId, isStarted, e) => {
     e.stopPropagation();
     setStartingTaskId(taskId);
     try {
-      const payload = { status: "started" };
-      await axios.put(
+      const payload = { status: isStarted ? "stopped" : "started" };
+      const response = await axios.put(
         `${baseURL}/task_managements/${taskId}/update_status.json`,
         payload,
         {
@@ -597,12 +598,14 @@ const TaskTable = ({ isModalOpen, searchQuery, selectedColumns }) => {
           },
         }
       );
-      toast.success("Task started successfully!");
+      const successMessage = isStarted ? "Task paused successfully!" : "Task started successfully!";
+      toast.success(successMessage);
       lastFetchedPageRef.current = null;
       await handleFetchTasks();
     } catch (error) {
-      console.error("Error starting task:", error);
-      toast.error("Failed to start task. Please try again.");
+      console.error("Error updating task:", error);
+      const errorMessage = isStarted ? "Failed to pause task. Please try again." : "Failed to start task. Please try again.";
+      toast.error(errorMessage);
     } finally {
       setStartingTaskId(null);
     }
@@ -953,6 +956,7 @@ const TaskTable = ({ isModalOpen, searchQuery, selectedColumns }) => {
         const [isHovering, setIsHovering] = useState(false);
         const isStarting = startingTaskId === row.original.id;
         const canStart = row.original.status !== "in_progress" && row.original.status !== "completed";
+        const isTaskStarted = row.original.isStarted;
 
         return (
           <div
@@ -967,14 +971,15 @@ const TaskTable = ({ isModalOpen, searchQuery, selectedColumns }) => {
               data-task-id={row.original.id}
               data-field-name="title"
             />
-            {isHovering && canStart && (
+            {isHovering && (canStart || isTaskStarted) && (
               <button
-                onClick={(e) => handleStartTask(row.original.id, e)}
+                onClick={(e) => handleStartTask(row.original.id, isTaskStarted, e)}
                 disabled={isStarting}
-                className="ml-2 px-2 py-1 bg-green-500 text-white rounded flex items-center gap-1 text-xs whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-                title="Start this task"
+                className={`ml-2 px-2 py-1 text-white rounded flex items-center gap-1 text-xs whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed transition-all ${isTaskStarted ? "bg-orange-500" : "bg-green-500"
+                  }`}
+                title={isTaskStarted ? "Pause this task" : "Start this task"}
               >
-                {isStarting ? "Starting..." : "Start"}
+                {isStarting ? (isTaskStarted ? "Pausing..." : "Starting...") : isTaskStarted ? "Pause" : "Start"}
               </button>
             )}
           </div>
