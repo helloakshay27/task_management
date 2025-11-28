@@ -72,6 +72,7 @@ const TaskForm = ({
 
   const startDateRef = useRef(null);
   const endDateRef = useRef(null);
+  console.log(users)
 
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showStartDatePicker, setShowStartDatePicker] = useState(false);
@@ -397,23 +398,30 @@ const TaskForm = ({
           </label>
           <SelectBox
             options={users.map((user) => ({
-              label: user.name ? user.name : user?.firstname + " " + user?.lastname,
+              label: user.name
+                ? user.name
+                : `${user.firstname ?? ""} ${user.lastname ?? ""}`.trim(),
               value: user.id,
             }))}
             placeholder="Select Person"
             value={formData.responsiblePerson}
             onChange={(value) => {
-              setFormData({
-                ...formData,
+              const user = users.find(
+                (u) => u.user_id === value || u.id === value
+              );
+
+              const responsiblePersonName = user
+                ? user.firstname && user.lastname
+                  ? `${user.firstname} ${user.lastname}`
+                  : user.name || "-"
+                : "-";
+
+              setFormData((prev) => ({
+                ...prev,
                 responsiblePerson: value,
-                responsiblePersonName:
-                  users.find(
-                    (user) => user.user_id === value || user.id === value
-                  )?.user?.name ||
-                  users.find(
-                    (user) => user.user_id === value || user.id === value
-                  )?.name,
-              });
+                responsiblePersonName,
+              }));
+
               if (!isReadOnly && value) {
                 dispatch(fetchUserAvailability({ token, id: value }));
                 dispatch(fetchUserShift({ token, id: value }));
@@ -421,6 +429,7 @@ const TaskForm = ({
             }}
             disabled={isReadOnly}
           />
+
         </div>
         <div className="mt-4 space-y-2 w-full">
           <label className="block">Role</label>
