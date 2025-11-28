@@ -9,6 +9,7 @@ import { fetchProjects } from '@/redux/slices/projectSlice';
 import { fetchMilestone } from '@/redux/slices/milestoneSlice';
 import axios from 'axios';
 import { baseURL } from '../../apiDomain';
+import toast from 'react-hot-toast';
 
 const Attachments = ({ attachments, setAttachments }) => {
     const fileInputRef = useRef(null);
@@ -282,6 +283,10 @@ const AddOpportunityModal = ({ isModalOpen, setIsModalOpen }) => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        if (!title) {
+            toast.error("Please enter title")
+            return
+        }
         try {
             const formData = new FormData();
             formData.append("opportunity[title]", title);
@@ -348,7 +353,7 @@ const AddOpportunityModal = ({ isModalOpen, setIsModalOpen }) => {
                             </div>
                             <div className="w-1/2 flex flex-col justify-between">
                                 <label className="block mb-2">
-                                    Task <span className="text-red-600">*</span>
+                                    Task
                                 </label>
                                 <SelectBox
                                     options={taskOptions}
@@ -371,7 +376,7 @@ const AddOpportunityModal = ({ isModalOpen, setIsModalOpen }) => {
                         </div>
                         <div className="space-y-2 mt-4">
                             <label className="block">
-                                Comment <span className="text-red-600">*</span>
+                                Comment
                             </label>
                             <input
                                 type="text"

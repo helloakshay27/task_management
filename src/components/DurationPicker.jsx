@@ -25,6 +25,7 @@ export const DurationPicker = ({
     setTotalWorkingHours,
     shift = {},
 }) => {
+    console.log(resposiblePerson)
     const [isOpen, setIsOpen] = useState(false);
     const [taskType, setTaskType] = useState("standard");
     const [dailyHours, setDailyHours] = useState([]);

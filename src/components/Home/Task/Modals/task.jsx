@@ -15,7 +15,7 @@ import {
   fetchTargetDateTasks,
   fetchTasks,
 } from "../../../../redux/slices/taskSlice";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import {
   fetchProjectDetails,
   fetchProjects,
@@ -31,6 +31,8 @@ import { TaskDatePicker } from "@/components/TaskDatePicker";
 import TasksOfDate from "@/components/TasksOfDate";
 import { CustomCalender } from "@/components/CustomCalender";
 import TaskTitleAutocomplete from "../../../TaskTitleAutocomplete";
+import axios from "axios";
+import { baseURL } from "../../../../../apiDomain";
 
 const TaskForm = ({
   formData,
@@ -649,6 +651,7 @@ const TaskForm = ({
 const Tasks = ({ isEdit, onCloseModal, prefillData }) => {
   const token = localStorage.getItem("token");
   const { id, mid, tid } = useParams();
+  const navigate = useNavigate();
   const dispatch = useDispatch();
   const { loading, success, error } = useSelector((state) => state.createTask);
   const { fetchUsers: users = [] } = useSelector((state) => state.fetchUsers);
@@ -783,7 +786,7 @@ const Tasks = ({ isEdit, onCloseModal, prefillData }) => {
   const createTaskPayload = (data) => {
     const formatedEndDate = `${endDate.year}-${endDate.month + 1}-${endDate.date
       }`;
-    const formatedStartDate = `${startDate.year}-${startDate.month + 1}-${startDate.date
+    const formatedStartDate = `${startDate?.year}-${startDate?.month + 1}-${startDate?.date
       }`;
     const payload = {
       title: data.taskTitle,
@@ -925,7 +928,41 @@ const Tasks = ({ isEdit, onCloseModal, prefillData }) => {
         toast.success(
           isEdit ? "Task updated successfully." : "Task created successfully."
         );
-        window.location.reload();
+
+        // If task was created from opportunity, update opportunity status and redirect
+        if (!isEdit && formData.opportunityId) {
+          try {
+            // Update opportunity status to converted_to_task
+            await axios.put(
+              `${baseURL}/opportunities/${formData.opportunityId}.json`,
+              {
+                opportunity: {
+                  status: "converted_to_task"
+                }
+              },
+              {
+                headers: {
+                  Authorization: `Bearer ${token}`,
+                  'Content-Type': 'application/json',
+                }
+              }
+            );
+
+            // Get the task ID from the created task and redirect
+            const taskId = resultAction.payload?.id;
+            if (taskId) {
+              navigate(`/projects/${id}/milestones/${mid}/tasks/${taskId}`);
+            } else {
+              window.location.reload();
+            }
+          } catch (error) {
+            console.error("Error updating opportunity status:", error);
+            toast.error("Task created but failed to update opportunity status");
+            window.location.reload();
+          }
+        } else {
+          window.location.reload();
+        }
       } else {
         toast.error(isEdit ? "Task update failed." : "Task creation failed.");
       }

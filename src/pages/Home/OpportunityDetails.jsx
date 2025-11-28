@@ -476,17 +476,17 @@ const Comments = ({ comments, getOpportunity }) => {
 
 const STATUS_COLORS = {
     open: "bg-[#E4636A] text-white",
-    "in_progress": "bg-[#08AEEA] text-white",
+    "in_discussion": "bg-[#08AEEA] text-white",
     "on_hold": "bg-[#7BD2B5] text-black",
-    completed: "bg-[#83D17A] text-white",
+    converted_to_task: "bg-[#83D17A] text-white",
 };
 
 const mapStatusToDisplay = (rawStatus) => {
     const statusMap = {
         open: "Open",
-        in_progress: "In Progress",
+        in_discussion: "In Discussion",
         on_hold: "On Hold",
-        completed: "Completed",
+        converted_to_task: "Converted to Task",
     };
     return statusMap[rawStatus?.toLowerCase()] || "Open";
 };
@@ -494,9 +494,9 @@ const mapStatusToDisplay = (rawStatus) => {
 const mapDisplayToApiStatus = (displayStatus) => {
     const reverseStatusMap = {
         Open: "open",
-        "In Progress": "in_progress",
+        "In Discussion": "in_discussion",
         "On Hold": "on_hold",
-        Completed: "completed",
+        "Converted to Task": "converted_to_task",
     };
     return reverseStatusMap[displayStatus] || "open";
 };
@@ -721,7 +721,7 @@ const OpportunityDetails = () => {
                         <span className="h-6 w-[1px] border border-gray-300"></span>
 
                         {
-                            !opportunityDetails.task_created && (
+                            opportunityDetails.status !== "converted_to_task" && (
                                 <span
                                     className="cursor-pointer flex items-center gap-1"
                                     onClick={handleConvertToTask}
