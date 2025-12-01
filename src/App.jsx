@@ -61,6 +61,7 @@ import { useWebSocket } from "./hooks/useWebSocket";
 import { socketUrl } from "../apiDomain";
 import Opportunity from "./pages/Home/Opportunity";
 import OpportunityDetails from "./pages/Home/OpportunityDetails";
+import ToDo from "./pages/Home/ToDo";
 
 const App = () => {
   const token = localStorage.getItem("token");
@@ -222,6 +223,7 @@ const App = () => {
                   <Route path="/new-mom" element={<MoMAdd />} />
                   <Route path="/opportunity" element={<Opportunity />} />
                   <Route path="/opportunity/:opportunityId" element={<OpportunityDetails />} />
+                  <Route path="/todo" element={<ToDo />} />
 
                   {/* <Route path="/channels/*" element={<Channel />} /> */}
                   <Route path="/channels" element={<Channel />} >

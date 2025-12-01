@@ -407,7 +407,7 @@ const TaskActions = ({
                     {
                         (addType === "Project" || addType === "Milestone" || addType === "Task") && selectedType === "List" && (
                             <>
-                                <input value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} type="text" className="border border-gray-300 ps-10 pe-2 py-2 w-[400px] focus:outline-none" placeholder="Search by Title..." />
+                                <input value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} type="text" className="border border-gray-300 ps-10 pe-2 py-2 w-[350px] focus:outline-none" placeholder="Search by Title..." />
                                 <Search className="absolute left-2 top-2 text-gray-400" size={20} color="#C72030" />
                             </>
                         )
@@ -500,7 +500,7 @@ const TaskActions = ({
                     {addType !== "templates" && addType !== "archived" && (
                         <button
                             onClick={handleAddClick}
-                            className="text-[12px] flex items-center justify-center gap-1 bg-red text-white px-3 py-2 w-40"
+                            className="text-[12px] flex items-center justify-center gap-1 bg-red text-white px-3 py-2 w-max"
                         >
                             <Plus size={18} />{" "}
                             {addType === "Sprint-Gantt"

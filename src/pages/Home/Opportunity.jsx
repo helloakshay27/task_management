@@ -11,9 +11,10 @@ import TaskActions from "@/components/Home/TaskActions";
 import axios from "axios";
 import { baseURL } from "../../../apiDomain";
 import { useNavigate } from "react-router-dom";
+import toast from "react-hot-toast";
 
 // Status options
-const globalStatusOptions = ["open", "in_progress", "completed", "on_hold"];
+const globalStatusOptions = ["open", "in_progress", "completed", "on_hold", "rejected"];
 
 // Draggable Column Header Component
 const DraggableColumnHeader = ({ header, onReorderColumns, columnOrder }) => {
@@ -81,7 +82,8 @@ const Opportunity = () => {
                 "task",
                 "status",
                 "created_by",
-                "created_at"
+                "created_at",
+                "action_taken"
             ];
     });
 
@@ -137,6 +139,33 @@ const Opportunity = () => {
         setVisibleColumns(updatedColumns);
     }, []);
 
+    const handleOptionSelect = async (option, id) => {
+        const payload = {
+            opportunity: {
+                status: option
+            }
+        };
+        try {
+            await axios.put(`${baseURL}/opportunities/${id}.json`, payload, {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            });
+            toast.dismiss();
+            toast.success("Status updated successfully");
+
+            // Update the opportunities list locally
+            setOpportunities(prevOpportunities =>
+                prevOpportunities.map(opp =>
+                    opp.id === id ? { ...opp, status: option } : opp
+                )
+            );
+        } catch (error) {
+            console.error("Error updating status:", error);
+            toast.error("Failed to update status");
+        }
+    };
+
     const allColumns = useMemo(
         () => [
             {
@@ -147,33 +176,33 @@ const Opportunity = () => {
                 cell: ({ getValue, row }) => (
                     <button
                         onClick={() => navigate(`/opportunity/${getValue()}`)}
-                        className="text-blue-600 hover:text-blue-800 hover:underline cursor-pointer font-medium"
+                        className="text-blue-600 hover:text-blue-800 hover:underline cursor-pointer"
                     >
-                        OPP-{getValue()}
+                        OP-{getValue()}
                     </button>
                 ),
             },
             {
                 id: "title",
                 accessorKey: "title",
-                header: "Opportunity Name",
+                header: "Title",
                 size: 200,
-                cell: ({ getValue }) => getValue(),
+                cell: ({ getValue }) => getValue().replace(/@\[(.*?)\]\(\d+\)/g, "@$1").replace(/#\[(.*?)\]\(\d+\)/g, "#$1"),
             },
-            {
-                id: "project",
-                accessorKey: "project",
-                header: "Project Name",
-                size: 200,
-                cell: ({ row }) => row.original?.project_management?.title || "Not Assigned",
-            },
-            {
-                id: "task",
-                accessorKey: "task",
-                header: "Task Name",
-                size: 200,
-                cell: ({ row }) => row.original?.task_management?.title || "Not Assigned",
-            },
+            // {
+            //     id: "project",
+            //     accessorKey: "project",
+            //     header: "Project Name",
+            //     size: 200,
+            //     cell: ({ row }) => row.original?.project_management?.title || "Not Assigned",
+            // },
+            // {
+            //     id: "task",
+            //     accessorKey: "task",
+            //     header: "Task Name",
+            //     size: 200,
+            //     cell: ({ row }) => row.original?.task_management?.title || "Not Assigned",
+            // },
             {
                 id: "status",
                 accessorKey: "status",
@@ -183,8 +212,7 @@ const Opportunity = () => {
                     <StatusBadge
                         status={row.original.status}
                         statusOptions={globalStatusOptions}
-                        onStatusChange={() => { }}
-                        disabled={true}
+                        onStatusChange={(newStatus) => handleOptionSelect(newStatus, row.original.id)}
                     />
                 ),
             },
@@ -193,28 +221,21 @@ const Opportunity = () => {
                 accessorKey: "created_by",
                 header: "Created By",
                 size: 120,
-                cell: ({ row }) => (
-                    <StatusBadge
-                        status={row.original.created_by.name}
-                        statusOptions={globalStatusOptions}
-                        onStatusChange={() => { }}
-                        disabled={true}
-                    />
-                ),
+                cell: ({ row }) => row.original.created_by.name
             },
             {
                 id: "created_at",
                 accessorKey: "created_at",
                 header: "Created On",
                 size: 120,
-                cell: ({ row }) => (
-                    <StatusBadge
-                        status={row.original.created_at.split("T")[0]}
-                        statusOptions={globalStatusOptions}
-                        onStatusChange={() => { }}
-                        disabled={true}
-                    />
-                ),
+                cell: ({ row }) => row.original.created_at.split("T")[0],
+            },
+            {
+                id: "action_taken",
+                accessorKey: "action_taken",
+                header: "Action Taken",
+                size: 120,
+                cell: ({ row }) => (row.original.task_created && row.original.project_management_id) ? "Converted to Project" : (row.original.project_created && row.original.task_management_id) ? "Converted to Task" : (row.original.task_created && row.original.milestone_id) ? "Converted to Milestone" : "Not Converted",
             },
         ],
         []

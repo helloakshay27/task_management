@@ -411,7 +411,7 @@ const TaskForm = ({
               );
 
               const responsiblePersonName = user
-                ? user.firstname && user.lastname
+                ? user.firstname || user.lastname
                   ? `${user.firstname} ${user.lastname}`
                   : user.name || "-"
                 : "-";
@@ -657,7 +657,7 @@ const TaskForm = ({
   );
 };
 
-const Tasks = ({ isEdit, onCloseModal, prefillData }) => {
+const Tasks = ({ isEdit, onCloseModal, prefillData, onSuccess }) => {
   const token = localStorage.getItem("token");
   const { id, mid, tid } = useParams();
   const navigate = useNavigate();
@@ -712,10 +712,10 @@ const Tasks = ({ isEdit, onCloseModal, prefillData }) => {
     if (prefillData) {
       setFormData((prevFormData) => ({
         ...prevFormData,
-        taskTitle: prefillData?.title || "",
+        taskTitle: prefillData?.title.replace(/@\[(.*?)\]\(\d+\)/g, "@$1").replace(/#\[(.*?)\]\(\d+\)/g, "#$1") || "",
         project: prefillData?.project || "",
         task: prefillData?.task || "",
-        description: prefillData?.description || "",
+        description: prefillData?.description.replace(/@\[(.*?)\]\(\d+\)/g, "@$1").replace(/#\[(.*?)\]\(\d+\)/g, "#$1") || "",
         opportunityId: prefillData?.opportunityId || "",
       }));
     }
@@ -938,36 +938,41 @@ const Tasks = ({ isEdit, onCloseModal, prefillData }) => {
           isEdit ? "Task updated successfully." : "Task created successfully."
         );
 
-        // If task was created from opportunity, update opportunity status and redirect
+        // If task was created from opportunity, use callback or redirect
         if (!isEdit && formData.opportunityId) {
-          try {
-            // Update opportunity status to converted_to_task
-            await axios.put(
-              `${baseURL}/opportunities/${formData.opportunityId}.json`,
-              {
-                opportunity: {
-                  status: "converted_to_task"
-                }
-              },
-              {
-                headers: {
-                  Authorization: `Bearer ${token}`,
-                  'Content-Type': 'application/json',
-                }
-              }
-            );
+          const taskId = resultAction.payload?.id;
 
-            // Get the task ID from the created task and redirect
-            const taskId = resultAction.payload?.id;
-            if (taskId) {
-              navigate(`/projects/${id}/milestones/${mid}/tasks/${taskId}`);
-            } else {
+          // If onSuccess callback is provided (from ConvertModal), call it
+          if (onSuccess && taskId) {
+            onSuccess(taskId);
+          } else {
+            try {
+              // Update opportunity status to converted_to_task
+              await axios.put(
+                `${baseURL}/opportunities/${formData.opportunityId}.json`,
+                {
+                  opportunity: {
+                    status: "in_progress"
+                  }
+                },
+                {
+                  headers: {
+                    Authorization: `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                  }
+                }
+              );
+
+              if (taskId) {
+                navigate(`/projects/${id}/milestones/${mid}/tasks/${taskId}`);
+              } else {
+                window.location.reload();
+              }
+            } catch (error) {
+              console.error("Error updating opportunity status:", error);
+              toast.error("Task created but failed to update opportunity status");
               window.location.reload();
             }
-          } catch (error) {
-            console.error("Error updating opportunity status:", error);
-            toast.error("Task created but failed to update opportunity status");
-            window.location.reload();
           }
         } else {
           window.location.reload();

@@ -19,6 +19,8 @@ import TasksOfDate from "@/components/TasksOfDate";
 import { CustomCalender } from "@/components/CustomCalender";
 import TaskTitleAutocomplete from "../../TaskTitleAutocomplete";
 import { useLocation, useParams } from "react-router-dom";
+import { fetchProjects } from "@/redux/slices/projectSlice";
+import { fetchMilestone } from "@/redux/slices/milestoneSlice";
 
 const ChatTaskModal = ({ message, isOpen, onClose }) => {
     const { id } = useParams();
@@ -48,6 +50,9 @@ const ChatTaskModal = ({ message, isOpen, onClose }) => {
     const [showCalender, setShowCalender] = useState(false);
     const [showStartCalender, setShowStartCalender] = useState(false);
     const [calendarTaskHours, setCalendarTaskHours] = useState([]);
+    const [projects, setProjects] = useState([])
+    const [milestones, setMilestones] = useState([])
+    const [selectedProject, setSelectedProject] = useState(null);
 
     const [formData, setFormData] = useState({
         project: "",
@@ -100,6 +105,36 @@ const ChatTaskModal = ({ message, isOpen, onClose }) => {
             }
         }
     }, [isOpen]);
+
+    useEffect(() => {
+        const getProjects = async () => {
+            try {
+                const response = await dispatch(fetchProjects({ token })).unwrap();
+                setProjects(response);
+            } catch (error) {
+                console.log(error);
+            }
+        }
+
+        getProjects();
+    }, [])
+
+    useEffect(() => {
+        const getMilestones = async () => {
+            if (!selectedProject) return;
+
+            try {
+                const response = await dispatch(
+                    fetchMilestone({ token, id: selectedProject })
+                ).unwrap();
+                setMilestones(response);
+            } catch (error) {
+                console.log(error);
+            }
+        }
+
+        getMilestones();
+    }, [selectedProject])
 
     // Animate date picker
     useEffect(() => {
@@ -348,6 +383,41 @@ const ChatTaskModal = ({ message, isOpen, onClose }) => {
                 </div>
 
                 <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto px-6 py-4 pb-20 text-sm space-y-4">
+                    <div className="flex items-center justify-between gap-3">
+                        <div className="mt-4 space-y-2 w-full">
+                            <label className="block ms-2">
+                                Project
+                            </label>
+                            <SelectBox
+                                options={[
+                                    ...projects.map((project) => ({
+                                        label: project.title,
+                                        value: project.id,
+                                    })),
+                                ]}
+                                placeholder="Select Project"
+                                value={formData.project}
+                                onChange={(value) => {
+                                    setFormData({ ...formData, project: value });
+                                    setSelectedProject(value);
+                                }}
+                            />
+                        </div>
+                        <div className="mt-4 space-y-2 w-full">
+                            <label className="block ms-2">
+                                Milestone
+                            </label>
+                            <SelectBox
+                                options={milestones.map((milestone) => ({
+                                    label: milestone.title,
+                                    value: milestone.id,
+                                }))}
+                                placeholder="Select Milestone"
+                                value={formData.milestone}
+                                onChange={(value) => setFormData({ ...formData, milestone: value })}
+                            />
+                        </div>
+                    </div>
                     {/* Task Title */}
                     <div className="space-y-2">
                         <label className="block font-medium">
@@ -415,6 +485,38 @@ const ChatTaskModal = ({ message, isOpen, onClose }) => {
                     {/* Dates */}
                     <div className="grid grid-cols-2 gap-3">
                         <div className="space-y-2">
+                            <label className="block font-medium">
+                                Target Date <span className="text-red-600">*</span>
+                            </label>
+                            <button
+                                type="button"
+                                className="w-full border outline-none border-gray-300 px-2 py-2 text-sm flex items-center gap-3 text-gray-400"
+                                onClick={() => {
+                                    if (showStartDatePicker) {
+                                        setShowStartDatePicker(false);
+                                    }
+                                    setShowDatePicker(!showDatePicker);
+                                }}
+                                ref={endDateRef}
+                            >
+                                {endDate ? (
+                                    <div className="text-black flex items-center justify-between w-full">
+                                        <CalendarIcon className="w-4 h-4" />
+                                        <div>
+                                            {endDate.date.toString().padStart(2, "0")}{" "}
+                                            {monthNames[endDate.month]}
+                                        </div>
+                                        <X className="w-4 h-4" onClick={() => setEndDate(null)} />
+                                    </div>
+                                ) : (
+                                    <>
+                                        <CalendarIcon className="w-4 h-4" /> Select Target Date
+                                    </>
+                                )}
+                            </button>
+                        </div>
+
+                        <div className="space-y-2">
                             <label className="block font-medium">Start Date</label>
                             <button
                                 type="button"
@@ -442,38 +544,6 @@ const ChatTaskModal = ({ message, isOpen, onClose }) => {
                                 ) : (
                                     <>
                                         <CalendarIcon className="w-4 h-4" /> Select Start Date
-                                    </>
-                                )}
-                            </button>
-                        </div>
-
-                        <div className="space-y-2">
-                            <label className="block font-medium">
-                                Target Date <span className="text-red-600">*</span>
-                            </label>
-                            <button
-                                type="button"
-                                className="w-full border outline-none border-gray-300 px-2 py-2 text-sm flex items-center gap-3 text-gray-400"
-                                onClick={() => {
-                                    if (showStartDatePicker) {
-                                        setShowStartDatePicker(false);
-                                    }
-                                    setShowDatePicker(!showDatePicker);
-                                }}
-                                ref={endDateRef}
-                            >
-                                {endDate ? (
-                                    <div className="text-black flex items-center justify-between w-full">
-                                        <CalendarIcon className="w-4 h-4" />
-                                        <div>
-                                            {endDate.date.toString().padStart(2, "0")}{" "}
-                                            {monthNames[endDate.month]}
-                                        </div>
-                                        <X className="w-4 h-4" onClick={() => setEndDate(null)} />
-                                    </div>
-                                ) : (
-                                    <>
-                                        <CalendarIcon className="w-4 h-4" /> Select Target Date
                                     </>
                                 )}
                             </button>

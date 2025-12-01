@@ -1,5 +1,10 @@
 import gsap from "gsap";
-import { ChevronDown, ChevronDownCircle, CircleCheckBig, Trash2 } from "lucide-react";
+import {
+    ChevronDown,
+    ChevronDownCircle,
+    CircleCheckBig,
+    Trash2,
+} from "lucide-react";
 import { useGSAP } from "@gsap/react";
 import { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
@@ -10,8 +15,13 @@ import toast from "react-hot-toast";
 import { Mention, MentionsInput } from "react-mentions";
 import { fetchUsers } from "@/redux/slices/userSlice";
 import { fetchActiveTags } from "@/redux/slices/tagsSlice";
-import { createTaskComment, deleteTaskComment, editTaskComment, resetCommentEdit } from "@/redux/slices/taskSlice";
-import AddTaskModal from "@/components/Home/Task/AddTaskModal";
+import {
+    createTaskComment,
+    deleteTaskComment,
+    editTaskComment,
+    resetCommentEdit,
+} from "@/redux/slices/taskSlice";
+import ConvertModal from "@/components/ConvertModal";
 
 const Attachments = ({ attachments, id, getOpportunity }) => {
     const fileInputRef = useRef(null);
@@ -51,11 +61,14 @@ const Attachments = ({ attachments, id, getOpportunity }) => {
 
     const handleRemoveFile = async (fileId) => {
         try {
-            await axios.delete(`${baseURL}/opportunities/${id}/attachments/${fileId}.json`, {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                },
-            });
+            await axios.delete(
+                `${baseURL}/opportunities/${id}/attachments/${fileId}.json`,
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                }
+            );
             toast.dismiss();
             toast.success("File removed successfully.");
         } catch (error) {
@@ -74,7 +87,14 @@ const Attachments = ({ attachments, id, getOpportunity }) => {
                             const fileUrl = file.document_url || file.url;
                             const fileExt = fileName?.split(".").pop().toLowerCase();
 
-                            const isImage = ["jpg", "jpeg", "png", "gif", "bmp", "webp"].includes(fileExt);
+                            const isImage = [
+                                "jpg",
+                                "jpeg",
+                                "png",
+                                "gif",
+                                "bmp",
+                                "webp",
+                            ].includes(fileExt);
                             const isPdf = fileExt === "pdf";
                             const isWord = ["doc", "docx"].includes(fileExt);
                             const isExcel = ["xls", "xlsx"].includes(fileExt);
@@ -93,7 +113,11 @@ const Attachments = ({ attachments, id, getOpportunity }) => {
 
                                     <div className="w-[100px] h-[100px] flex items-center justify-center bg-gray-100 rounded mb-2 overflow-hidden">
                                         {isImage ? (
-                                            <img src={fileUrl} alt={fileName} className="object-contain h-full" />
+                                            <img
+                                                src={fileUrl}
+                                                alt={fileName}
+                                                className="object-contain h-full"
+                                            />
                                         ) : isPdf ? (
                                             <span className="text-red-600 font-bold">PDF</span>
                                         ) : isWord ? (
@@ -130,7 +154,9 @@ const Attachments = ({ attachments, id, getOpportunity }) => {
             ) : (
                 <div className="text-[14px] mt-2">
                     <span>No Documents Attached</span>
-                    <div className="text-[#C2C2C2]">Drop or attach relevant documents here</div>
+                    <div className="text-[#C2C2C2]">
+                        Drop or attach relevant documents here
+                    </div>
                     <button
                         className="bg-[#C72030] h-[40px] w-[240px] text-white px-5 mt-4"
                         onClick={handleAttachFile}
@@ -155,17 +181,17 @@ function formatToDDMMYYYY_AMPM(dateString) {
     if (!dateString) return "N/A";
     const date = new Date(dateString);
 
-    const day = String(date.getDate()).padStart(2, '0');
-    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, "0");
+    const month = String(date.getMonth() + 1).padStart(2, "0");
     const year = date.getFullYear();
 
     let hours = date.getHours();
-    const minutes = String(date.getMinutes()).padStart(2, '0');
-    const ampm = hours >= 12 ? 'PM' : 'AM';
+    const minutes = String(date.getMinutes()).padStart(2, "0");
+    const ampm = hours >= 12 ? "PM" : "AM";
 
     hours = hours % 12;
     hours = hours ? hours : 12;
-    hours = String(hours).padStart(2, '0');
+    hours = String(hours).padStart(2, "0");
 
     return `${day}/${month}/${year} ${hours}:${minutes} ${ampm}`;
 }
@@ -173,7 +199,7 @@ function formatToDDMMYYYY_AMPM(dateString) {
 const Comments = ({ comments, getOpportunity }) => {
     const token = localStorage.getItem("token");
     const currentUser = JSON.parse(localStorage.getItem("user"));
-    const { id } = useParams();
+    const { opportunityId } = useParams();
     const [comment, setComment] = useState("");
     const [editingCommentId, setEditingCommentId] = useState(null);
     const [editedCommentText, setEditedCommentText] = useState("");
@@ -219,12 +245,13 @@ const Comments = ({ comments, getOpportunity }) => {
         const payload = {
             comment: {
                 body: comment,
-                commentable_id: id,
                 commentable_type: "Opportunity",
                 commentor_id: JSON.parse(localStorage.getItem("user"))?.id,
                 active: true,
+                commentable_id: opportunityId,
             },
         };
+        console.log(payload);
         await dispatch(createTaskComment({ token, payload })).unwrap();
         getOpportunity();
     };
@@ -265,7 +292,7 @@ const Comments = ({ comments, getOpportunity }) => {
             setEditedCommentText("");
             dispatch(resetCommentEdit());
         }
-    }, [success, editSuccess, deleteSuccess, dispatch, id, token]);
+    }, [success, editSuccess, deleteSuccess, dispatch, opportunityId, token]);
 
     const mentionStyles = {
         control: {
@@ -313,7 +340,8 @@ const Comments = ({ comments, getOpportunity }) => {
             <div className="flex justify-start m-2 gap-5">
                 <div className="bg-[#01569E] h-[36px] w-[36px] rounded-full text-white text-center p-1.5">
                     <span>
-                        {`${currentUser?.firstname?.charAt(0) || ''}${currentUser?.lastname?.charAt(0) || ''}`}
+                        {`${currentUser?.firstname?.charAt(0) || ""}${currentUser?.lastname?.charAt(0) || ""
+                            }`}
                     </span>
                 </div>
                 <MentionsInput
@@ -401,7 +429,10 @@ const Comments = ({ comments, getOpportunity }) => {
                 return (
                     <div key={cmt.id} className="relative flex justify-start m-2 gap-5">
                         <div className="bg-[#01569E] h-[36px] w-[36px] rounded-full text-white text-center p-1.5">
-                            <span>{cmt?.commentor_full_name?.split(" ")[0]?.charAt(0)}{cmt?.commentor_full_name?.split(" ")[1]?.charAt(0)}</span>
+                            <span>
+                                {cmt?.commentor_full_name?.split(" ")[0]?.charAt(0)}
+                                {cmt?.commentor_full_name?.split(" ")[1]?.charAt(0)}
+                            </span>
                         </div>
                         <div className="flex flex-col gap-2 w-full border-b-[2px] pb-3 border-[rgba(190, 190, 190, 1)]">
                             <h1 className="font-bold">{cmt.commentor_full_name}</h1>
@@ -476,15 +507,15 @@ const Comments = ({ comments, getOpportunity }) => {
 
 const STATUS_COLORS = {
     open: "bg-[#E4636A] text-white",
-    "in_discussion": "bg-[#08AEEA] text-white",
-    "on_hold": "bg-[#7BD2B5] text-black",
+    in_progress: "bg-[#08AEEA] text-white",
+    on_hold: "bg-[#7BD2B5] text-black",
     converted_to_task: "bg-[#83D17A] text-white",
 };
 
 const mapStatusToDisplay = (rawStatus) => {
     const statusMap = {
         open: "Open",
-        in_discussion: "In Discussion",
+        in_progress: "In Progress",
         on_hold: "On Hold",
         converted_to_task: "Converted to Task",
     };
@@ -494,7 +525,7 @@ const mapStatusToDisplay = (rawStatus) => {
 const mapDisplayToApiStatus = (displayStatus) => {
     const reverseStatusMap = {
         Open: "open",
-        "In Discussion": "in_discussion",
+        "In Progress": "in_progress",
         "On Hold": "on_hold",
         "Converted to Task": "converted_to_task",
     };
@@ -565,8 +596,8 @@ const OpportunityDetails = () => {
         setOpenDropdown(false);
         const payload = {
             opportunity: {
-                status: mapDisplayToApiStatus(option)
-            }
+                status: mapDisplayToApiStatus(option),
+            },
         };
         try {
             await axios.put(`${baseURL}/opportunities/${id}.json`, payload, {
@@ -660,24 +691,38 @@ const OpportunityDetails = () => {
         <div className="m-4">
             <div className="px-4 pt-1">
                 <h2 className="text-[15px] p-3 px-0">
-                    <span className="mr-3">OPP-{opportunityDetails?.id}</span>
-                    <span>{opportunityDetails?.title}</span>
+                    <span className="mr-3 text-[#c72030]">
+                        OP-{opportunityDetails?.id}
+                    </span>
+                    <span>
+                        {opportunityDetails?.title
+                            .replace(/@\[(.*?)\]\(\d+\)/g, "@$1")
+                            .replace(/#\[(.*?)\]\(\d+\)/g, "#$1")}
+                    </span>
                 </h2>
 
                 <div className="border-b-[3px] border-[rgba(190, 190, 190, 1)]"></div>
                 <div className="flex items-center justify-between my-3 text-[12px]">
                     <div className="flex items-center gap-3 text-[#323232]">
-                        <span>Created By : {opportunityDetails?.created_by?.name || "N/A"}</span>
-
-                        <span className="h-6 w-[1px] border border-gray-300"></span>
-
-                        <span className="flex items-center gap-3">
-                            Created On : {formatToDDMMYYYY_AMPM(opportunityDetails?.created_at)}
+                        <span>
+                            Created By : {opportunityDetails?.created_by?.name || "N/A"}
                         </span>
 
                         <span className="h-6 w-[1px] border border-gray-300"></span>
 
-                        <span className={`flex items-center gap-2 cursor-pointer px-2 py-1 rounded-md text-sm ${STATUS_COLORS[mapDisplayToApiStatus(selectedOption).toLowerCase()] || "bg-gray-400 text-white"}`}>
+                        <span className="flex items-center gap-3">
+                            Created On :{" "}
+                            {formatToDDMMYYYY_AMPM(opportunityDetails?.created_at)}
+                        </span>
+
+                        <span className="h-6 w-[1px] border border-gray-300"></span>
+
+                        <span
+                            className={`flex items-center gap-2 cursor-pointer px-2 py-1 rounded-md text-sm ${STATUS_COLORS[
+                                mapDisplayToApiStatus(selectedOption).toLowerCase()
+                            ] || "bg-gray-400 text-white"
+                                }`}
+                        >
                             <div className="relative" ref={dropdownRef}>
                                 <div
                                     className="flex items-center gap-1 cursor-pointer px-2 py-1"
@@ -686,16 +731,20 @@ const OpportunityDetails = () => {
                                     aria-haspopup="true"
                                     aria-expanded={openDropdown}
                                     tabIndex={0}
-                                    onKeyDown={(e) => e.key === "Enter" && setOpenDropdown(!openDropdown)}
+                                    onKeyDown={(e) =>
+                                        e.key === "Enter" && setOpenDropdown(!openDropdown)
+                                    }
                                 >
                                     <span className="text-[13px]">{selectedOption}</span>
                                     <ChevronDown
                                         size={15}
-                                        className={`${openDropdown ? "rotate-180" : ""} transition-transform`}
+                                        className={`${openDropdown ? "rotate-180" : ""
+                                            } transition-transform`}
                                     />
                                 </div>
                                 <ul
-                                    className={`dropdown-menu absolute right-0 mt-2 bg-white border border-gray-200 rounded-md shadow-lg overflow-hidden ${openDropdown ? "block" : "hidden"}`}
+                                    className={`dropdown-menu absolute right-0 mt-2 bg-white border border-gray-200 rounded-md shadow-lg overflow-hidden ${openDropdown ? "block" : "hidden"
+                                        }`}
                                     role="menu"
                                     style={{
                                         minWidth: "150px",
@@ -707,7 +756,10 @@ const OpportunityDetails = () => {
                                     {dropdownOptions.map((option, idx) => (
                                         <li key={idx} role="menuitem">
                                             <button
-                                                className={`dropdown-item w-full text-left px-4 py-2 text-[13px] text-gray-700 hover:bg-gray-100 ${selectedOption === option ? "bg-gray-100 font-semibold" : ""}`}
+                                                className={`dropdown-item w-full text-left px-4 py-2 text-[13px] text-gray-700 hover:bg-gray-100 ${selectedOption === option
+                                                    ? "bg-gray-100 font-semibold"
+                                                    : ""
+                                                    }`}
                                                 onClick={() => handleOptionSelect(option)}
                                             >
                                                 {option}
@@ -720,16 +772,14 @@ const OpportunityDetails = () => {
 
                         <span className="h-6 w-[1px] border border-gray-300"></span>
 
-                        {
-                            opportunityDetails.status !== "converted_to_task" && (
-                                <span
-                                    className="cursor-pointer flex items-center gap-1"
-                                    onClick={handleConvertToTask}
-                                >
-                                    <CircleCheckBig className="mx-1" size={15} /> Convert to Task
-                                </span>
-                            )
-                        }
+                        {!opportunityDetails.task_created && (
+                            <span
+                                className="cursor-pointer flex items-center gap-1"
+                                onClick={handleConvertToTask}
+                            >
+                                <CircleCheckBig className="mx-1" size={15} /> Convert
+                            </span>
+                        )}
                     </div>
                 </div>
                 <div className="border-b-[3px] border-grey my-3"></div>
@@ -739,13 +789,19 @@ const OpportunityDetails = () => {
                         <ChevronDownCircle
                             color="#E95420"
                             size={30}
-                            className={`${isFirstCollapsed ? "rotate-180" : "rotate-0"} transition-transform cursor-pointer`}
+                            className={`${isFirstCollapsed ? "rotate-180" : "rotate-0"
+                                } transition-transform cursor-pointer`}
                             onClick={toggleFirstCollapse}
                         />
                         Description
                     </div>
                     <div className="mt-3 overflow-hidden" ref={firstContentRef}>
-                        <p>{opportunityDetails?.description || "No description provided"}</p>
+                        <p>
+                            {opportunityDetails?.description
+                                .replace(/@\[(.*?)\]\(\d+\)/g, "@$1")
+                                .replace(/#\[(.*?)\]\(\d+\)/g, "#$1") ||
+                                "No description provided"}
+                        </p>
                     </div>
                 </div>
 
@@ -830,7 +886,8 @@ const OpportunityDetails = () => {
                             {["Comments", "Documents"].map((item) => (
                                 <div
                                     key={item}
-                                    className={`text-[14px] font-[400] ${tab === item ? "selected" : "cursor-pointer"}`}
+                                    className={`text-[14px] font-[400] ${tab === item ? "selected" : "cursor-pointer"
+                                        }`}
                                     onClick={() => setTab(item)}
                                 >
                                     {item}
@@ -841,15 +898,24 @@ const OpportunityDetails = () => {
                     <div className="border-b-[3px] border-[rgba(190, 190, 190, 1)]"></div>
 
                     <div>
-                        {tab === "Documents" && <Attachments attachments={opportunityDetails?.attachments || []} id={opportunityDetails?.id} getOpportunity={getOpportunity} />}
-                        {tab === "Comments" && <Comments comments={opportunityDetails?.comments || []} getOpportunity={getOpportunity} />}
+                        {tab === "Documents" && (
+                            <Attachments
+                                attachments={opportunityDetails?.attachments || []}
+                                id={opportunityDetails?.id}
+                                getOpportunity={getOpportunity}
+                            />
+                        )}
+                        {tab === "Comments" && (
+                            <Comments
+                                comments={opportunityDetails?.comments || []}
+                                getOpportunity={getOpportunity}
+                            />
+                        )}
                     </div>
                 </div>
             </div>
             {isTaskModalOpen && (
-                <AddTaskModal
-                    title="Convert to Task"
-                    isEdit={false}
+                <ConvertModal
                     isModalOpen={isTaskModalOpen}
                     setIsModalOpen={setIsTaskModalOpen}
                     prefillData={{
@@ -859,8 +925,8 @@ const OpportunityDetails = () => {
                         task: opportunityDetails?.task_management_id,
                         taskName: opportunityDetails?.task_name,
                         description: opportunityDetails?.description,
-                        opportunityId: id,
                     }}
+                    opportunityId={id}
                 />
             )}
         </div>

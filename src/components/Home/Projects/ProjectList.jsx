@@ -7,7 +7,10 @@ import {
     Fragment,
 } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { getProjectPaths, useIsCloudRoute } from "../../../utils/navigationUtils";
+import {
+    getProjectPaths,
+    useIsCloudRoute,
+} from "../../../utils/navigationUtils";
 import { useDrag, useDrop, DndProvider } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
 import OpenInFullIcon from "@mui/icons-material/OpenInFull";
@@ -28,7 +31,7 @@ import {
     deleteProject,
     fetchProjectTypes,
     resetProjectSuccess,
-    filterProjects
+    filterProjects,
 } from "../../../redux/slices/projectSlice";
 import qs from "qs";
 import { fetchUsers } from "../../../redux/slices/userSlice";
@@ -75,7 +78,7 @@ const NewProjectDateEditor = ({
     placeholder,
     className,
     validator,
-    min
+    min,
 }) => {
     const handleKeyDown = (event) => {
         if (event.key === "Enter" && onEnterPress) {
@@ -111,13 +114,13 @@ const ActionIcons = ({ row }) => {
     };
 
     const handleConfirmDelete = async () => {
-        const formatId = row.original.id.split('-')[1];
+        const formatId = row.original.id.split("-")[1];
         setDeleting(true);
         setShowDeleteModal(false);
 
         try {
             const response = await dispatch(
-                deleteProject({ id: formatId, token: localStorage.getItem('token') })
+                deleteProject({ id: formatId, token: localStorage.getItem("token") })
             ).unwrap();
 
             if (response?.error === "You are not authorized to delete this project") {
@@ -126,7 +129,9 @@ const ActionIcons = ({ row }) => {
                     icon: "🚫",
                 });
             } else {
-                await dispatch(fetchProjects({ token: localStorage.getItem('token') })).unwrap();
+                await dispatch(
+                    fetchProjects({ token: localStorage.getItem("token") })
+                ).unwrap();
                 toast.dismiss();
                 toast.success("Project deleted successfully", {
                     iconTheme: {
@@ -292,7 +297,7 @@ const ProjectList = ({ searchQuery, selectedColumns }) => {
     const { loading: statusChangeLoading, error: statusChangeError } =
         useSelector((state) => state.changeProjectStatus);
 
-    const { success } = useSelector(state => state.createProject)
+    const { success } = useSelector((state) => state.createProject);
 
     const {
         fetchUsers: users,
@@ -302,10 +307,8 @@ const ProjectList = ({ searchQuery, selectedColumns }) => {
         (state) => state.fetchUsers || { users: [], loading: false, error: null }
     );
 
-    const {
-        loading: deleteProjectLoading,
-        error: deleteProjectError
-    } = useSelector((state) => state.deleteProject);
+    const { loading: deleteProjectLoading, error: deleteProjectError } =
+        useSelector((state) => state.deleteProject);
 
     const {
         fetchProjectTypes: projectTypes,
@@ -341,30 +344,54 @@ const ProjectList = ({ searchQuery, selectedColumns }) => {
         const savedOrder = localStorage.getItem("projectTableColumnOrder");
         return savedOrder
             ? JSON.parse(savedOrder)
-            : ["id", "title", "status", "type", "manager", "milestones", "tasks", "issues", "startDate", "endDate", "priority", "actions"];
+            : [
+                "id",
+                "title",
+                "status",
+                "type",
+                "manager",
+                "milestones",
+                "tasks",
+                "issues",
+                "startDate",
+                "endDate",
+                "priority",
+                "actions",
+            ];
     });
 
     useEffect(() => {
-        if (!fetchProjectTypesLoading && !fetchProjectTypesError && (projectTypes.length == 0 || !Array.isArray(projectTypes))) {
+        if (
+            !fetchProjectTypesLoading &&
+            !fetchProjectTypesError &&
+            (projectTypes.length == 0 || !Array.isArray(projectTypes))
+        ) {
             dispatch(fetchProjectTypes({ token })).unwrap();
         }
     }, []);
 
     useEffect(() => {
         if (Array.isArray(projectTypes) && projectTypes.length > 0) {
-            setProjectTypeOptions(projectTypes.map((projectType) => ({ label: projectType.name, value: projectType.id })));
+            setProjectTypeOptions(
+                projectTypes.map((projectType) => ({
+                    label: projectType.name,
+                    value: projectType.id,
+                }))
+            );
         }
     }, [projectTypes]);
 
     useEffect(() => {
-        filterProjectsSuccess ? setIsFiltered(true) : setIsFiltered(false)
+        filterProjectsSuccess ? setIsFiltered(true) : setIsFiltered(false);
     }, [filterProjectsSuccess, filteredProjects]);
 
     const transformedData = useMemo(() => {
         let projectsSource;
 
-        const hasFilter = isFiltered ||
-            (localStorage.getItem("projectFilters") || localStorage.getItem("projectStatus"));
+        const hasFilter =
+            isFiltered ||
+            localStorage.getItem("projectFilters") ||
+            localStorage.getItem("projectStatus");
 
         if (hasFilter) {
             projectsSource = filteredProjects?.length > 0 ? filteredProjects : [];
@@ -393,20 +420,34 @@ const ProjectList = ({ searchQuery, selectedColumns }) => {
                 return {
                     id: `P-${project.id?.toString() || `unknown-${index}`}`,
                     actualId: project.id?.toString() || `unknown-${index}`,
-                    title: project.title || project.name || project.project_title || "Untitled",
+                    title:
+                        project.title
+                            .replace(/@\[(.*?)\]\(\d+\)/g, "@$1")
+                            .replace(/#\[(.*?)\]\(\d+\)/g, "#$1") ||
+                        project.name
+                            .replace(/@\[(.*?)\]\(\d+\)/g, "@$1")
+                            .replace(/#\[(.*?)\]\(\d+\)/g, "#$1") ||
+                        project.project_title
+                            .replace(/@\[(.*?)\]\(\d+\)/g, "@$1")
+                            .replace(/#\[(.*?)\]\(\d+\)/g, "#$1") ||
+                        "Untitled",
                     status: project.status
                         ? project.status.charAt(0).toUpperCase() + project.status.slice(1)
                         : "Unknown",
                     type: project.project_type_name
-                        ? project.project_type_name.charAt(0).toUpperCase() + project.project_type_name.slice(1)
+                        ? project.project_type_name.charAt(0).toUpperCase() +
+                        project.project_type_name.slice(1)
                         : project.type
                             ? project.type.charAt(0).toUpperCase() + project.type.slice(1)
                             : "",
 
-                    manager: project.project_owner_name || project.manager || "Unassigned",
+                    manager:
+                        project.project_owner_name || project.manager || "Unassigned",
 
                     total_milestone_count: Number(project.total_milestone_count || 0),
-                    completed_milestone_count: Number(project.completed_milestone_count || 0),
+                    completed_milestone_count: Number(
+                        project.completed_milestone_count || 0
+                    ),
                     milestones: (() => {
                         const totalCount = Number(project.total_milestone_count);
                         const completedCount = Number(project.completed_milestone_count);
@@ -417,16 +458,22 @@ const ProjectList = ({ searchQuery, selectedColumns }) => {
                         return percentage;
                     })(),
 
-                    total_task_management_count: Number(project.total_task_management_count || 0),
-                    completed_task_management_count: Number(project.completed_task_management_count || 0),
+                    total_task_management_count: Number(
+                        project.total_task_management_count || 0
+                    ),
+                    completed_task_management_count: Number(
+                        project.completed_task_management_count || 0
+                    ),
                     tasks: (() => {
                         const totalCount = Number(project.total_task_management_count);
-                        const completedCount = Number(project.completed_task_management_count);
+                        const completedCount = Number(
+                            project.completed_task_management_count
+                        );
 
                         if (!totalCount || totalCount === 0) return 0;
 
                         const percentage = Math.round((completedCount / totalCount) * 100);
-                        console.log(percentage)
+                        console.log(percentage);
                         return percentage;
                     })(),
 
@@ -446,7 +493,8 @@ const ProjectList = ({ searchQuery, selectedColumns }) => {
                         ? new Date(project.end_date).toLocaleDateString("en-CA")
                         : "N/A",
                     priority: project.priority
-                        ? project.priority.charAt(0).toUpperCase() + project.priority.slice(1)
+                        ? project.priority.charAt(0).toUpperCase() +
+                        project.priority.slice(1)
                         : "Unknown",
                 };
             } catch (error) {
@@ -521,18 +569,17 @@ const ProjectList = ({ searchQuery, selectedColumns }) => {
                         "q[start_date_eq]": saved.dates.startDate || "", // Ensure date is sent or empty string
                         "q[end_date_eq]": saved.dates.endDate || "",
                     };
-                    const queryString = qs.stringify(newFilters, { arrayFormat: 'repeat' });
+                    const queryString = qs.stringify(newFilters, {
+                        arrayFormat: "repeat",
+                    });
                     dispatch(filterProjects({ token, filters: queryString }));
-
                 } else if (localStorage.getItem("projectStatus")) {
                     const status = localStorage.getItem("projectStatus");
                     const filter = {
-                        "q[status_eq]": status
-                    }
+                        "q[status_eq]": status,
+                    };
                     dispatch(filterProjects({ token, filters: filter }));
-
-                }
-                else {
+                } else {
                     dispatch(fetchProjects({ token }));
                 }
             } catch (err) {
@@ -550,8 +597,8 @@ const ProjectList = ({ searchQuery, selectedColumns }) => {
             localStorage.removeItem("projectFilters");
         };
 
-        window.addEventListener("beforeunload", handleBeforeUnload); console.log("Resetting filters at", new Date().toISOString());
-
+        window.addEventListener("beforeunload", handleBeforeUnload);
+        console.log("Resetting filters at", new Date().toISOString());
 
         return () => {
             window.removeEventListener("beforeunload", handleBeforeUnload);
@@ -674,7 +721,10 @@ const ProjectList = ({ searchQuery, selectedColumns }) => {
 
         try {
             await dispatch(
-                createProject({ token, payload: { project_management: projectPayload } })
+                createProject({
+                    token,
+                    payload: { project_management: projectPayload },
+                })
             ).unwrap();
             dispatch(fetchProjects({ token }));
             handleCancelNewProject();
@@ -708,9 +758,9 @@ const ProjectList = ({ searchQuery, selectedColumns }) => {
 
     useEffect(() => {
         if (success) {
-            dispatch(resetProjectSuccess())
+            dispatch(resetProjectSuccess());
         }
-    }, [success, dispatch])
+    }, [success, dispatch]);
 
     useEffect(() => {
         const handleClickOutside = (event) => {
@@ -830,31 +880,37 @@ const ProjectList = ({ searchQuery, selectedColumns }) => {
                 accessorKey: "milestones",
                 header: "Milestones",
                 size: 130,
-                cell: (info) => <ProgressBar
-                    progressString={info.getValue()}
-                    total={info.row.original.total_milestone_count}
-                    completed={info.row.original.completed_milestone_count}
-                />,
+                cell: (info) => (
+                    <ProgressBar
+                        progressString={info.getValue()}
+                        total={info.row.original.total_milestone_count}
+                        completed={info.row.original.completed_milestone_count}
+                    />
+                ),
             },
             {
                 accessorKey: "tasks",
                 header: "Tasks",
                 size: 110,
-                cell: (info) => <ProgressBar
-                    progressString={info.getValue()}
-                    total={info.row.original.total_task_management_count}
-                    completed={info.row.original.completed_task_management_count}
-                />
+                cell: (info) => (
+                    <ProgressBar
+                        progressString={info.getValue()}
+                        total={info.row.original.total_task_management_count}
+                        completed={info.row.original.completed_task_management_count}
+                    />
+                ),
             },
             {
                 accessorKey: "issues",
                 header: "Issues",
                 size: 100,
-                cell: (info) => <ProgressBar
-                    progressString={info.getValue()}
-                    total={info.row.original.total_issues_count}
-                    completed={info.row.original.completed_issues_count}
-                />
+                cell: (info) => (
+                    <ProgressBar
+                        progressString={info.getValue()}
+                        total={info.row.original.total_issues_count}
+                        completed={info.row.original.completed_issues_count}
+                    />
+                ),
             },
             {
                 accessorKey: "startDate",
@@ -904,7 +960,11 @@ const ProjectList = ({ searchQuery, selectedColumns }) => {
 
     // Reorder columns based on columnOrder state
     const columns = columnOrder
-        .map((columnId) => allColumns.find((col) => col.id === columnId || col.accessorKey === columnId))
+        .map((columnId) =>
+            allColumns.find(
+                (col) => col.id === columnId || col.accessorKey === columnId
+            )
+        )
         .filter(Boolean)
         .filter((col) => {
             // If selectedColumns is empty or not provided, show all columns
@@ -918,7 +978,10 @@ const ProjectList = ({ searchQuery, selectedColumns }) => {
     const renderNewProjectRow = () => {
         const newProjectFields = {
             id: (
-                <td key="id" className="p-1 border-r-2 text-center text-gray-500 text-xs align-middle">
+                <td
+                    key="id"
+                    className="p-1 border-r-2 text-center text-gray-500 text-xs align-middle"
+                >
                     NEW
                 </td>
             ),
@@ -947,9 +1010,7 @@ const ProjectList = ({ searchQuery, selectedColumns }) => {
                             newProjectStatus.charAt(0).toUpperCase() +
                             newProjectStatus.slice(1)
                         }
-                        onStatusChange={(val) =>
-                            setNewProjectStatus(val.toLowerCase())
-                        }
+                        onStatusChange={(val) => setNewProjectStatus(val.toLowerCase())}
                     />
                 </td>
             ),
@@ -968,9 +1029,7 @@ const ProjectList = ({ searchQuery, selectedColumns }) => {
                     <SelectBox
                         options={userOptionsForSelectBox}
                         value={newProjectManager}
-                        onChange={(selectedValue) =>
-                            setNewProjectManager(selectedValue)
-                        }
+                        onChange={(selectedValue) => setNewProjectManager(selectedValue)}
                         table={true}
                         placeholder="Select Manager..."
                     />
@@ -979,12 +1038,8 @@ const ProjectList = ({ searchQuery, selectedColumns }) => {
             milestones: (
                 <td key="milestones" className="p-1 border-r-2 align-middle"></td>
             ),
-            tasks: (
-                <td key="tasks" className="p-1 border-r-2 align-middle"></td>
-            ),
-            issues: (
-                <td key="issues" className="p-1 border-r-2 align-middle"></td>
-            ),
+            tasks: <td key="tasks" className="p-1 border-r-2 align-middle"></td>,
+            issues: <td key="issues" className="p-1 border-r-2 align-middle"></td>,
             startDate: (
                 <td key="startDate" className="p-0 border-r-2 align-middle">
                     <NewProjectDateEditor
@@ -1017,7 +1072,10 @@ const ProjectList = ({ searchQuery, selectedColumns }) => {
                 </td>
             ),
             actions: (
-                <td key="actions" className="p-1 border-r-2 text-center align-middle"></td>
+                <td
+                    key="actions"
+                    className="p-1 border-r-2 text-center align-middle"
+                ></td>
             ),
         };
 
@@ -1037,11 +1095,7 @@ const ProjectList = ({ searchQuery, selectedColumns }) => {
     const anyFilterLoading = filterProjectsLoadingRedux;
     const anyFilterError = filterProjectsErrorRedux;
 
-    if (
-        fetchProjectsLoading ||
-        anyFilterLoading ||
-        isSavingNewProject
-    ) {
+    if (fetchProjectsLoading || anyFilterLoading || isSavingNewProject) {
         const loadingMessage = isSavingNewProject
             ? "Saving Project..."
             : fetchProjectsLoading
@@ -1056,7 +1110,7 @@ const ProjectList = ({ searchQuery, selectedColumns }) => {
         anyFilterError ||
         fetchProjectTypesError
     ) {
-        toast.dismiss()
+        toast.dismiss();
         toast.error("Internal Server Error, Refresh Once");
     } else {
         content = (
@@ -1091,7 +1145,9 @@ const ProjectList = ({ searchQuery, selectedColumns }) => {
                                         className="no-data-message text-center py-10 text-gray-500"
                                     >
                                         No projects found.{" "}
-                                        {isFiltered || searchQuery ? "Try adjusting filters or search." : ""}
+                                        {isFiltered || searchQuery
+                                            ? "Try adjusting filters or search."
+                                            : ""}
                                     </td>
                                 </tr>
                             ) : (

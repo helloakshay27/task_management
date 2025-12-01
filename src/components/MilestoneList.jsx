@@ -331,7 +331,7 @@ const MilestoneList = ({ searchQuery, selectedColumns }) => {
                 return {
                     id: `M-${milestone.id?.toString() || `unknown-${index}`}`,
                     actualId: milestone.id?.toString() || `unknown-${index}`,
-                    title: milestone.title || milestone.name || "Untitled",
+                    title: milestone.title.replace(/@\[(.*?)\]\(\d+\)/g, "@$1").replace(/#\[(.*?)\]\(\d+\)/g, "#$1") || milestone.name.replace(/@\[(.*?)\]\(\d+\)/g, "@$1").replace(/#\[(.*?)\]\(\d+\)/g, "#$1") || "Untitled",
                     status: milestone.status
                         ? milestone.status.charAt(0).toUpperCase() +
                         milestone.status.slice(1)

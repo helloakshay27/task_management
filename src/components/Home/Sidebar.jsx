@@ -105,6 +105,12 @@ const Sidebar = ({ isSidebarOpen, setIsSidebarOpen }) => {
                                 {isSidebarOpen ? "Opportunity Register" : ""}
                             </li>
                         </NavLink>
+                        <NavLink to="/todo">
+                            <li className={`sidebar-link ${!isSidebarOpen ? "justify-center" : ""}`}>
+                                <CircleCheckBig size={20} />
+                                {isSidebarOpen ? "To Do" : ""}
+                            </li>
+                        </NavLink>
                     </ul>
                 </div>
             </div>

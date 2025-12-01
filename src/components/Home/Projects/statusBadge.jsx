@@ -27,6 +27,12 @@ const StatusBadge = ({
     }
   };
 
+  const handleDropdownItemClick = (e, option) => {
+    e.preventDefault();
+    e.stopPropagation();
+    handleStatusSelect(option);
+  };
+
   const toggleDropdown = () => {
     if (!isDropdownOpen && triggerRef.current) {
       const rect = triggerRef.current.getBoundingClientRect();
@@ -41,6 +47,11 @@ const StatusBadge = ({
   // Close dropdown on outside click
   useEffect(() => {
     const handleClickOutside = (event) => {
+      // Don't close if clicking on dropdown items
+      if (event.target.classList.contains("dropdown-item")) {
+        return;
+      }
+
       if (wrapperRef.current && !wrapperRef.current.contains(event.target)) {
         setIsDropdownOpen(false);
       }
@@ -108,11 +119,11 @@ const StatusBadge = ({
               statusOptions?.map((option) => (
                 <span
                   key={option}
-                  onClick={() => handleStatusSelect(option)}
+                  onClick={(e) => handleDropdownItemClick(e, option)}
                   className={`dropdown-item ${option?.toLowerCase().replace(" ", "-") ===
-                      currentStatus?.toLowerCase().replace(" ", "-")
-                      ? "selected"
-                      : ""
+                    currentStatus?.toLowerCase().replace(" ", "-")
+                    ? "selected"
+                    : ""
                     }`}
                   style={{
                     display: "block",
@@ -151,7 +162,7 @@ const StatusBadge = ({
                   tabIndex={0}
                   onKeyDown={(e) =>
                     (e.key === "Enter" || e.key === " ") &&
-                    handleStatusSelect(option)
+                    handleDropdownItemClick(e, option)
                   }
                 >
                   {option

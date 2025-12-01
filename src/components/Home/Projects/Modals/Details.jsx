@@ -27,6 +27,8 @@ const Details = ({
   endText = "Next",
   isEdit = false,
   templateDetails,
+  opportunityId,
+  onSuccess,
 }) => {
   const token = localStorage.getItem("token");
   const { id } = useParams();
@@ -105,8 +107,8 @@ const Details = ({
         })) || [];
 
       setFormData({
-        projectTitle: templateDetails.title || "",
-        description: templateDetails.description || "",
+        projectTitle: templateDetails.title.replace(/@\[(.*?)\]\(\d+\)/g, "@$1").replace(/#\[(.*?)\]\(\d+\)/g, "#$1") || "",
+        description: templateDetails.description.replace(/@\[(.*?)\]\(\d+\)/g, "@$1").replace(/#\[(.*?)\]\(\d+\)/g, "#$1") || "",
         projectOwner: templateDetails.owner_id || "",
         template: templateDetails.template || "",
         startDate: templateDetails.start_date || "",
@@ -274,9 +276,19 @@ const Details = ({
       task_tag_ids: formData.tags.map((tag) => tag.value),
     };
 
+    if (opportunityId) {
+      payload.project_management.opportunity_id = opportunityId;
+    }
+
     try {
-      await dispatch(createProject({ token, payload })).unwrap();
-      window.location.reload();
+      const response = await dispatch(createProject({ token, payload })).unwrap();
+
+      // If onSuccess callback is provided (from ConvertModal), call it
+      if (onSuccess && response?.id) {
+        onSuccess(response.id);
+      } else {
+        window.location.reload();
+      }
     } catch (error) {
       console.error("Error creating project:", error);
       toast.error("Error creating project.");

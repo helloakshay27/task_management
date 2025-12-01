@@ -10,6 +10,9 @@ import { fetchMilestone } from '@/redux/slices/milestoneSlice';
 import axios from 'axios';
 import { baseURL } from '../../apiDomain';
 import toast from 'react-hot-toast';
+import { fetchUsers } from '@/redux/slices/userSlice';
+import { Mention, MentionsInput } from 'react-mentions';
+import { fetchActiveTags } from '@/redux/slices/tagsSlice';
 
 const Attachments = ({ attachments, setAttachments }) => {
     const fileInputRef = useRef(null);
@@ -127,6 +130,18 @@ const AddOpportunityModal = ({ isModalOpen, setIsModalOpen }) => {
         (state) => state.fetchKanbanTasks || { fetchKanbanTasks: [], loading: false, error: null }
     );
 
+    const {
+        fetchUsers: users,
+    } = useSelector(
+        (state) => state.fetchUsers || { users: [], loading: false, error: null }
+    );
+
+    const {
+        fetchActiveTags: tags,
+    } = useSelector(
+        (state) => state.fetchActiveTags || { fetchActiveTags: [], loading: false, error: null }
+    );
+
     const [title, setTitle] = useState("");
     const [description, setDescription] = useState("")
     const [comments, setComments] = useState("");
@@ -134,13 +149,18 @@ const AddOpportunityModal = ({ isModalOpen, setIsModalOpen }) => {
     const [attachments, setAttachments] = useState([]);
     const [projectOptions, setProjectOptions] = useState([]);
     const [milestoneOptions, setMilestoneOptions] = useState([]);
-    const [issueTypeOptions, setIssueTypeOptions] = useState([]);
     const [taskOptions, setTaskOptions] = useState([]);
     const [subtaskOptions, setSubtaskOptions] = useState([]);
     const [newIssuesProjectId, setNewIssuesProjectId] = useState("");
     const [newIssuesMilestoneId, setNewIssuesMilestoneId] = useState("");
     const [newIssuesTaskId, setNewIssuesTaskId] = useState("");
     const [newIssuesSubtaskId, setNewIssuesSubtaskId] = useState("");
+    const [responsiblePersone, setResponsiblePersone] = useState("")
+
+    useEffect(() => {
+        dispatch(fetchUsers({ token }));
+        dispatch(fetchActiveTags({ token }));
+    }, [dispatch, token]);
 
     useGSAP(() => {
         if (isModalOpen) {
@@ -186,6 +206,7 @@ const AddOpportunityModal = ({ isModalOpen, setIsModalOpen }) => {
     useEffect(() => {
         dispatch(fetchKanbanTasks({ id: "", token }));
     }, [dispatch]);
+
 
     useEffect(() => {
         if (!loadingTasks && !tasksFetchError && tasks?.length > 0) {
@@ -291,9 +312,10 @@ const AddOpportunityModal = ({ isModalOpen, setIsModalOpen }) => {
             const formData = new FormData();
             formData.append("opportunity[title]", title);
             formData.append("opportunity[description]", description);
-            formData.append("opportunity[project_management_id]", newIssuesProjectId);
-            formData.append("opportunity[task_management_id]", newIssuesTaskId);
-            formData.append("opportunity[comment]", comments);
+            // formData.append("opportunity[project_management_id]", newIssuesProjectId);
+            // formData.append("opportunity[task_management_id]", newIssuesTaskId);
+            // formData.append("opportunity[comment]", comments);
+            formData.append("opportunity[responsible_person_id]", responsiblePersone);
             attachments.forEach((file) => {
                 formData.append(`opportunity[attachments][]`, file);
             })
@@ -333,15 +355,82 @@ const AddOpportunityModal = ({ isModalOpen, setIsModalOpen }) => {
                             <label className="block">
                                 Title <span className="text-red-600">*</span>
                             </label>
-                            <input
-                                type="text"
+                            <MentionsInput
                                 value={title}
-                                onChange={(e) => setTitle(e.target.value)}
-                                placeholder="Enter Issue Title"
-                                className="w-full border h-[40px] outline-none border-gray-300 p-2 text-sm"
-                            />
+                                onChange={(e, newValue) => setTitle(newValue)}
+                                placeholder="Type @ to mention users. Type # to mention tags"
+                                className="mentions w-full border outline-none border-gray-300 text-sm h-[40px]"
+                                style={{
+                                    control: {
+                                        backgroundColor: "#ffffff",
+                                        fontSize: 14,
+                                        fontWeight: "normal",
+                                    },
+                                    highlighter: {
+                                        overflow: "hidden",
+                                    },
+                                    input: {
+                                        margin: 0,
+                                        padding: "8px",
+                                        outline: "none",
+                                    },
+                                    suggestions: {
+                                        list: {
+                                            backgroundColor: "white",
+                                            border: "1px solid #ccc",
+                                            fontSize: 14,
+                                            zIndex: 100,
+                                            position: "absolute",
+                                            bottom: "100%",
+                                            left: 0,
+                                            width: "200px",
+                                            maxHeight: "150px",
+                                            overflowY: "auto",
+                                            borderRadius: "4px",
+                                            marginBottom: "4px",
+                                        },
+                                        item: {
+                                            padding: "5px 10px",
+                                            borderBottom: "1px solid #eee",
+                                            cursor: "pointer",
+                                        },
+                                        itemFocused: {
+                                            backgroundColor: "#f5f5f5",
+                                        },
+                                    },
+                                }}
+                            >
+                                <Mention
+                                    trigger="@"
+                                    data={
+                                        users
+                                            ? users.map((user) => ({
+                                                id: user.id.toString(),
+                                                display: `${user.firstname} ${user.lastname}` || "Unknown User",
+                                            }))
+                                            : []
+                                    }
+                                    markup="@[__display__](__id__)"
+                                    displayTransform={(id, display) => `@${display}`}
+                                    appendSpaceOnAdd
+                                />
+                                <Mention
+                                    trigger="#"
+                                    data={
+                                        tags
+                                            ? tags.map((tag) => ({
+                                                id: tag.id.toString(),
+                                                display: tag.name,
+                                            }))
+                                            : []
+                                    }
+                                    markup="#[__display__](__id__)"
+                                    displayTransform={(id, display) => `#${display}`}
+                                    appendSpaceOnAdd
+                                />
+                            </MentionsInput>
                         </div>
-                        <div className="flex items-center justify-between gap-2 mt-4">
+                        {/* <div className="flex items-center justify-between gap-2 mt-4">
                             <div className="w-1/2 flex flex-col justify-between">
                                 <label className="block mb-2">Project</label>
                                 <SelectBox
@@ -362,19 +451,86 @@ const AddOpportunityModal = ({ isModalOpen, setIsModalOpen }) => {
                                     placeholder={"Select Task"}
                                 />
                             </div>
-                        </div>
+                        </div> */}
                         <div className="mt-4 space-y-2 h-[100px]">
                             <label className="block">Description</label>
-                            <textarea
-                                name="description"
-                                rows={5}
-                                placeholder="Enter Description"
-                                className="w-full border outline-none border-gray-300 p-2 text-[13px] h-[80px] overflow-y-auto resize-none"
+                            <MentionsInput
                                 value={description}
-                                onChange={(e) => setDescription(e.target.value)}
-                            />
+                                onChange={(e, newValue) => setDescription(newValue)}
+                                placeholder="Type @ to mention users. Type # to mention tags"
+                                className="mentions w-full border outline-none border-gray-300 text-[13px] h-[80px] overflow-y-auto resize-none"
+                                style={{
+                                    control: {
+                                        backgroundColor: "#ffffff",
+                                        fontSize: 13,
+                                        fontWeight: "normal",
+                                    },
+                                    highlighter: {
+                                        overflow: "hidden",
+                                    },
+                                    input: {
+                                        margin: 0,
+                                        padding: "8px",
+                                        outline: "none",
+                                        height: "100%",
+                                    },
+                                    suggestions: {
+                                        list: {
+                                            backgroundColor: "white",
+                                            border: "1px solid #ccc",
+                                            fontSize: 14,
+                                            zIndex: 100,
+                                            position: "absolute",
+                                            bottom: "100%",
+                                            left: 0,
+                                            width: "200px",
+                                            maxHeight: "150px",
+                                            overflowY: "auto",
+                                            borderRadius: "4px",
+                                            marginBottom: "4px",
+                                        },
+                                        item: {
+                                            padding: "5px 10px",
+                                            borderBottom: "1px solid #eee",
+                                            cursor: "pointer",
+                                        },
+                                        itemFocused: {
+                                            backgroundColor: "#f5f5f5",
+                                        },
+                                    },
+                                }}
+                            >
+                                <Mention
+                                    trigger="@"
+                                    data={
+                                        users
+                                            ? users.map((user) => ({
+                                                id: user.id.toString(),
+                                                display: `${user.firstname} ${user.lastname}` || "Unknown User",
+                                            }))
+                                            : []
+                                    }
+                                    markup="@[__display__](__id__)"
+                                    displayTransform={(id, display) => `@${display}`}
+                                    appendSpaceOnAdd
+                                />
+                                <Mention
+                                    trigger="#"
+                                    data={
+                                        tags
+                                            ? tags.map((tag) => ({
+                                                id: tag.id.toString(),
+                                                display: tag.name,
+                                            }))
+                                            : []
+                                    }
+                                    markup="#[__display__](__id__)"
+                                    displayTransform={(id, display) => `#${display}`}
+                                    appendSpaceOnAdd
+                                />
+                            </MentionsInput>
                         </div>
-                        <div className="space-y-2 mt-4">
+                        {/* <div className="space-y-2 mt-4">
                             <label className="block">
                                 Comment
                             </label>
@@ -384,6 +540,25 @@ const AddOpportunityModal = ({ isModalOpen, setIsModalOpen }) => {
                                 className="w-full border h-[40px] outline-none border-gray-300 p-2 text-sm"
                                 value={comments}
                                 onChange={(e) => setComments(e.target.value)}
+                            />
+                        </div> */}
+                        <div className="flex flex-col justify-between mt-4">
+                            <label className="block mb-2">
+                                Responsible Person <span className="text-red-600">*</span>
+                            </label>
+                            <SelectBox
+                                options={
+                                    users
+                                        ? users.map((user) => ({
+                                            value: user.id,
+                                            label: `${user.firstname || ""} ${user.lastname || ""}`.trim(),
+                                        }))
+                                        : []
+                                }
+                                value={responsiblePersone}
+                                onChange={(selectedValue) => {
+                                    setResponsiblePersone(selectedValue);
+                                }}
                             />
                         </div>
                         <div className="mt-4 space-y-2">

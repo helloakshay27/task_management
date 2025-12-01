@@ -2,6 +2,7 @@ import { useGSAP } from "@gsap/react";
 import {
     ChevronDown,
     ChevronDownCircle,
+    CircleCheckBigIcon,
     PencilIcon,
     Plus,
     Trash2,
@@ -792,6 +793,7 @@ const TaskDetails = () => {
     const [bgBTN, setBgBTN] = useState();
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [isSubtaskModalOpen, setIsSubtaskModalOpen] = useState(false)
+    const [addingTodo, setAddingTodo] = useState(false)
 
     const firstContentRef = useRef(null);
     const secondContentRef = useRef(null);
@@ -924,6 +926,33 @@ const TaskDetails = () => {
         );
     };
 
+    const handleAddToDo = async () => {
+        if (addingTodo) return;
+        setAddingTodo(true);
+        try {
+            const payload = {
+                todo: {
+                    title: task.title,
+                    task_management_id: task.id,
+                    status: "open",
+                    target_date: task.target_date,
+                }
+            }
+
+            await axios.post(`${baseURL}/todos.json`, payload, {
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${token}`,
+                },
+            })
+            toast.success("To-Do added successfully.");
+        } catch (error) {
+            console.log(error)
+        } finally {
+            setAddingTodo(false);
+        }
+    }
+
     useEffect(() => {
         if (success || editSuccess) {
             dispatch(taskDetails({ token, id: tid }));
@@ -992,7 +1021,7 @@ const TaskDetails = () => {
                 <Toaster position="top-center" />
                 <div className="px-4 pt-1">
                     <h2 className="text-[15px] p-3 px-0">
-                        <span className="mr-3">T-0{task.id}</span>
+                        <span className="mr-3 text-[#C72030]">T-0{task.id}</span>
                         <span>{task.title}</span>
                     </h2>
                     <div className="border-b-[3px] border-[rgba(190, 190, 190, 1)]"></div>
@@ -1050,6 +1079,13 @@ const TaskDetails = () => {
                                         ))}
                                     </ul>
                                 </div>
+                            </span>
+                            <span className="h-6 w-[1px] border border-gray-300"></span>
+                            <span
+                                className="cursor-pointer flex items-center gap-1"
+                                onClick={handleAddToDo}
+                            >
+                                <CircleCheckBigIcon className="mx-1" size={15} /> Add ToDo
                             </span>
                             <span className="h-6 w-[1px] border border-gray-300"></span>
                             <span
