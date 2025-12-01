@@ -3,6 +3,7 @@ import {
     ChevronDown,
     ChevronDownCircle,
     CircleCheckBig,
+    LogOut,
     Trash2,
 } from "lucide-react";
 import { useGSAP } from "@gsap/react";
@@ -618,6 +619,16 @@ const OpportunityDetails = () => {
         setIsTaskModalOpen(true);
     };
 
+    const handleGoToTask = () => {
+        if (opportunityDetails.project_management_id) {
+            navigate(`/projects/${opportunityDetails.project_management_id}`);
+        } else if (opportunityDetails.milestone_id) {
+            navigate(`/milestones/${opportunityDetails.milestone_id}`);
+        } else if (opportunityDetails.task_created) {
+            navigate(`/tasks/${opportunityDetails.task_management_id}`);
+        }
+    };
+
     useGSAP(() => {
         gsap.set(firstContentRef.current, { height: "auto" });
         gsap.set(secondContentRef.current, { height: "auto" });
@@ -772,12 +783,19 @@ const OpportunityDetails = () => {
 
                         <span className="h-6 w-[1px] border border-gray-300"></span>
 
-                        {!opportunityDetails.task_created && (
+                        {!opportunityDetails.task_created ? (
                             <span
                                 className="cursor-pointer flex items-center gap-1"
                                 onClick={handleConvertToTask}
                             >
                                 <CircleCheckBig className="mx-1" size={15} /> Convert
+                            </span>
+                        ) : (
+                            <span
+                                className="cursor-pointer flex items-center gap-1"
+                                onClick={handleGoToTask}
+                            >
+                                <LogOut className="mx-1" size={15} /> Go to {opportunityDetails.project_management_id ? "Project" : opportunityDetails.milestone_id ? "Milestone" : "Task"}
                             </span>
                         )}
                     </div>

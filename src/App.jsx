@@ -186,6 +186,10 @@ const App = () => {
                     element={<MilestoneDetailsPage />}
                   />
                   <Route
+                    path="/milestones/:mid"
+                    element={<MilestoneDetailsPage />}
+                  />
+                  <Route
                     path="projects/:id/milestones/:mid/tasks"
                     element={<Tasks setIsSidebarOpen={setIsSidebarOpen} />}
                   />

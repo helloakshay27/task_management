@@ -62,6 +62,7 @@ const TaskForm = ({
   endDate,
   setEndDate,
   mid,
+  setSelectedProjects
 }) => {
   const { fetchUserAvailability: userAvailability } = useSelector(
     (state) => state.fetchUserAvailability
@@ -341,6 +342,7 @@ const TaskForm = ({
               onChange={(value) => {
                 setFormData({ ...formData, project: value });
                 setSelectedProject(value);
+                setSelectedProjects(projects.find((project) => project.id === value));
               }}
               disabled={isReadOnly}
             />
@@ -688,6 +690,7 @@ const Tasks = ({ isEdit, onCloseModal, prefillData, onSuccess }) => {
   const [startDate, setStartDate] = useState(null);
   const [endDate, setEndDate] = useState(null);
   const [members, setMembers] = useState([])
+  const [selectedProject, setSelectedProject] = useState({})
   const [formData, setFormData] = useState({
     project: "",
     milestone: "",
@@ -737,17 +740,24 @@ const Tasks = ({ isEdit, onCloseModal, prefillData, onSuccess }) => {
   );
 
   useEffect(() => {
-    if (project?.project_team) {
-      const members = []
+    const team = project?.project_team || selectedProject?.project_team;
 
-      project?.project_team?.project_team_members.map((member) => {
-        members.push(member.user)
-      })
-      members.push(project?.project_team.team_lead)
+    if (team) {
+      const members = [];
 
-      setMembers(members)
+      team.project_team_members?.forEach((member) => {
+        if (member?.user) members.push(member.user);
+      });
+
+      if (team.team_lead) members.push(team.team_lead);
+
+      setMembers(members);
     }
-  }, [project?.project_team])
+  }, [
+    project?.project_team,
+    selectedProject?.project_team
+  ]);
+
 
   useEffect(() => {
     if (isEdit && task) {
@@ -1027,6 +1037,7 @@ const Tasks = ({ isEdit, onCloseModal, prefillData, onSuccess }) => {
             endDate={endDate}
             setEndDate={setEndDate}
             mid={mid}
+            setSelectedProjects={setSelectedProject}
           />
         ))}
 
@@ -1059,6 +1070,7 @@ const Tasks = ({ isEdit, onCloseModal, prefillData, onSuccess }) => {
             endDate={endDate}
             setEndDate={setEndDate}
             mid={mid}
+            setSelectedProjects={setSelectedProject}
           />
         )}
 
