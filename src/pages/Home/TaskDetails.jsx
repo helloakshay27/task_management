@@ -783,7 +783,7 @@ const TaskDetails = () => {
     const { success: editSuccess } = useSelector((state) => state.editTask);
 
     const [isFirstCollapsed, setIsFirstCollapsed] = useState(false);
-    const [isSecondCollapsed, setIsSecondCollapsed] = useState(false);
+    const [isSecondCollapsed, setIsSecondCollapsed] = useState(true);
     const [tab, setTab] = useState("Subtasks");
     const [openDropdown, setOpenDropdown] = useState(false);
     const [openWorkflowDropdown, setOpenWorkflowDropdown] = useState(false);
@@ -961,7 +961,7 @@ const TaskDetails = () => {
 
     useGSAP(() => {
         gsap.set(firstContentRef.current, { height: "auto" });
-        gsap.set(secondContentRef.current, { height: "auto" });
+        gsap.set(secondContentRef.current, { height: "0px" });
     }, []);
 
     const toggleFirstCollapse = () => {
@@ -1145,7 +1145,7 @@ const TaskDetails = () => {
                             />{" "}
                             Details
                         </div>
-                        <div className="mt-3" ref={secondContentRef}>
+                        <div className="mt-3 overflow-hidden" ref={secondContentRef}>
                             <div className="flex flex-col">
                                 <div className="flex items-center ml-36">
                                     <div className="w-1/2 flex items-center justify-start gap-3">

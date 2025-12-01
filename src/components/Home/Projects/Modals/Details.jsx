@@ -107,8 +107,8 @@ const Details = ({
         })) || [];
 
       setFormData({
-        projectTitle: templateDetails.title.replace(/@\[(.*?)\]\(\d+\)/g, "@$1").replace(/#\[(.*?)\]\(\d+\)/g, "#$1") || "",
-        description: templateDetails.description.replace(/@\[(.*?)\]\(\d+\)/g, "@$1").replace(/#\[(.*?)\]\(\d+\)/g, "#$1") || "",
+        projectTitle: templateDetails?.title?.replace(/@\[(.*?)\]\(\d+\)/g, "@$1").replace(/#\[(.*?)\]\(\d+\)/g, "#$1") || "",
+        description: templateDetails?.description?.replace(/@\[(.*?)\]\(\d+\)/g, "@$1").replace(/#\[(.*?)\]\(\d+\)/g, "#$1") || "",
         projectOwner: templateDetails.owner_id || "",
         template: templateDetails.template || "",
         startDate: templateDetails.start_date || "",
