@@ -62,6 +62,7 @@ import { socketUrl } from "../apiDomain";
 import Opportunity from "./pages/Home/Opportunity";
 import OpportunityDetails from "./pages/Home/OpportunityDetails";
 import ToDo from "./pages/Home/ToDo";
+import DownloadLanding from "./pages/DownloadLanding";
 
 const App = () => {
   const token = localStorage.getItem("token");
@@ -142,6 +143,8 @@ const App = () => {
         <Route path="/login" element={<Login />} />
         <Route path="/cloud-projects-login" element={<Login />} />
         <Route path="/cloud-minutes-login" element={<Login />} />
+        <Route path="/download-app" element={<DownloadLanding />} />
+
 
         {/* All Routes - Layout will conditionally show/hide sidebar and header */}
         <Route
