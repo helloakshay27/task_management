@@ -26,3 +26,12 @@ bun.lock
 package-lock.json
 yarn.lock
 pnpm-lock.yaml
+
+# Build artifacts
+build
+dist
+dist-ssr
+
+# Download binaries
+public/downloads/*.dmg
+public/downloads/*.exe

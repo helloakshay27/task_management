@@ -17,12 +17,12 @@ const LOGIN_DESTINATIONS = {
 const Login = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  
+
   // Determine destination based on current login route using smart utility
   const getDestination = () => {
     return getCloudHomeRoute(location.pathname) || '/projects';
   };
-  
+
   // Check if this is a cloud login
   const isCloudLogin = Object.keys(LOGIN_DESTINATIONS).includes(location.pathname);
 
@@ -49,15 +49,15 @@ const Login = () => {
       if (response.data.access_token) {
         localStorage.setItem("token", response.data.access_token);
         localStorage.setItem("user", JSON.stringify(response.data.user));
-        
+
         // Store cloud preference if this is a cloud login
         if (isCloudLogin) {
           localStorage.setItem('useCloudRoutes', 'true');
         }
-        
+
         toast.dismiss();
         toast.success("Login successful!");
-        
+
         const destination = getDestination();
         setTimeout(() => navigate(destination), 500);
       }
@@ -121,14 +121,27 @@ const Login = () => {
             )}
           </div>
           <button
-            className={`w-[420px] h-[48px] bg-[#C72030] text-white text-[20px] font-[400] ${
-              loading ? "cursor-not-allowed opacity-50" : "cursor-pointer"
-            }`}
+            className={`w-[420px] h-[48px] bg-[#C72030] text-white text-[20px] font-[400] ${loading ? "cursor-not-allowed opacity-50" : "cursor-pointer"
+              }`}
             onClick={handleLogin}
             disabled={loading}
           >
             LOGIN
           </button>
+
+          <div className="flex justify-center mt-4">
+            <a
+              href="/download"
+              className="text-[#C72030] font-semibold hover:underline flex items-center gap-2"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="7 10 12 15 17 10"></polyline>
+                <line x1="12" y1="15" x2="12" y2="3"></line>
+              </svg>
+              Download Desktop App
+            </a>
+          </div>
         </div>
       </div>
     </div>
