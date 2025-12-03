@@ -31,6 +31,7 @@ export const DurationPicker = ({
     const [dailyHours, setDailyHours] = useState([]);
     const [daysList, setDaysList] = useState([]);
     const [manualDuration, setManualDuration] = useState("");
+    const [totalHoursInput, setTotalHoursInput] = useState("");
     const pickerRef = useRef(null);
 
     useEffect(() => {
@@ -214,14 +215,17 @@ export const DurationPicker = ({
 
                 setDaysList(allDays);
                 setManualDuration("");
+                setTotalHoursInput(formatTotalHours(hoursPerDay));
             } else if (endDate && !startDate) {
                 // Only end date selected - allow manual entry
                 const allDays = getAllDays(endDate, endDate, shift);
                 setDaysList(allDays);
                 setManualDuration("");
+                setTotalHoursInput("");
             } else {
                 setDaysList([]);
                 setManualDuration("");
+                setTotalHoursInput("");
                 if (onChange) onChange(0);
                 if (onDateWiseHoursChange) onDateWiseHoursChange([]);
             }
@@ -335,9 +339,9 @@ export const DurationPicker = ({
 
                     {/* === Flexible Table === */}
                     {taskType === "flexible" ? (
-                        !endDate ? (
+                        (!endDate && !startDate) ? (
                             <div className="text-sm text-gray-500 bg-red-100 px-3 py-2 flex items-center gap-2">
-                                <Info size={16} /> Please select at least an end date to enable flexible work hours.
+                                <Info size={16} /> Please select both start date and end date to enable flexible work hours.
                             </div>
                         ) : (
                             <div className="relative w-full overflow-x-auto">
@@ -415,8 +419,8 @@ export const DurationPicker = ({
                                             Owner
                                         </TableHead>
                                         <TableHead className="min-w-[150px] bg-white">Business Hours</TableHead>
-                                        <TableHead className="min-w-[150px] bg-white">Work Hours Per Day</TableHead>
-                                        <TableHead className="min-w-[100px] bg-white">Duration (Hr:mm)</TableHead>
+                                        <TableHead className="min-w-[100px] bg-white">Work Hours Per Day</TableHead>
+                                        <TableHead className="min-w-[100px] bg-white">Duration (HH:mm)</TableHead>
                                         <TableHead className="sticky right-0 z-20 bg-white border-l">
                                             Total Hours
                                         </TableHead>
@@ -433,9 +437,17 @@ export const DurationPicker = ({
                                             {resposiblePerson || "Unassigned"}
                                         </TableCell>
                                         <TableCell className="bg-white">Standard Business Hours</TableCell>
-                                        <TableCell className="!px-2 bg-white">{formatTotalHours(hoursPerDay)} hr/day (100% day)</TableCell>
+                                        <TableCell className="!px-2 bg-white">{formatTotalHours(hoursPerDay)} hr/day <br />(100% day)</TableCell>
                                         <TableCell className="bg-white">
-                                            {!startDate && endDate ? (
+                                            {startDate && endDate ? (
+                                                <input
+                                                    type="text"
+                                                    value={totalHoursInput}
+                                                    onChange={(e) => setTotalHoursInput(e.target.value)}
+                                                    placeholder="8:30"
+                                                    className="w-20 px-2 py-1 border border-gray-300 rounded-md text-sm text-center focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                />
+                                            ) : !startDate && endDate ? (
                                                 <input
                                                     type="text"
                                                     value={manualDuration}
@@ -496,16 +508,17 @@ export const DurationPicker = ({
                                             onDateWiseHoursChange(dateWise);
                                         }
                                     } else if (startDate && endDate) {
-                                        // Handle both start and end dates
-                                        setTotalWorkingHours(hoursPerDay);
-                                        if (onChange) onChange(hoursPerDay);
+                                        // Handle both start and end dates with editable hours per day
+                                        const parsedHoursPerDay = totalHoursInput ? parseHours(totalHoursInput) : hoursPerDay;
+                                        const allDays = getAllDays(startDate, endDate, shift);
+                                        const workingDays = allDays.filter((d) => d.isWorking);
+                                        const total = parsedHoursPerDay * workingDays.length;
+                                        setTotalWorkingHours(total);
+                                        if (onChange) onChange(total);
 
                                         if (onDateWiseHoursChange) {
-                                            const allDays = getAllDays(startDate, endDate, shift);
-                                            const workingDays = allDays.filter((d) => d.isWorking);
-                                            const perDayDecimal = parseHours(formatTotalHours(hoursPerDay));
                                             const dateWise = workingDays.map((d) => ({
-                                                hours: perDayDecimal,
+                                                hours: parsedHoursPerDay,
                                                 minutes: 0,
                                                 date: formatLocalDate(d.date),
                                             }));

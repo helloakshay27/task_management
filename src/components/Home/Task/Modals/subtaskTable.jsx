@@ -34,6 +34,7 @@ import {
 } from "../../../../redux/slices/taskSlice";
 import { fetchUsers } from "../../../../redux/slices/userSlice";
 import { fetchTags } from "../../../../redux/slices/tagsSlice";
+import toast from "react-hot-toast";
 
 const UserCustomDropdownMultiple = ({
   options = [],
@@ -412,9 +413,13 @@ const SubtaskTable = ({ projectId }) => {
       setLocalError(null);
       try {
         if (fieldName === "status") {
-          await dispatch(
+          const response = await dispatch(
             changeTaskStatus({ token, id: taskId, payload })
           ).unwrap();
+          console.log(response)
+          if (response.error) {
+            toast.error(response.error)
+          }
         } else {
           await dispatch(updateTask({ token, id: taskId, payload })).unwrap();
         }
