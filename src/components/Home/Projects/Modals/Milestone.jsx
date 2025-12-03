@@ -396,7 +396,7 @@ const Milestones = ({ closeModal, opportunityId, prefillData, onSuccess }) => {
       toast.success("Milestone created successfully.");
       await dispatch(fetchMilestone({ token, id })).unwrap();
       dispatch(clearSavedMilestones());
-      // window.location.reload();
+      window.location.reload();
     } catch {
       toast.error("Error creating milestone.");
     } finally {
@@ -411,7 +411,7 @@ const Milestones = ({ closeModal, opportunityId, prefillData, onSuccess }) => {
     !formData.startDate &&
     !formData.endDate;
 
-  if (isLoading) return <div className="text-center py-4">Loading...</div>;
+  // if (isLoading) return <div className="text-center py-4">Loading...</div>;
 
   return (
     <form className="pb-12 h-full text-[12px]" onSubmit={handleSubmit}>

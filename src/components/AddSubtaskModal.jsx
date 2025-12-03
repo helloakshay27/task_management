@@ -375,36 +375,6 @@ const AddSubtaskModal = ({ isModalOpen, setIsModalOpen, title }) => {
 
                             <div className="flex justify-between mt-3 gap-2 text-[12px]">
                                 <div className="space-y-2 w-full">
-                                    <label className="block">Start Date</label>
-                                    <button
-                                        type="button"
-                                        className="w-full border outline-none border-gray-300 px-2 py-[7px] text-[13px] flex items-center gap-3 text-gray-400"
-                                        onClick={() => {
-                                            if (showDatePicker) {
-                                                setShowDatePicker(false);
-                                            }
-                                            setShowStartDatePicker(!showStartDatePicker);
-                                        }}
-                                        ref={startDateRef}
-                                    >
-                                        {startDate ? (
-                                            <div className="text-black flex items-center justify-between w-full">
-                                                <CalendarIcon className="w-4 h-4" />
-                                                <div>
-                                                    Start Date : {startDate.date.toString().padStart(2, "0")}{" "}
-                                                    {monthNames[startDate.month]}
-                                                </div>
-                                                <X className="w-4 h-4" onClick={() => setStartDate(null)} />
-                                            </div>
-                                        ) : (
-                                            <>
-                                                <CalendarIcon className="w-4 h-4" /> Select Start Date
-                                            </>
-                                        )}
-                                    </button>
-                                </div>
-
-                                <div className="space-y-2 w-full">
                                     <label className="block">
                                         Target Date <span className="text-red-600">*</span>
                                     </label>
@@ -431,6 +401,36 @@ const AddSubtaskModal = ({ isModalOpen, setIsModalOpen, title }) => {
                                         ) : (
                                             <>
                                                 <CalendarIcon className="w-4 h-4" /> Select Target Date
+                                            </>
+                                        )}
+                                    </button>
+                                </div>
+
+                                <div className="space-y-2 w-full">
+                                    <label className="block">Start Date</label>
+                                    <button
+                                        type="button"
+                                        className="w-full border outline-none border-gray-300 px-2 py-[7px] text-[13px] flex items-center gap-3 text-gray-400"
+                                        onClick={() => {
+                                            if (showDatePicker) {
+                                                setShowDatePicker(false);
+                                            }
+                                            setShowStartDatePicker(!showStartDatePicker);
+                                        }}
+                                        ref={startDateRef}
+                                    >
+                                        {startDate ? (
+                                            <div className="text-black flex items-center justify-between w-full">
+                                                <CalendarIcon className="w-4 h-4" />
+                                                <div>
+                                                    Start Date : {startDate.date.toString().padStart(2, "0")}{" "}
+                                                    {monthNames[startDate.month]}
+                                                </div>
+                                                <X className="w-4 h-4" onClick={() => setStartDate(null)} />
+                                            </div>
+                                        ) : (
+                                            <>
+                                                <CalendarIcon className="w-4 h-4" /> Select Start Date
                                             </>
                                         )}
                                     </button>
