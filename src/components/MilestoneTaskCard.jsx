@@ -29,7 +29,7 @@ const MilestoneTaskCard = ({ task, parentMilestoneId }) => {
             style={{ opacity: isDragging ? 0.5 : 1, cursor: "move" }}
             className="w-full h-max bg-white p-2 shadow-xl text-xs flex flex-col space-y-2 mb-2"
         >
-            <p className="mb-2 truncate cursor-pointer text-start" onClick={() => navigate(`${task.id}`)}>
+            <p className="mb-2 truncate cursor-pointer text-start" onClick={() => navigate(`${parentMilestoneId}/tasks/${task.id}`)}>
                 <span className="text-blue-500">T-{task.id}</span> {task.title.replace(/@\[(.*?)\]\(\d+\)/g, "@$1").replace(/#\[(.*?)\]\(\d+\)/g, "#$1")}
             </p>
             <div className="flex items-start gap-1">
