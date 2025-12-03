@@ -255,7 +255,6 @@ const AddSubtaskModal = ({ isModalOpen, setIsModalOpen, title }) => {
         if (
             !formData.title ||
             !formData.responsiblePerson ||
-            !startDate ||
             !endDate ||
             !formData.priority
         ) {
