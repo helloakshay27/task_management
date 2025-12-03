@@ -437,6 +437,8 @@ const TaskTable = ({ isModalOpen, searchQuery, selectedColumns }) => {
   const handleFetchTasks = async () => {
     const myTasks = localStorage.getItem("myTasks");
     const page = pagination.pageIndex + 1;
+    const searchParams = new URLSearchParams(location.search);
+    const projectId = searchParams.get('project_id');
     if (localStorage.getItem("taskFilters")) {
       const saved = JSON.parse(localStorage.getItem("taskFilters"));
       const newFilter = {
@@ -447,6 +449,7 @@ const TaskTable = ({ isModalOpen, searchQuery, selectedColumns }) => {
         "q[responsible_person_id_in][]": saved.selectedResponsible.length > 0 ? saved.selectedResponsible : [],
         "q[milestone_id_eq]": mid,
         page,
+        ...(projectId && { "q[project_management_id_eq]": projectId }),
       };
       const queryString = qs.stringify(newFilter, { arrayFormat: "repeat" });
       await dispatch(filterTask({ token, filter: queryString })).unwrap();
@@ -457,18 +460,47 @@ const TaskTable = ({ isModalOpen, searchQuery, selectedColumns }) => {
       const filter = {
         "q[status_eq]": saved,
         page,
+        ...(projectId && { "q[project_management_id_eq]": projectId }),
       };
       await dispatch(filterTask({ token, filter })).unwrap();
       return;
     }
     if (mid != undefined && mid != null) {
-      await dispatch(fetchTasks({ token, id: mid, page, search: searchQuery })).unwrap();
+      if (projectId || searchQuery) {
+        const filter = {
+          "q[milestone_id_eq]": mid,
+          page,
+          ...(searchQuery && { "q[title_cont]": searchQuery }),
+          ...(projectId && { "q[project_management_id_eq]": projectId }),
+        };
+        await dispatch(filterTask({ token, filter })).unwrap();
+      } else {
+        await dispatch(fetchTasks({ token, id: mid, page, search: searchQuery })).unwrap();
+      }
     } else {
       if (myTasks === "false") {
-        await dispatch(fetchTasks({ token, id: "", page, search: searchQuery })).unwrap();
+        if (projectId || searchQuery) {
+          const filter = {
+            page,
+            ...(searchQuery && { "q[title_cont]": searchQuery }),
+            ...(projectId && { "q[project_management_id_eq]": projectId }),
+          };
+          await dispatch(filterTask({ token, filter })).unwrap();
+        } else {
+          await dispatch(fetchTasks({ token, id: "", page, search: searchQuery })).unwrap();
+        }
       } else {
-        // Include searchQuery when fetching "My Tasks" so user search works for their tasks
-        await dispatch(fetchMyTasks({ token, page, search: searchQuery })).unwrap();
+        if (projectId || searchQuery) {
+          const filter = {
+            page,
+            ...(searchQuery && { "q[title_cont]": searchQuery }),
+            ...(projectId && { "q[project_management_id_eq]": projectId }),
+          };
+          await dispatch(filterTask({ token, filter })).unwrap();
+        } else {
+          // Include searchQuery when fetching "My Tasks" so user search works for their tasks
+          await dispatch(fetchMyTasks({ token, page, search: searchQuery })).unwrap();
+        }
       }
     }
   };

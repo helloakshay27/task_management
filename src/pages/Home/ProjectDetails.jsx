@@ -8,7 +8,7 @@ import {
 } from "lucide-react";
 import { useGSAP } from "@gsap/react";
 import { Fragment, useEffect, useRef, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import {
     changeProjectStatus,
@@ -571,9 +571,9 @@ const ProjectDetails = () => {
                                     </div>
                                 </div>
                                 <div className="w-1/2 flex items-center justify-start gap-3">
-                                    <div className="text-right text-[12px] font-[500]">
+                                    <Link to={`milestones`} className="text-right text-[12px] font-[500]">
                                         Milestones :
-                                    </div>
+                                    </Link>
                                     <div className="text-left text-[12px]">{`${project.completed_milestone_count}/${project.total_milestone_count}`}</div>
                                 </div>
                             </div>
@@ -590,9 +590,9 @@ const ProjectDetails = () => {
                                     </div>
                                 </div>
                                 <div className="w-1/2 flex items-center justify-start gap-3">
-                                    <div className="text-right text-[12px] font-semibold">
+                                    <Link to={`/tasks?project_id=${project.id}`} className="text-right text-[12px] font-semibold">
                                         Tasks :
-                                    </div>
+                                    </Link>
                                     <div className="text-left text-[12px]">{`${project.completed_task_management_count}/${project.total_task_management_count}`}</div>
                                 </div>
                             </div>
