@@ -5,7 +5,7 @@ import { useDispatch, useSelector } from "react-redux";
 import {
   useReactTable,
   getCoreRowModel,
-  flexRender
+  flexRender,
 } from "@tanstack/react-table";
 import { useDrag, useDrop, DndProvider } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
@@ -27,7 +27,10 @@ import {
 } from "../../../redux/slices/IssueSlice";
 import { fetchProjects } from "../../../redux/slices/projectSlice";
 import { fetchMilestone } from "../../../redux/slices/milestoneSlice";
-import { editTaskComment, fetchKanbanTasks } from "../../../redux/slices/taskSlice";
+import {
+  editTaskComment,
+  fetchKanbanTasks,
+} from "../../../redux/slices/taskSlice";
 import toast from "react-hot-toast";
 
 const NewIssuesTextField = ({
@@ -98,7 +101,11 @@ const CommentCell = ({ initialValue, issueId, commentId, onUpdate }) => {
 
   // Sync with prop changes
   useEffect(() => {
-    setEditField(initialValue || "");
+    setEditField(
+      initialValue
+        .replace(/@\[(.*?)\]\(\d+\)/g, "@$1")
+        .replace(/#\[(.*?)\]\(\d+\)/g, "#$1") || ""
+    );
   }, [initialValue]);
 
   return (
@@ -137,7 +144,9 @@ const Attachments = ({
   };
 
   const handleRemoveFile = (indexToRemove) => {
-    setAttachments(prev => prev.filter((_, index) => index !== indexToRemove));
+    setAttachments((prev) =>
+      prev.filter((_, index) => index !== indexToRemove)
+    );
   };
 
   const handleChangeFiles = (e) => {
@@ -153,7 +162,10 @@ const Attachments = ({
         <div className="flex flex-col gap-1">
           <div className="max-h-[100px] overflow-y-auto">
             {attachments.map((file, index) => (
-              <div key={index} className="flex items-center justify-between gap-2 text-[11px] py-1 px-2 bg-gray-50 rounded">
+              <div
+                key={index}
+                className="flex items-center justify-between gap-2 text-[11px] py-1 px-2 bg-gray-50 rounded"
+              >
                 <span className="truncate flex-1" title={file.name}>
                   {file.name}
                 </span>
@@ -199,7 +211,14 @@ const Attachments = ({
 
 // Constants
 const globalPriorityOptions = ["None", "Low", "Medium", "High", "Urgent"];
-const globalStatusOptions = ["open", "in_progress", "completed", "on_hold", "reopen", "closed"];
+const globalStatusOptions = [
+  "open",
+  "in_progress",
+  "completed",
+  "on_hold",
+  "reopen",
+  "closed",
+];
 const globalTypesOptions = ["bug", "task", "feature", "UI", "UX"];
 
 // Draggable Column Header Component
@@ -272,13 +291,16 @@ const IssuesTable = ({ selectedColumns }) => {
     loading: loadingFilteredIssues,
     error: filteredIssuesError,
     success: filterSuccess,
-  } = useSelector((state) => state.filterIssue || {
-    filterIssue: [],
-    pagination: { current_page: 1, total_pages: 1, total_count: 0 },
-    loading: false,
-    error: null,
-    success: false,
-  });
+  } = useSelector(
+    (state) =>
+      state.filterIssue || {
+        filterIssue: [],
+        pagination: { current_page: 1, total_pages: 1, total_count: 0 },
+        loading: false,
+        error: null,
+        success: false,
+      }
+  );
 
   const {
     fetchUsers: users,
@@ -311,15 +333,20 @@ const IssuesTable = ({ selectedColumns }) => {
       }
   );
 
-  const {
-    loading: loadingTasks,
-    error: tasksFetchError,
-  } = useSelector(
+  const { loading: loadingTasks, error: tasksFetchError } = useSelector(
     (state) =>
-      state.fetchKanbanTasks || { fetchKanbanTasks: [], loading: false, error: null }
+      state.fetchKanbanTasks || {
+        fetchKanbanTasks: [],
+        loading: false,
+        error: null,
+      }
   );
 
-  const { fetchIssueType: issueType, loading: loadingIssueType, error: issueTypeFetchError, } = useSelector((state) => state.fetchIssueType);
+  const {
+    fetchIssueType: issueType,
+    loading: loadingIssueType,
+    error: issueTypeFetchError,
+  } = useSelector((state) => state.fetchIssueType);
 
   const { fetchProjectDetails: projectDetails } = useSelector(
     (state) =>
@@ -336,7 +363,22 @@ const IssuesTable = ({ selectedColumns }) => {
     const savedOrder = localStorage.getItem("issuesTableColumnOrder");
     return savedOrder
       ? JSON.parse(savedOrder)
-      : ["id", "projectName", "milestoneName", "taskName", "subtaskName", "issueTitle", "attachments", "status", "responsiblePerson", "issueType", "startDate", "endDate", "priority", "comments"];
+      : [
+        "id",
+        "projectName",
+        "milestoneName",
+        "taskName",
+        "subtaskName",
+        "issueTitle",
+        "attachments",
+        "status",
+        "responsiblePerson",
+        "issueType",
+        "startDate",
+        "endDate",
+        "priority",
+        "comments",
+      ];
   });
   const [isAddingNewIssues, setIsAddingNewIssues] = useState(false);
   const [newIssuesTitle, setNewIssuesTitle] = useState("");
@@ -363,7 +405,7 @@ const IssuesTable = ({ selectedColumns }) => {
   const [localError, setLocalError] = useState(null);
   const [isFileDialogOpen, setIsFileDialogOpen] = useState(false);
   const [validator, setValidator] = useState(false);
-  const [tasks, setTasks] = useState([])
+  const [tasks, setTasks] = useState([]);
 
   const [pagination, setPagination] = useState({
     pageIndex: current_page - 1,
@@ -392,7 +434,7 @@ const IssuesTable = ({ selectedColumns }) => {
     }
   }, [dispatch, loadingIssueType, issueType, issueTypeFetchError, token]);
 
-  console.log(issueType)
+  console.log(issueType);
 
   // Fetch issues
   useEffect(() => {
@@ -435,11 +477,15 @@ const IssuesTable = ({ selectedColumns }) => {
       if (!loadingTasks && !tasksFetchError) {
         try {
           if (newIssuesMilestoneId) {
-            const response = await dispatch(fetchKanbanTasks({ id: newIssuesMilestoneId, token })).unwrap();
-            setTasks(response)
+            const response = await dispatch(
+              fetchKanbanTasks({ id: newIssuesMilestoneId, token })
+            ).unwrap();
+            setTasks(response);
           } else if (!newIssuesProjectId && !newIssuesMilestoneId) {
-            const response = await dispatch(fetchKanbanTasks({ id: "", token })).unwrap();
-            setTasks(response)
+            const response = await dispatch(
+              fetchKanbanTasks({ id: "", token })
+            ).unwrap();
+            setTasks(response);
           }
 
           setNewIssuesTaskId(null);
@@ -456,12 +502,7 @@ const IssuesTable = ({ selectedColumns }) => {
     };
 
     loadTasks();
-  }, [
-    dispatch,
-    newIssuesMilestoneId,
-    newIssuesProjectId,
-    token,
-  ]);
+  }, [dispatch, newIssuesMilestoneId, newIssuesProjectId, token]);
 
   // Set task options
   useEffect(() => {
@@ -717,7 +758,10 @@ const IssuesTable = ({ selectedColumns }) => {
       parentId || newIssuesProjectId || ""
     );
     formData.append("issue[milestone_id]", newIssuesMilestoneId || "");
-    formData.append("issue[task_management_id]", newIssuesSubtaskId ? newIssuesSubtaskId : newIssuesTaskId || "");
+    formData.append(
+      "issue[task_management_id]",
+      newIssuesSubtaskId ? newIssuesSubtaskId : newIssuesTaskId || ""
+    );
     formData.append("issue[start_date]", newIssuesStartDate || "");
     formData.append("issue[end_date]", newIssuesEndDate || "");
     formData.append("issue[priority]", newIssuesPriority);
@@ -816,7 +860,9 @@ const IssuesTable = ({ selectedColumns }) => {
             "q[subtask_management_id_in][]":
               item.selectedSubtasks?.length > 0 ? item.selectedSubtasks : [],
           };
-          const queryString = qs.stringify(newFilter, { arrayFormat: "repeat" });
+          const queryString = qs.stringify(newFilter, {
+            arrayFormat: "repeat",
+          });
           await dispatch(
             filterIssue({
               token,
@@ -863,7 +909,13 @@ const IssuesTable = ({ selectedColumns }) => {
         setIsUpdatingIssue(false);
       }
     },
-    [dispatch, token, pagination.pageIndex, pagination.pageSize, isUpdatingIssue]
+    [
+      dispatch,
+      token,
+      pagination.pageIndex,
+      pagination.pageSize,
+      isUpdatingIssue,
+    ]
   );
 
   // Clear filters on unload
@@ -957,7 +1009,9 @@ const IssuesTable = ({ selectedColumns }) => {
             "q[subtask_management_id_in][]":
               item.selectedSubtasks?.length > 0 ? item.selectedSubtasks : [],
           };
-          const queryString = qs.stringify(newFilter, { arrayFormat: "repeat" });
+          const queryString = qs.stringify(newFilter, {
+            arrayFormat: "repeat",
+          });
           await dispatch(
             filterIssue({
               token,
@@ -1066,7 +1120,9 @@ const IssuesTable = ({ selectedColumns }) => {
         size: 80,
         cell: ({ getValue }) => {
           const issueId = getValue();
-          const issuePath = isCloudRoute ? `/cloud-issues/${issueId}` : `/issues/${issueId}`;
+          const issuePath = isCloudRoute
+            ? `/cloud-issues/${issueId}`
+            : `/issues/${issueId}`;
           return (
             <Link
               to={issuePath}
@@ -1155,12 +1211,10 @@ const IssuesTable = ({ selectedColumns }) => {
         size: 150,
         cell: ({ row }) => (
           <SelectBox
-            options={
-              issueType.map((i) => ({
-                value: i.id,
-                label: i.name,
-              }))
-            }
+            options={issueType.map((i) => ({
+              value: i.id,
+              label: i.name,
+            }))}
             value={row.original.issueType}
             onChange={(selectedOptionValue) =>
               handleUpdateIssues(
@@ -1240,12 +1294,22 @@ const IssuesTable = ({ selectedColumns }) => {
         ),
       },
     ],
-    [handleUpdateIssues, handleUpdateComment, userOptionsForSelectBox, issueType, isCloudRoute]
+    [
+      handleUpdateIssues,
+      handleUpdateComment,
+      userOptionsForSelectBox,
+      issueType,
+      isCloudRoute,
+    ]
   );
 
   // Reorder columns based on columnOrder state
   const columns = columnOrder
-    .map((columnId) => allColumns.find((col) => col.id === columnId || col.accessorKey === columnId))
+    .map((columnId) =>
+      allColumns.find(
+        (col) => col.id === columnId || col.accessorKey === columnId
+      )
+    )
     .filter(Boolean)
     .filter((col) => {
       // If selectedColumns is empty or not provided, show all columns
@@ -1264,7 +1328,10 @@ const IssuesTable = ({ selectedColumns }) => {
         </td>
       ),
       projectName: (
-        <td key="projectName" className="border p-1 text-xs text-gray-400 align-middle">
+        <td
+          key="projectName"
+          className="border p-1 text-xs text-gray-400 align-middle"
+        >
           {parentId ? (
             <span className="text-xs text-gray-600">
               {projectDetails?.title}
@@ -1273,9 +1340,7 @@ const IssuesTable = ({ selectedColumns }) => {
             <SelectBox
               options={projectOptions}
               value={newIssuesProjectId}
-              onChange={(selected) =>
-                setNewIssuesProjectId(selected)
-              }
+              onChange={(selected) => setNewIssuesProjectId(selected)}
               placeholder="Select Project"
               table={true}
             />
@@ -1283,20 +1348,24 @@ const IssuesTable = ({ selectedColumns }) => {
         </td>
       ),
       milestoneName: (
-        <td key="milestoneName" className="border p-1 text-xs text-gray-400 align-middle">
+        <td
+          key="milestoneName"
+          className="border p-1 text-xs text-gray-400 align-middle"
+        >
           <SelectBox
             options={milestoneOptions}
             value={newIssuesMilestoneId}
-            onChange={(selected) =>
-              setNewIssuesMilestoneId(selected)
-            }
+            onChange={(selected) => setNewIssuesMilestoneId(selected)}
             placeholder="Select Milestone"
             table={true}
           />
         </td>
       ),
       taskName: (
-        <td key="taskName" className="border p-1 text-xs text-gray-400 align-middle">
+        <td
+          key="taskName"
+          className="border p-1 text-xs text-gray-400 align-middle"
+        >
           <SelectBox
             options={taskOptions}
             value={newIssuesTaskId}
@@ -1308,7 +1377,10 @@ const IssuesTable = ({ selectedColumns }) => {
         </td>
       ),
       subtaskName: (
-        <td key="subtaskName" className="border p-1 text-xs text-gray-400 align-middle">
+        <td
+          key="subtaskName"
+          className="border p-1 text-xs text-gray-400 align-middle"
+        >
           <SelectBox
             options={subtaskOptions}
             value={newIssuesSubtaskId}
@@ -1367,14 +1439,10 @@ const IssuesTable = ({ selectedColumns }) => {
       issueType: (
         <td key="issueType" className="border p-1 align-middle">
           <SelectBox
-            options={
-              issueType.map(type => (
-                {
-                  label: type.name,
-                  value: type.id
-                }
-              ))
-            }
+            options={issueType.map((type) => ({
+              label: type.name,
+              value: type.id,
+            }))}
             value={newIssuesType}
             onChange={setNewIssuesType}
             table={true}
@@ -1436,7 +1504,8 @@ const IssuesTable = ({ selectedColumns }) => {
     state: { pagination },
     onPaginationChange: (updater) => {
       setPagination((prev) => {
-        const newState = typeof updater === "function" ? updater(prev) : updater;
+        const newState =
+          typeof updater === "function" ? updater(prev) : updater;
         dispatch(
           fetchIssue({
             token,
@@ -1528,8 +1597,8 @@ const IssuesTable = ({ selectedColumns }) => {
                       <td
                         key={cell.id}
                         className={`border p-1 align-middle ${cell.column.id === "actions"
-                          ? "text-center"
-                          : "text-left"
+                            ? "text-center"
+                            : "text-left"
                           }`}
                       >
                         <div className="p-1 h-full flex items-center">
@@ -1579,11 +1648,15 @@ const IssuesTable = ({ selectedColumns }) => {
                 {"<"}
               </button>
               {(() => {
-                const { current_page: currPage, total_pages: totPages } = filterSuccess
-                  ? filterPagination
-                  : { current_page, total_pages };
+                const { current_page: currPage, total_pages: totPages } =
+                  filterSuccess
+                    ? filterPagination
+                    : { current_page, total_pages };
                 const visiblePages = 3;
-                let start = Math.max(0, currPage - 1 - Math.floor(visiblePages / 2));
+                let start = Math.max(
+                  0,
+                  currPage - 1 - Math.floor(visiblePages / 2)
+                );
                 let end = start + visiblePages;
                 if (end > totPages) {
                   end = totPages;
@@ -1596,7 +1669,8 @@ const IssuesTable = ({ selectedColumns }) => {
                     <button
                       key={page}
                       onClick={() => table.setPageIndex(page)}
-                      className={`px-3 py-1 ${isActive ? "bg-gray-200 font-semibold" : ""}`}
+                      className={`px-3 py-1 ${isActive ? "bg-gray-200 font-semibold" : ""
+                        }`}
                     >
                       {page + 1}
                     </button>
@@ -1617,7 +1691,11 @@ const IssuesTable = ({ selectedColumns }) => {
     );
   }
 
-  return <div className="project-list-wrapper p-2"><DndProvider backend={HTML5Backend}>{pageContent}</DndProvider></div>;
+  return (
+    <div className="project-list-wrapper p-2">
+      <DndProvider backend={HTML5Backend}>{pageContent}</DndProvider>
+    </div>
+  );
 };
 
 export default IssuesTable;

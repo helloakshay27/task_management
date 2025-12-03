@@ -439,7 +439,7 @@ const AddSubtaskModal = ({ isModalOpen, setIsModalOpen, title }) => {
                             <div className="flex justify-between mt-4 gap-2 text-[12px]">
                                 <div className="space-y-2 w-full">
                                     <label className="block">
-                                        Duration <span className="text-red-600">*</span>
+                                        Efforts Duration <span className="text-red-600">*</span>
                                     </label>
                                     <DurationPicker
                                         value={taskDuration}

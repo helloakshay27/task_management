@@ -760,7 +760,7 @@ const SubtaskTable = ({ projectId }) => {
         size: 80,
         cell: ({ getValue }) => (
           <span className="text-xs text-gray-500 px-1 cursor-pointer hover:underline" onClick={() => navigate(`/tasks/${getValue()}`)}>
-            {getValue().toString().slice(-5)}
+            S-{getValue().toString().slice(-5)}
           </span>
         ),
       },
@@ -871,7 +871,7 @@ const SubtaskTable = ({ projectId }) => {
       },
       {
         accessorKey: "duration",
-        header: "Duration",
+        header: "Time Left",
         size: 100,
         cell: (info) => {
           return info.row.original.startDate && info.row.original.endDate ? (

@@ -1134,16 +1134,58 @@ const TaskDetails = () => {
                     </div>
                     <div className="border rounded-md shadow-custom p-5 mb-4">
                         <div
-                            className="font-[600] text-[16px] flex items-center gap-4"
+                            className="font-[600] text-[16px] flex items-center gap-10"
                         >
-                            <ChevronDownCircle
-                                color="#E95420"
-                                size={30}
-                                className={`${isSecondCollapsed ? "rotate-180" : "rotate-0"
-                                    } transition-transform cursor-pointer`}
-                                onClick={toggleSecondCollapse}
-                            />{" "}
-                            Details
+                            <div className="flex items-center gap-4">
+                                <ChevronDownCircle
+                                    color="#E95420"
+                                    size={30}
+                                    className={`${isSecondCollapsed ? "rotate-180" : "rotate-0"
+                                        } transition-transform cursor-pointer`}
+                                    onClick={toggleSecondCollapse}
+                                />{" "}
+                                Details
+                            </div>
+                            {isSecondCollapsed &&
+                                <div className="flex items-center gap-4">
+                                    <div className="flex items-center justify-start gap-3">
+                                        <div className="text-right text-[12px] font-[500]">
+                                            Responsible Person:
+                                        </div>
+                                        <div className="text-left text-[12px]">
+                                            {task.responsible_person?.name}
+                                        </div>
+                                    </div>
+
+                                    <div className="flex items-center justify-start gap-3">
+                                        <div className="text-right text-[12px] font-[500]">
+                                            Priority:
+                                        </div>
+                                        <div className="text-left text-[12px]">
+                                            {task.priority?.charAt(0).toUpperCase() +
+                                                task.priority?.slice(1).toLowerCase() || ""}
+                                        </div>
+                                    </div>
+
+                                    <div className="flex items-center justify-start gap-3">
+                                        <div className="text-right text-[12px] font-[500]">
+                                            Start Date:
+                                        </div>
+                                        <div className="text-left text-[12px]">
+                                            {task?.expected_start_date?.split("T")[0]}
+                                        </div>
+                                    </div>
+
+                                    <div className="flex items-center justify-start gap-3">
+                                        <div className="text-right text-[12px] font-[500]">
+                                            End Date:
+                                        </div>
+                                        <div className="text-left text-[12px]">
+                                            {task.target_date}
+                                        </div>
+                                    </div>
+                                </div>
+                            }
                         </div>
                         <div className="mt-3 overflow-hidden" ref={secondContentRef}>
                             <div className="flex flex-col">
@@ -1213,7 +1255,7 @@ const TaskDetails = () => {
                                 <div className="flex items-center ml-36">
                                     <div className="w-1/2 flex items-center justify-start gap-3">
                                         <div className="text-right text-[12px] font-[500]">
-                                            Duration:
+                                            Efforts Duration:
                                         </div>
                                         <div className="text-left text-[12px]">
                                             {task.estimated_hour && task.estimated_hour + "hours"}

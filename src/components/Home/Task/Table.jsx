@@ -964,7 +964,8 @@ const TaskTable = ({ isModalOpen, searchQuery, selectedColumns }) => {
       size: 100,
       cell: ({ getValue, row }) => {
         let originalId = String(getValue() || "");
-        let displayId = originalId.startsWith("T-") ? originalId : `T-${originalId}`;
+        const isTask = row.original.hasSubtasks
+        let displayId = originalId.startsWith("T-") ? originalId : `${isTask ? `T-${originalId}` : `S-${originalId}`}`;
         let linkIdPart = originalId.startsWith("T-") ? originalId.substring(2) : originalId;
         const taskPaths = getTaskPaths(id, mid, linkIdPart, isCloudRoute);
         const navigationPath = mid ? taskPaths.taskDetail : taskPaths.taskDetailSimple;
@@ -1077,7 +1078,7 @@ const TaskTable = ({ isModalOpen, searchQuery, selectedColumns }) => {
     },
     {
       accessorKey: "duration",
-      header: "Duration",
+      header: "Time Left",
       size: 120,
       cell: ({ row }) => <CountdownTimer startDate={row.original.startDate} targetDate={row.original.endDate} />,
     },

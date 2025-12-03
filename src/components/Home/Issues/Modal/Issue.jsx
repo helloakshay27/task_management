@@ -752,7 +752,7 @@ const Issues = ({ closeModal }) => {
         <div className="flex justify-between mt-3 gap-2 text-[12px]">
           <div className="space-y-2 w-full">
             <label className="block">
-              Duration
+              Efforts Duration
             </label>
             <DurationPicker
               value={issueDuration}

@@ -387,6 +387,26 @@ const GanttChart = ({ selectedColumns = {} }) => {
     }, [navigate]);
 
     useEffect(() => {
+        const handleMilestoneViewClick = (e) => {
+            const btn = e.target.closest(".gantt-subtask-link");
+            if (btn) {
+                const itemId = btn.getAttribute("data-id");
+                const parentId = btn.getAttribute("data-parent");
+                if (itemId) {
+                    navigate(`${parentId}/tasks/${itemId}`);
+                }
+            }
+        };
+
+        const container = ganttContainer.current;
+        container?.addEventListener("click", handleMilestoneViewClick);
+
+        return () => {
+            container?.removeEventListener("click", handleMilestoneViewClick);
+        };
+    }, [navigate]);
+
+    useEffect(() => {
         console.log("Gantt useEffect started, scale:", scale);
 
         // Configure compact row height
@@ -401,7 +421,7 @@ const GanttChart = ({ selectedColumns = {} }) => {
                 label: "Actions",
                 tree: true,
                 align: "left",
-                width: 130,
+                width: 170,
                 resize: true,
                 template: function (task) {
                     const navType = task.type === "milestone" ? "milestone" : task.type;
@@ -446,8 +466,12 @@ const GanttChart = ({ selectedColumns = {} }) => {
                         return `<span style="cursor: pointer; font-size: 14px;" title="${task.text
                             }">M-${task.id.split("-")[1]}</span>`;
                     }
+                    if (task.type === "task") {
+                        return `<span style="cursor: pointer; font-size: 14px;" title="${task.text
+                            }">T-${task.id.split("-")[1]}</span>`;
+                    }
                     return `<span style="cursor: pointer; font-size: 14px;" title="${task.text
-                        }">T-${task.id.split("-")[1]}</span>`;
+                        }">S-${task.id.split("-")[1]}</span>`;
                 },
             },
             {
@@ -456,6 +480,7 @@ const GanttChart = ({ selectedColumns = {} }) => {
                 width: 280,
                 resize: true,
                 template: function (task) {
+                    console.log(task)
                     if (task.type === "milestone") {
                         return `<span class="gantt-milestone-link" data-id="${task.navigationid
                             }" style="cursor: pointer; font-size: 14px;" title="${task.text
@@ -464,11 +489,20 @@ const GanttChart = ({ selectedColumns = {} }) => {
                                     .replace(/@\[(.*?)\]\(\d+\)/g, "@$1")
                                     .replace(/#\[(.*?)\]\(\d+\)/g, "#$1")}</span>`;
                     }
-                    return `<span style="cursor: pointer; font-size: 14px;" title="${task.text
-                        .replace(/@\[(.*?)\]\(\d+\)/g, "@$1")
-                        .replace(/#\[(.*?)\]\(\d+\)/g, "#$1")}">${task.text
+                    if (task.type === "task") {
+                        return `<span class="gantt-milestone-link" data-id="${task.parent.split("-")[1]
+                            }" style="cursor: pointer; font-size: 14px;" title="${task.text
+                                .replace(/@\[(.*?)\]\(\d+\)/g, "@$1")
+                                .replace(/#\[(.*?)\]\(\d+\)/g, "#$1")}">${task.text
+                                    .replace(/@\[(.*?)\]\(\d+\)/g, "@$1")
+                                    .replace(/#\[(.*?)\]\(\d+\)/g, "#$1")}</span>`;
+                    }
+                    return `<span class="gantt-subtask-link" data-id="${task.navigationid
+                        }" data-parent="${task.parent.split("-")[1]}" style="cursor: pointer; font-size: 14px;" title="${task.text
                             .replace(/@\[(.*?)\]\(\d+\)/g, "@$1")
-                            .replace(/#\[(.*?)\]\(\d+\)/g, "#$1")}</span>`;
+                            .replace(/#\[(.*?)\]\(\d+\)/g, "#$1")}">${task.text
+                                .replace(/@\[(.*?)\]\(\d+\)/g, "@$1")
+                                .replace(/#\[(.*?)\]\(\d+\)/g, "#$1")}</span>`;
                 },
             },
             {

@@ -111,7 +111,7 @@ const ProjectCard = ({ project }) => {
                 </div>
             </div>
 
-            <div className="space-y-3 text-sm">
+            <div className="space-y-3 text-xs">
                 {/* Milestones */}
                 <div className="flex items-center gap-2">
                     <div className="w-20 font-light text-gray-600">Milestone</div>
