@@ -149,7 +149,9 @@ const AddInternalUser = ({
                         },
                     }
                 );
-                handleSuccess();
+                setTimeout(() => {
+                    window.location.reload();
+                }, 1000);
             } else {
                 setError(
                     response.message || response.error || "Unknown error occurred"
