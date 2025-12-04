@@ -352,6 +352,7 @@ const ProjectList = ({ searchQuery, selectedColumns }) => {
                 "manager",
                 "milestones",
                 "tasks",
+                "subTasks",
                 "issues",
                 "startDate",
                 "endDate",
@@ -474,6 +475,18 @@ const ProjectList = ({ searchQuery, selectedColumns }) => {
 
                         const percentage = Math.round((completedCount / totalCount) * 100);
                         console.log(percentage);
+                        return percentage;
+                    })(),
+
+                    total_sub_task_count: Number(project.total_sub_task_count || 0),
+                    completed_sub_task_count: Number(
+                        project.completed_sub_task_count || 0
+                    ),
+                    sub_tasks: (() => {
+                        const totalCount = Number(project.total_sub_task_count);
+                        const completedCount = Number(project.completed_sub_task_count);
+                        if (!totalCount || totalCount === 0) return 0;
+                        const percentage = Math.round((completedCount / totalCount) * 100);
                         return percentage;
                     })(),
 
@@ -897,6 +910,18 @@ const ProjectList = ({ searchQuery, selectedColumns }) => {
                         progressString={info.getValue()}
                         total={info.row.original.total_task_management_count}
                         completed={info.row.original.completed_task_management_count}
+                    />
+                ),
+            },
+            {
+                accessorKey: "subTasks",
+                header: "Subtasks",
+                size: 110,
+                cell: (info) => (
+                    <ProgressBar
+                        progressString={info.getValue()}
+                        total={info.row.original.total_sub_task_count}
+                        completed={info.row.original.completed_sub_task_count}
                     />
                 ),
             },

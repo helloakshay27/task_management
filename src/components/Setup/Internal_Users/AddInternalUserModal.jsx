@@ -77,6 +77,7 @@ const AddInternalUser = ({
                 mobile: selectedUser.mobile || "",
                 email: selectedUser.email || "",
                 role: selectedUser.lock_role?.id || null,
+                department: selectedUser.department_id,
                 reportTo: selectedUser.report_to_id || "",
                 company: selectedUser.company_id || "",
             });

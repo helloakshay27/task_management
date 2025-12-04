@@ -17,6 +17,7 @@ const PROJECT_TABLE_COLUMNS = [
     { id: "manager", label: "Project Manager", key: "manager" },
     { id: "milestones", label: "Milestones", key: "milestones" },
     { id: "tasks", label: "Tasks", key: "tasks" },
+    { id: "subtasks", label: "Subtasks", key: "subtasks" },
     { id: "issues", label: "Issues", key: "issues" },
     { id: "startDate", label: "Start Date", key: "startDate" },
     { id: "endDate", label: "End Date", key: "endDate" },
