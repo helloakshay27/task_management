@@ -87,10 +87,13 @@ export const fetchProjects = createAsyncThunk(
   "fetchProjects",
   async ({ token, page = 1 }) => {
     try {
-      const params = new URLSearchParams();
-      params.append('q[project_team_project_team_members_user_id_or_owner_id_or_created_by_id_eq]', JSON.parse(localStorage.getItem("user")).id);
+      let params = new URLSearchParams();
+      params.append(
+        "q[project_team_project_team_members_user_id_or_owner_id_or_created_by_id_eq]",
+        JSON.parse(localStorage.getItem("user")).id
+      );
       if (page) {
-        params.append('page', page);
+        params.append("page", page);
       }
       const response = await axios.get(
         `${baseURL}/project_managements.json?${params.toString()}`,
@@ -322,7 +325,7 @@ export const filterProjects = createAsyncThunk(
   async ({ token, filters }, { rejectWithValue }) => {
     const userId = JSON.parse(localStorage.getItem("user")).id;
     try {
-      const params = new URLSearchParams(filters).toString();
+      let params = new URLSearchParams(filters).toString();
       params += `&q[project_team_project_team_members_user_id_or_owner_id_or_created_by_id_eq]=${userId}`;
       console.log(params);
       const response = await axios.get(
