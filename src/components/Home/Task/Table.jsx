@@ -37,7 +37,7 @@ import { fetchProjectTeamMembers } from "../../../redux/slices/projectSlice";
 import axios from "axios";
 import toast from "react-hot-toast";
 import { baseURL } from "../../../../apiDomain";
-import { X, Play } from "lucide-react";
+import { X, Play, Pause } from "lucide-react";
 import { useDrag, useDrop, DndProvider } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
 
@@ -311,10 +311,10 @@ const processTaskData = (task) => {
     duration: calculateDuration(task.expected_start_date, task.target_date),
     predecessor: task.predecessor_task.length || 0,
     successor: task.successor_task.length || 0,
+    is_started: task.is_started || false,
     hasSubtasks,
     subRows,
     subRowsLoaded: true,
-    isStarted: task.is_started || false,
   };
 };
 
@@ -385,7 +385,6 @@ const TaskTable = ({ isModalOpen, searchQuery, selectedColumns }) => {
     totalRecords: 0,
     currentPage: 1,
   });
-  const [startingTaskId, setStartingTaskId] = useState(null);
   const MIN_DISPLAY_ROWS = 10;
   const ROW_HEIGHT = 40;
   const HEADER_HEIGHT = 40;
@@ -614,34 +613,7 @@ const TaskTable = ({ isModalOpen, searchQuery, selectedColumns }) => {
     }
   }, [updateParentTaskStatus]);
 
-  // Start task API call
-  const handleStartTask = useCallback(async (taskId, isStarted, e) => {
-    e.stopPropagation();
-    setStartingTaskId(taskId);
-    try {
-      const payload = { status: isStarted ? "stopped" : "started" };
-      const response = await axios.put(
-        `${baseURL}/task_managements/${taskId}/update_status.json`,
-        payload,
-        {
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-      const successMessage = isStarted ? "Task paused successfully!" : "Task started successfully!";
-      toast.success(successMessage);
-      lastFetchedPageRef.current = null;
-      await handleFetchTasks();
-    } catch (error) {
-      console.error("Error updating task:", error);
-      const errorMessage = isStarted ? "Failed to pause task. Please try again." : "Failed to start task. Please try again.";
-      toast.error(errorMessage);
-    } finally {
-      setStartingTaskId(null);
-    }
-  }, [token, handleFetchTasks]);
+
 
   useEffect(() => {
     const fetchMembers = async () => {
@@ -986,17 +958,25 @@ const TaskTable = ({ isModalOpen, searchQuery, selectedColumns }) => {
       size: 200,
       cell: ({ getValue, row }) => {
         const [editTitle, setEditTitle] = useState(getValue());
-        const [isHovering, setIsHovering] = useState(false);
-        const isStarting = startingTaskId === row.original.id;
-        const canStart = row.original.status !== "in_progress" && row.original.status !== "completed";
-        const isTaskStarted = row.original.isStarted;
+        const [isPlayPauseLoading, setIsPlayPauseLoading] = useState(false);
+
+        const handlePlayPauseClick = async (action) => {
+          setIsPlayPauseLoading(true);
+          try {
+            const newStatus = action === "play" ? "in_progress" : "stopped";
+            await handleUpdateTaskFieldCell(row.original.id, "status", newStatus, row);
+          } catch (error) {
+            console.error(`Failed to ${action} task:`, error);
+            toast.error(`Failed to ${action} task`);
+          } finally {
+            setIsPlayPauseLoading(false);
+          }
+        };
+
+        const isTaskStarted = row.original.is_started;
 
         return (
-          <div
-            className="flex items-center gap-2 group"
-            onMouseEnter={() => setIsHovering(true)}
-            onMouseLeave={() => setIsHovering(false)}
-          >
+          <div className="flex items-center gap-2 w-full">
             <EditableTextField
               value={editTitle}
               onUpdate={(title) => setEditTitle(title)}
@@ -1004,15 +984,23 @@ const TaskTable = ({ isModalOpen, searchQuery, selectedColumns }) => {
               data-task-id={row.original.id}
               data-field-name="title"
             />
-            {isHovering && (canStart || isTaskStarted) && (
+            {isTaskStarted ? (
               <button
-                onClick={(e) => handleStartTask(row.original.id, isTaskStarted, e)}
-                disabled={isStarting}
-                className={`ml-2 px-2 py-1 text-white rounded flex items-center gap-1 text-xs whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed transition-all ${isTaskStarted ? "bg-orange-500" : "bg-green-500"
-                  }`}
-                title={isTaskStarted ? "Pause this task" : "Start this task"}
+                onClick={() => handlePlayPauseClick("pause")}
+                disabled={isPlayPauseLoading}
+                className="p-1 hover:bg-gray-200 rounded transition disabled:opacity-50"
+                title="Pause task"
               >
-                {isStarting ? (isTaskStarted ? "Pausing..." : "Starting...") : isTaskStarted ? "Pause" : "Start"}
+                <Pause size={13} className="text-orange-500" />
+              </button>
+            ) : (
+              <button
+                onClick={() => handlePlayPauseClick("play")}
+                disabled={isPlayPauseLoading}
+                className="p-1 hover:bg-gray-200 rounded transition disabled:opacity-50"
+                title="Play task"
+              >
+                <Play size={13} className="text-green-500" />
               </button>
             )}
           </div>

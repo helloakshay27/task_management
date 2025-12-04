@@ -130,7 +130,7 @@ const TaskForm = ({
     const getProjects = async () => {
       try {
         const response = await dispatch(fetchProjects({ token })).unwrap();
-        setProjects(response);
+        setProjects(response.project_managements);
       } catch (error) {
         console.log(error);
       }

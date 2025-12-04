@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import clsx from "clsx";
 import { useSelector, useDispatch } from "react-redux";
 import { filterTask } from "../../../redux/slices/taskSlice";
+import { fetchStatus } from "../../../redux/slices/statusSlice";
 import { useLocation, useParams } from "react-router-dom";
 import qs from "qs";
 import axios from "axios";
@@ -35,8 +36,10 @@ const TaskFilter = ({ isModalOpen, setIsModalOpen }) => {
                     selectedResponsible: [],
                     selectedCreators: [],
                     selectedProjects: [],
+                    selectedWorkflowStatus: [],
                     dates: { startDate: "", endDate: "" },
                     statusSearch: "",
+                    workflowStatusSearch: "",
                     ResponsiblePersonSearch: "",
                     creatorSearch: "",
                     projectSearch: "",
@@ -48,8 +51,10 @@ const TaskFilter = ({ isModalOpen, setIsModalOpen }) => {
                 selectedResponsible: [],
                 selectedCreators: [],
                 selectedProjects: [],
+                selectedWorkflowStatus: [],
                 dates: { startDate: "", endDate: "" },
                 statusSearch: "",
+                workflowStatusSearch: "",
                 ResponsiblePersonSearch: "",
                 creatorSearch: "",
                 projectSearch: "",
@@ -64,14 +69,17 @@ const TaskFilter = ({ isModalOpen, setIsModalOpen }) => {
     const [selectedResponsible, setSelectedResponsible] = useState(initialFilters.selectedResponsible);
     const [selectedCreators, setSelectedCreators] = useState(initialFilters.selectedCreators);
     const [selectedProjects, setSelectedProjects] = useState(initialFilters.selectedProjects);
+    const [selectedWorkflowStatus, setSelectedWorkflowStatus] = useState(initialFilters.selectedWorkflowStatus || []);
     const [dates, setDates] = useState(initialFilters.dates);
     const [responsiblePersonOptions, setResponsiblePersonOptions] = useState([]);
     const [createdByOptions, setCreatedByOptions] = useState([]);
     const [statusOptions, setStatusOptions] = useState([]);
     const [projectOptions, setProjectOptions] = useState([]);
+    const [workflowStatusOptions, setWorkflowStatusOptions] = useState([]);
 
     // Search inputs inside dropdowns
     const [statusSearch, setStatusSearch] = useState(initialFilters.statusSearch);
+    const [workflowStatusSearch, setWorkflowStatusSearch] = useState(initialFilters.workflowStatusSearch || "");
     const [ResponsiblePersonSearch, setResponsiblePersonSearch] = useState(initialFilters.ResponsiblePersonSearch);
     const [creatorSearch, setCreatorSearch] = useState(initialFilters.creatorSearch);
     const [projectSearch, setProjectSearch] = useState(initialFilters.projectSearch);
@@ -82,6 +90,7 @@ const TaskFilter = ({ isModalOpen, setIsModalOpen }) => {
         endDate: false,
         createdBy: false,
         project: false,
+        workflowStatus: false,
     });
     const dispatch = useDispatch();
 
@@ -101,6 +110,10 @@ const TaskFilter = ({ isModalOpen, setIsModalOpen }) => {
         error,
     } = useSelector(state => state.fetchUsers)
 
+    const {
+        fetchStatus: workflowStatuses,
+    } = useSelector(state => state.fetchStatus)
+
     useEffect(() => {
         // Use filtered tasks if available, otherwise use all tasks
         const tasks = filteredTasks?.length > 0 ? filteredTasks : tasksFromStore;
@@ -112,9 +125,19 @@ const TaskFilter = ({ isModalOpen, setIsModalOpen }) => {
             setCreatedByOptions(users.map(user => ({ label: user.firstname + " " + user.lastname, value: user.id })));
             setResponsiblePersonOptions(users.map(user => ({ label: user.firstname + " " + user.lastname, value: user.id })));
         }
-    }, [tasksFromStore, filteredTasks, users])
 
-    // Fetch projects from API
+        // Map workflow statuses from Redux store
+        if (workflowStatuses && Array.isArray(workflowStatuses)) {
+            setWorkflowStatusOptions(
+                workflowStatuses.map(status => ({
+                    label: status.status || status.name,
+                    value: status.id,
+                }))
+            );
+        }
+    }, [tasksFromStore, filteredTasks, users, workflowStatuses])
+
+    // Fetch projects and workflow statuses from API
     useEffect(() => {
         const fetchProjects = async () => {
             try {
@@ -136,8 +159,10 @@ const TaskFilter = ({ isModalOpen, setIsModalOpen }) => {
 
         if (token) {
             fetchProjects();
+            // Dispatch fetchStatus to get workflow statuses
+            dispatch(fetchStatus({ token }));
         }
-    }, [token]);
+    }, [token, dispatch]);
 
     // Save filter state to localStorage whenever it changes
     useEffect(() => {
@@ -146,13 +171,15 @@ const TaskFilter = ({ isModalOpen, setIsModalOpen }) => {
             selectedResponsible,
             selectedCreators,
             selectedProjects,
+            selectedWorkflowStatus,
             dates,
             statusSearch,
+            workflowStatusSearch,
             ResponsiblePersonSearch,
             creatorSearch,
             projectSearch,
         };
-        if (selectedStatuses?.length > 0 || selectedResponsible?.length > 0 || selectedCreators?.length > 0 || selectedProjects?.length > 0 || dates.startDate || dates.endDate || statusSearch || ResponsiblePersonSearch || creatorSearch || projectSearch) {
+        if (selectedStatuses?.length > 0 || selectedResponsible?.length > 0 || selectedCreators?.length > 0 || selectedProjects?.length > 0 || selectedWorkflowStatus?.length > 0 || dates.startDate || dates.endDate || statusSearch || ResponsiblePersonSearch || creatorSearch || projectSearch || workflowStatusSearch) {
             localStorage.setItem("taskFilters", JSON.stringify(filters));
         }
     }, [
@@ -160,8 +187,10 @@ const TaskFilter = ({ isModalOpen, setIsModalOpen }) => {
         selectedResponsible,
         selectedCreators,
         selectedProjects,
+        selectedWorkflowStatus,
         dates,
         statusSearch,
+        workflowStatusSearch,
         ResponsiblePersonSearch,
         creatorSearch,
         projectSearch,
@@ -178,6 +207,7 @@ const TaskFilter = ({ isModalOpen, setIsModalOpen }) => {
                 "q[end_date_eq]": dates.endDate,
                 "q[responsible_person_id_in][]": selectedResponsible?.length > 0 ? selectedResponsible : [],
                 "q[project_management_id_in][]": selectedProjects?.length > 0 ? selectedProjects : [],
+                "q[project_status_id_in][]": selectedWorkflowStatus?.length > 0 ? selectedWorkflowStatus : [],
                 "q[milestone_id_eq]": mid
             }
             if (newFilter) {
@@ -282,8 +312,10 @@ const TaskFilter = ({ isModalOpen, setIsModalOpen }) => {
         setSelectedResponsible([]);
         setSelectedCreators([]);
         setSelectedProjects([]);
+        setSelectedWorkflowStatus([]);
         setDates({ startDate: "", endDate: "" });
         setStatusSearch("");
+        setWorkflowStatusSearch("");
         setResponsiblePersonSearch("");
         setCreatorSearch("");
         setProjectSearch("");
@@ -378,6 +410,37 @@ const TaskFilter = ({ isModalOpen, setIsModalOpen }) => {
                             </div>
                         )}
                     </div>
+
+                    {/* Workflow Status */}
+                    <div className="p-6 py-3">
+                        <div
+                            className="flex items-center justify-between cursor-pointer"
+                            onClick={() => toggleDropdown("workflowStatus")}
+                        >
+                            <span className="font-medium text-sm select-none">Workflow Status</span>
+                            {dropdowns.workflowStatus ? (
+                                <ChevronDown className="text-gray-400" />
+                            ) : (
+                                <ChevronRight className="text-gray-400" />
+                            )}
+                        </div>
+                        {dropdowns.workflowStatus && (
+                            <div className="mt-4 border">
+                                <div className="relative border-b">
+                                    <Search className="absolute left-3 top-2.5 text-red-400" size={16} />
+                                    <input
+                                        type="text"
+                                        placeholder="Filter workflow status..."
+                                        className="w-full pl-8 pr-4 py-2 text-sm border focus:outline-none"
+                                        value={workflowStatusSearch}
+                                        onChange={(e) => setWorkflowStatusSearch(e.target.value)}
+                                    />
+                                </div>
+                                {renderCheckboxList(workflowStatusOptions, selectedWorkflowStatus, setSelectedWorkflowStatus, workflowStatusSearch)}
+                            </div>
+                        )}
+                    </div>
+
 
                     {/* Responsible Person */}
                     <div className="p-6 py-3">
