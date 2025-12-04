@@ -638,6 +638,7 @@ const SubtaskTable = ({ projectId }) => {
       status: newSubtaskStatus,
       responsible_person_id: newSubtaskResponsiblePersonId,
       project_management_id: parentTaskForSubtasks?.project_management_id || id,
+      milestone_id: parentTaskForSubtasks?.milestone_id || mid,
       expected_start_date: newSubtaskStartDate || null,
       target_date: newSubtaskEndDate || null,
       priority: newSubtaskPriority,

@@ -31,7 +31,7 @@ const monthNames = [
     "Dec",
 ];
 
-const AddSubtaskModal = ({ isModalOpen, setIsModalOpen, title }) => {
+const AddSubtaskModal = ({ isModalOpen, setIsModalOpen, title, parentTaskMilestone }) => {
     const { id: pid, mid, tid } = useParams();
     const dispatch = useDispatch();
     const token = localStorage.getItem("token");
@@ -286,7 +286,8 @@ const AddSubtaskModal = ({ isModalOpen, setIsModalOpen, title }) => {
             priority: formData.priority,
             task_tag_ids: formData.tags.map((tag) => tag.value),
             task_allocation_times_attributes: dateWiseHours,
-            project_management_id: pid
+            project_management_id: pid,
+            milestone_id: mid ? mid : parentTaskMilestone
         };
         if (payload.task_tag_ids.length === 0) {
             payload.task_tag_ids = null

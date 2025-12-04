@@ -1433,6 +1433,7 @@ const TaskDetails = () => {
                     isModalOpen={isSubtaskModalOpen}
                     setIsModalOpen={setIsSubtaskModalOpen}
                     title={"Add Subtask"}
+                    parentTaskMilestone={task.milestone_id}
                 />
             )}
 
