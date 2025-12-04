@@ -193,6 +193,7 @@ const ActionIcons = ({ row }) => {
 
 const ProgressBar = ({ progressString, total = 0, completed = 0 }) => {
     const numericValue = parseInt(progressString, 10);
+    console.log(numericValue)
     const isValidPercentage =
         !isNaN(numericValue) && numericValue >= 0 && numericValue <= 100;
     return (
@@ -478,15 +479,16 @@ const ProjectList = ({ searchQuery, selectedColumns }) => {
                         return percentage;
                     })(),
 
-                    total_sub_task_count: Number(project.total_sub_task_count || 0),
+                    total_sub_task_count: Number(project.total_sub_task_management_count || 0),
                     completed_sub_task_count: Number(
-                        project.completed_sub_task_count || 0
+                        project.completed_sub_task_management_count || 0
                     ),
-                    sub_tasks: (() => {
-                        const totalCount = Number(project.total_sub_task_count);
-                        const completedCount = Number(project.completed_sub_task_count);
+                    subTasks: (() => {
+                        const totalCount = Number(project.total_sub_task_management_count);
+                        const completedCount = Number(project.completed_sub_task_management_count);
                         if (!totalCount || totalCount === 0) return 0;
                         const percentage = Math.round((completedCount / totalCount) * 100);
+                        console.log(percentage)
                         return percentage;
                     })(),
 

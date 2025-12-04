@@ -31,7 +31,7 @@ const monthNames = [
     "Dec",
 ];
 
-const AddSubtaskModal = ({ isModalOpen, setIsModalOpen, title, parentTaskMilestone }) => {
+const AddSubtaskModal = ({ isModalOpen, setIsModalOpen, title, parentTaskMilestone, parentTaskProject }) => {
     const { id: pid, mid, tid } = useParams();
     const dispatch = useDispatch();
     const token = localStorage.getItem("token");
@@ -271,7 +271,8 @@ const AddSubtaskModal = ({ isModalOpen, setIsModalOpen, title, parentTaskMilesto
         if (!validateForm()) return
 
         setIsSubmitting(true)
-        const formatedStartDate = `${startDate.year}-${startDate.month + 1}-${startDate.date
+        console.log(startDate)
+        const formatedStartDate = `${startDate?.year}-${startDate?.month + 1}-${startDate?.date
             }`;
         const formatedEndDate = `${endDate.year}-${endDate.month + 1}-${endDate.date
             }`;
@@ -286,7 +287,7 @@ const AddSubtaskModal = ({ isModalOpen, setIsModalOpen, title, parentTaskMilesto
             priority: formData.priority,
             task_tag_ids: formData.tags.map((tag) => tag.value),
             task_allocation_times_attributes: dateWiseHours,
-            project_management_id: pid,
+            project_management_id: pid ? pid : parentTaskProject,
             milestone_id: mid ? mid : parentTaskMilestone
         };
         if (payload.task_tag_ids.length === 0) {
