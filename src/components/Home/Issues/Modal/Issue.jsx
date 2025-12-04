@@ -446,7 +446,7 @@ const Issues = ({ closeModal }) => {
       dispatch(fetchProjects({ token })).unwrap();
       setProjectOptions(
         projects
-          ? projects.map((project) => ({
+          ? projects.project_managements.map((project) => ({
             value: project.id,
             label: project.title,
           }))

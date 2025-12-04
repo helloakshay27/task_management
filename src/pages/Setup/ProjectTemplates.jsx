@@ -53,6 +53,8 @@ const ProjectTemplates = () => {
     const { fetchTemplates: templates } = useSelector(state => state.fetchTemplates)
     const { success } = useSelector(state => state.editProject)
 
+    console.log(templates)
+
     useEffect(() => {
         dispatch(fetchTemplates({ token }))
     }, [dispatch])
@@ -136,7 +138,7 @@ const ProjectTemplates = () => {
     return (
         <DndProvider backend={HTML5Backend}>
             <CustomTable
-                data={templates}
+                data={templates?.project_managements || []}
                 columns={columns}
                 title="Templates"
                 layout="inline"

@@ -56,7 +56,9 @@ const AddProjectTemplate = ({ isModalOpen, setIsModalOpen }) => {
     }
   }, [details])
 
-  const filteredTemplates = templates.filter((template) => {
+  console.log(templates)
+
+  const filteredTemplates = templates?.project_managements?.filter((template) => {
     return template.title.toLowerCase().includes(searchQuery.toLowerCase());
   });
 

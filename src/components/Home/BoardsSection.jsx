@@ -276,9 +276,11 @@ const BoardsSection = ({ section }) => {
               }))
           ).filter((subtask) => subtask.status === cardStatus);
 
-          const filteredProjects = projects && projects.filter(
+          const filteredProjects = projects && projects?.project_managements?.filter(
             (project) => cardStatus === "open" ? project.status === "active" : project.status === cardStatus
           );
+
+          console.log(filterProjects)
 
           return (
             <Boards
@@ -287,8 +289,8 @@ const BoardsSection = ({ section }) => {
               color={card.color}
               count={
                 section === "Tasks"
-                  ? filteredTasks.length + filteredSubtasks.length
-                  : filteredProjects.length
+                  ? filteredTasks?.length + filteredSubtasks.length
+                  : filteredProjects?.length
               }
               title={card.title}
               onDrop={handleDrop}

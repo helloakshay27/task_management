@@ -309,9 +309,11 @@ const processTaskData = (task) => {
     endDate: task.target_date?.split("T")[0],
     priority: task.priority,
     duration: calculateDuration(task.expected_start_date, task.target_date),
+    total_allocated_hours: `${task.total_allocated_hours} hours` || 0,
     predecessor: task.predecessor_task.length || 0,
     successor: task.successor_task.length || 0,
     is_started: task.is_started || false,
+    is_Subtask: task.parent_id ? true : false,
     hasSubtasks,
     subRows,
     subRowsLoaded: true,
@@ -376,7 +378,7 @@ const TaskTable = ({ isModalOpen, searchQuery, selectedColumns }) => {
     const savedOrder = localStorage.getItem("taskTableColumnOrder");
     return savedOrder
       ? JSON.parse(savedOrder)
-      : ["expander", "id", "taskTitle", "status", "responsiblePersonId", "startDate", "endDate", "duration", "priority", "predecessor", "successor"];
+      : ["expander", "id", "taskTitle", "status", "responsiblePersonId", "startDate", "endDate", "duration", "total_allocated_hours", "priority", "predecessor", "successor"];
   });
   const [pagination, setPagination] = useState({
     pageIndex: 0,
@@ -936,8 +938,8 @@ const TaskTable = ({ isModalOpen, searchQuery, selectedColumns }) => {
       size: 100,
       cell: ({ getValue, row }) => {
         let originalId = String(getValue() || "");
-        const isTask = row.original.hasSubtasks
-        let displayId = originalId.startsWith("T-") ? originalId : `${isTask ? `T-${originalId}` : `S-${originalId}`}`;
+        const isSubtask = row.original.is_Subtask
+        let displayId = originalId.startsWith("T-") ? originalId : `${isSubtask ? `S-${originalId}` : `T-${originalId}`}`;
         let linkIdPart = originalId.startsWith("T-") ? originalId.substring(2) : originalId;
         const taskPaths = getTaskPaths(id, mid, linkIdPart, isCloudRoute);
         const navigationPath = mid ? taskPaths.taskDetail : taskPaths.taskDetailSimple;
@@ -963,7 +965,7 @@ const TaskTable = ({ isModalOpen, searchQuery, selectedColumns }) => {
         const handlePlayPauseClick = async (action) => {
           setIsPlayPauseLoading(true);
           try {
-            const newStatus = action === "play" ? "in_progress" : "stopped";
+            const newStatus = action === "play" ? "started" : "stopped";
             await handleUpdateTaskFieldCell(row.original.id, "status", newStatus, row);
           } catch (error) {
             console.error(`Failed to ${action} task:`, error);
@@ -1063,6 +1065,15 @@ const TaskTable = ({ isModalOpen, searchQuery, selectedColumns }) => {
           min={row.original.startDate}
         />
       ),
+    },
+    {
+      accessorKey: "total_allocated_hours",
+      header: "Efforts Duration",
+      size: 120,
+      cell: ({ row }) => {
+        console.log(row)
+        return row.original.total_allocated_hours
+      },
     },
     {
       accessorKey: "duration",

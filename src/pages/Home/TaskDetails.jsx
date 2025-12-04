@@ -112,15 +112,16 @@ const calculateDuration = (start, end) => {
 
     // Check if task hasn't started yet
     if (now < startDate) {
-        return "Not started";
+        return { text: "Not started", isOverdue: false };
     }
 
-    // Check if task has already ended
+    // Calculate time differences (use absolute value to show overdue time)
     const diffMs = endDate - now;
-    if (diffMs <= 0) return "0s";
+    const absDiffMs = Math.abs(diffMs);
+    const isOverdue = diffMs <= 0;
 
     // Calculate time differences
-    const seconds = Math.floor(diffMs / 1000);
+    const seconds = Math.floor(absDiffMs / 1000);
     const minutes = Math.floor(seconds / 60);
     const hours = Math.floor(minutes / 60);
     const days = Math.floor(hours / 24);
@@ -129,8 +130,45 @@ const calculateDuration = (start, end) => {
     const remainingMinutes = minutes % 60;
     const remainingSeconds = seconds % 60;
 
-    return `${days > 0 ? days + "d " : ""}${remainingHours > 0 ? remainingHours + "h " : ""}${remainingMinutes > 0 ? remainingMinutes + "m " : ""
-        }${remainingSeconds}s`;
+    const timeStr = `${days > 0 ? days + "d " : "0d "}${remainingHours > 0 ? remainingHours + "h " : "0h "}${remainingMinutes > 0 ? remainingMinutes + "m " : "0m"}`;
+
+    return {
+        text: isOverdue ? `${timeStr}` : timeStr,
+        isOverdue: isOverdue,
+    };
+};
+
+// Active Timer Component - shows when task is started
+const ActiveTimer = ({ activeTimeTillNow }) => {
+    const [time, setTime] = useState(activeTimeTillNow || { hours: 0, minutes: 0, seconds: 0 });
+
+    useEffect(() => {
+        const interval = setInterval(() => {
+            setTime((prevTime) => {
+                let { hours, minutes, seconds } = prevTime;
+                seconds += 1;
+
+                if (seconds >= 60) {
+                    seconds = 0;
+                    minutes += 1;
+                }
+                if (minutes >= 60) {
+                    minutes = 0;
+                    hours += 1;
+                }
+
+                return { hours, minutes, seconds };
+            });
+        }, 1000);
+
+        return () => clearInterval(interval);
+    }, []);
+
+    return (
+        <div className="text-left text-[12px] text-green-600 font-medium">
+            {String(time.hours).padStart(2, '0')}h {String(time.minutes).padStart(2, '0')}m {String(time.seconds).padStart(2, '0')}s
+        </div>
+    );
 };
 
 // Live Timer Component that updates every second
@@ -146,7 +184,9 @@ const CountdownTimer = ({ startDate, targetDate }) => {
     }, [targetDate]);
 
     return (
-        <div className="text-left text-[12px]">{countdown}</div>
+        <div className={`text-left text-[12px] ${countdown.isOverdue ? "text-red-600 font-medium" : ""}`}>
+            {countdown.text}
+        </div>
     );
 };
 
@@ -1084,6 +1124,12 @@ const TaskDetails = () => {
                             <span className="h-6 w-[1px] border border-gray-300"></span>
                             <span
                                 className="cursor-pointer flex items-center gap-1"
+                            >
+                                <ActiveTimer activeTimeTillNow={task.active_time_till_now} />
+                            </span>
+                            <span className="h-6 w-[1px] border border-gray-300"></span>
+                            <span
+                                className="cursor-pointer flex items-center gap-1"
                                 onClick={handleAddToDo}
                             >
                                 <CircleCheckBigIcon className="mx-1" size={15} /> Add ToDo
@@ -1302,7 +1348,7 @@ const TaskDetails = () => {
                                 <div className="flex items-center ml-36">
                                     <div className="w-1/2 flex items-center justify-start gap-3">
                                         <div className="text-right text-[12px] font-[500]">
-                                            Time Left:
+                                            {calculateDuration(task.expected_start_date, task.target_date).isOverdue ? "Overdued Time:" : "Time Left:"}
                                         </div>
                                         <CountdownTimer startDate={task.expected_start_date} targetDate={task.target_date} />
                                     </div>

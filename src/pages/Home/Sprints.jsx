@@ -66,7 +66,7 @@ const Sprints = () => {
     }
   };
 
-  const filteredProjects = fetchProject?.fetchProjects?.filter((project) =>
+  const filteredProjects = fetchProject?.fetchProjects?.project_managements?.filter((project) =>
     project.title.toLowerCase().includes(searchTerm.toLowerCase())
   );
 

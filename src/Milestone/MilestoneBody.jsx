@@ -191,7 +191,7 @@ const GanttChart = ({ selectedColumns = {} }) => {
                 if (taskItself && taskItself.status?.toLowerCase() === "completed") {
                     return { total: 1, completed: 1, percentage: 100 };
                 }
-                return { total: 1, completed: 0, percentage: 0 };
+                return { total: 0, completed: 0, percentage: 0 };
             }
             return { total: 0, completed: 0, percentage: 0 };
         }

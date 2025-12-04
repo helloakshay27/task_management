@@ -146,8 +146,8 @@ const TaskFilter = ({ isModalOpen, setIsModalOpen }) => {
                         Authorization: `Bearer ${token}`,
                     },
                 });
-                if (response.data && Array.isArray(response.data)) {
-                    setProjectOptions(response.data.map(project => ({
+                if (response.data && Array.isArray(response.data.project_managements)) {
+                    setProjectOptions(response.data.project_managements.map(project => ({
                         label: project.name || project.title,
                         value: project.id
                     })));
