@@ -278,7 +278,6 @@ const DraggableColumnHeader = ({ header, onReorderColumns, columnOrder }) => {
 
 const ProjectList = ({ searchQuery, selectedColumns }) => {
     const token = localStorage.getItem("token");
-    const fixedRowsPerPage = 10;
     const dispatch = useDispatch();
     const isCloudRoute = useIsCloudRoute();
 
@@ -340,6 +339,13 @@ const ProjectList = ({ searchQuery, selectedColumns }) => {
 
     const [isFiltered, setIsFiltered] = useState(false);
     const [data, setData] = useState([]);
+    const [pagination, setPagination] = useState({
+        current_page: 1,
+        next_page: null,
+        prev_page: null,
+        total_pages: 1,
+        total_count: 0,
+    });
     const [columnOrder, setColumnOrder] = useState(() => {
         // Load column order from local storage or use default
         const savedOrder = localStorage.getItem("projectTableColumnOrder");
@@ -389,6 +395,13 @@ const ProjectList = ({ searchQuery, selectedColumns }) => {
 
     const transformedData = useMemo(() => {
         let projectsSource;
+        let paginationData = {
+            current_page: 1,
+            next_page: null,
+            prev_page: null,
+            total_pages: 1,
+            total_count: 0,
+        };
 
         const hasFilter =
             isFiltered ||
@@ -398,8 +411,23 @@ const ProjectList = ({ searchQuery, selectedColumns }) => {
         if (hasFilter) {
             projectsSource = filteredProjects?.length > 0 ? filteredProjects : [];
         } else {
-            projectsSource = initialProjects;
+            // Extract project_managements array and pagination from response
+            if (initialProjects?.project_managements) {
+                projectsSource = initialProjects.project_managements;
+                paginationData = {
+                    current_page: initialProjects.pagination?.current_page || 1,
+                    next_page: initialProjects.pagination?.next_page || null,
+                    prev_page: initialProjects.pagination?.prev_page || null,
+                    total_pages: initialProjects.pagination?.total_pages || 1,
+                    total_count: initialProjects.pagination?.total_count || 0,
+                };
+            } else {
+                projectsSource = initialProjects;
+            }
         }
+
+        // Update pagination state
+        setPagination(paginationData);
 
         if (!projectsSource) return [];
         if (!Array.isArray(projectsSource)) {
@@ -528,14 +556,9 @@ const ProjectList = ({ searchQuery, selectedColumns }) => {
         }
     }, [initialProjects, filteredProjects, isFiltered]);
 
-    const [pagination, setPagination] = useState({
-        pageIndex: 0,
-        pageSize: fixedRowsPerPage,
-    });
-
     useEffect(() => {
         dispatch(fetchUsers({ token }));
-        dispatch(fetchProjects({ token }));
+        dispatch(fetchProjects({ token, page: 1 }));
     }, [dispatch]);
 
     // Updated useEffect to handle search filtering
@@ -985,6 +1008,85 @@ const ProjectList = ({ searchQuery, selectedColumns }) => {
         [handleStatusChange]
     );
 
+    const renderPagination = () => {
+        const totalPages = pagination.total_pages;
+        const currentPage = pagination.current_page - 1; // Convert to 0-indexed
+        const maxButtons = 3;
+
+        if (totalPages <= maxButtons) {
+            return [...Array(totalPages)].map((_, i) => (
+                <button
+                    key={i}
+                    onClick={() => {
+                        setTablePageIndex(i);
+                        dispatch(fetchProjects({ token, page: i + 1 }));
+                    }}
+                    className={`px-2 py-1 ${i === currentPage ? "bg-gray-200 font-bold" : ""}`}
+                >
+                    {i + 1}
+                </button>
+            ));
+        }
+
+        const pages = [];
+        const startPage = Math.max(0, currentPage - Math.floor(maxButtons / 2));
+        const endPage = Math.min(totalPages - 1, startPage + maxButtons - 1);
+        const adjustedStartPage = endPage === totalPages - 1 ? Math.max(0, totalPages - maxButtons) : startPage;
+
+        pages.push(
+            <button
+                key={0}
+                onClick={() => {
+                    setTablePageIndex(0);
+                    dispatch(fetchProjects({ token, page: 1 }));
+                }}
+                className={`px-2 py-1 ${currentPage === 0 ? "bg-gray-200 font-bold" : ""}`}
+            >
+                1
+            </button>
+        );
+
+        if (adjustedStartPage > 1) {
+            pages.push(<span key="start-ellipsis" className="px-1">...</span>);
+        }
+
+        for (let i = Math.max(1, adjustedStartPage); i < Math.min(totalPages - 1, adjustedStartPage + maxButtons); i++) {
+            pages.push(
+                <button
+                    key={i}
+                    onClick={() => {
+                        setTablePageIndex(i);
+                        dispatch(fetchProjects({ token, page: i + 1 }));
+                    }}
+                    className={`px-2 py-1 ${i === currentPage ? "bg-gray-200 font-bold" : ""}`}
+                >
+                    {i + 1}
+                </button>
+            );
+        }
+
+        if (adjustedStartPage + maxButtons < totalPages - 1) {
+            pages.push(<span key="end-ellipsis" className="px-1">...</span>);
+        }
+
+        if (totalPages > 1) {
+            pages.push(
+                <button
+                    key={totalPages - 1}
+                    onClick={() => {
+                        setTablePageIndex(totalPages - 1);
+                        dispatch(fetchProjects({ token, page: totalPages }));
+                    }}
+                    className={`px-2 py-1 ${currentPage === totalPages - 1 ? "bg-gray-200 font-bold" : ""}`}
+                >
+                    {totalPages}
+                </button>
+            );
+        }
+
+        return pages;
+    };
+
     // Reorder columns based on columnOrder state
     const columns = columnOrder
         .map((columnId) =>
@@ -1109,13 +1211,22 @@ const ProjectList = ({ searchQuery, selectedColumns }) => {
         return columnOrder.map((colId) => newProjectFields[colId] || null);
     };
 
+    const [tablePageIndex, setTablePageIndex] = useState(0);
+
     const table = useReactTable({
         data,
         columns,
-        state: { pagination },
-        onPaginationChange: setPagination,
+        state: { pagination: { pageIndex: tablePageIndex, pageSize: 10 } },
+        onPaginationChange: (updater) => {
+            const newState = typeof updater === 'function' ? updater({ pageIndex: tablePageIndex, pageSize: 10 }) : updater;
+            setTablePageIndex(newState.pageIndex);
+            const pageToFetch = newState.pageIndex + 1;
+            dispatch(fetchProjects({ token, page: pageToFetch }));
+        },
         getCoreRowModel: getCoreRowModel(),
         getPaginationRowModel: getPaginationRowModel(),
+        manualPagination: true,
+        pageCount: pagination.total_pages,
     });
 
     let content;
@@ -1233,55 +1344,31 @@ const ProjectList = ({ searchQuery, selectedColumns }) => {
                 </div>
 
                 {data.length > 0 && (
-                    <div className=" flex items-center justify-start gap-4 mt-4 text-[12px]">
+                    <div className="flex items-center justify-start gap-4 mt-4 text-[12px]">
                         <button
-                            onClick={() => table.previousPage()}
-                            disabled={!table.getCanPreviousPage()}
+                            onClick={() => {
+                                setTablePageIndex(tablePageIndex - 1);
+                                dispatch(fetchProjects({ token, page: pagination.prev_page }));
+                            }}
+                            disabled={!pagination.prev_page}
                             className="text-red-600 disabled:opacity-30"
                         >
                             {"<"}
                         </button>
-
-                        {(() => {
-                            const totalPages = table.getPageCount();
-                            const currentPage = table.getState().pagination.pageIndex;
-                            const visiblePages = 3;
-
-                            let start = Math.max(
-                                0,
-                                currentPage - Math.floor(visiblePages / 2)
-                            );
-                            let end = start + visiblePages;
-
-                            if (end > totalPages) {
-                                end = totalPages;
-                                start = Math.max(0, end - visiblePages);
-                            }
-
-                            return [...Array(end - start)].map((_, i) => {
-                                const page = start + i;
-                                const isActive = page === currentPage;
-
-                                return (
-                                    <button
-                                        key={page}
-                                        onClick={() => table.setPageIndex(page)}
-                                        className={` px-3 py-1 ${isActive ? "bg-gray-200 font-bold" : ""
-                                            }`}
-                                    >
-                                        {page + 1}
-                                    </button>
-                                );
-                            });
-                        })()}
-
+                        {renderPagination()}
                         <button
-                            onClick={() => table.nextPage()}
-                            disabled={!table.getCanNextPage()}
+                            onClick={() => {
+                                setTablePageIndex(tablePageIndex + 1);
+                                dispatch(fetchProjects({ token, page: pagination.next_page }));
+                            }}
+                            disabled={!pagination.next_page}
                             className="text-red-600 disabled:opacity-30"
                         >
                             {">"}
                         </button>
+                        <span className="ml-4">
+                            Page {pagination.current_page} of {pagination.total_pages} | Total Records: {pagination.total_count}
+                        </span>
                     </div>
                 )}
             </div>

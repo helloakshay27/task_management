@@ -913,17 +913,18 @@ const TaskDetails = () => {
         toast.success("Task status updated successfully.");
     };
 
-    const handleWorkflowOptionSelect = (option) => {
+    const handleWorkflowOptionSelect = async (option) => {
         setBgBTN(option.color_code);
         setSelectedWorkflowOption(option.status);
         setOpenWorkflowDropdown(false);
-        dispatch(
+        await dispatch(
             editTask({
                 token,
                 id: tid,
                 payload: { project_status_id: option.id },
             })
-        );
+        ).unwrap();
+        toast.success("Workflow status updated successfully.");
     };
 
     const handleAddToDo = async () => {
@@ -1184,10 +1185,19 @@ const TaskDetails = () => {
                                             {task.target_date}
                                         </div>
                                     </div>
+
+                                    <div className="flex items-center justify-start gap-3">
+                                        <div className="text-right text-[12px] font-[500]">
+                                            Efforts Duration:
+                                        </div>
+                                        <div className="text-left text-[12px]">
+                                            {task.estimated_hour && task.estimated_hour + "hours"}
+                                        </div>
+                                    </div>
                                 </div>
                             }
                         </div>
-                        <div className="mt-3 overflow-hidden" ref={secondContentRef}>
+                        <div className={`mt-3 ${isSecondCollapsed ? "overflow-hidden" : ""}`} ref={secondContentRef}>
                             <div className="flex flex-col">
                                 <div className="flex items-center ml-36">
                                     <div className="w-1/2 flex items-center justify-start gap-3">
@@ -1332,7 +1342,7 @@ const TaskDetails = () => {
                                                     />
                                                 </div>
                                                 <ul
-                                                    className={`dropdown-menu absolute right-0 mt-2 bg-white border border-gray-200 rounded-md shadow-lg overflow-hidden no-scrollbar ${openWorkflowDropdown ? "block" : "hidden"
+                                                    className={`dropdown-menu absolute right-0 mt-2 bg-white border border-gray-200 rounded-md shadow-lg overflow-hidden no-scrollbar z-10 ${openWorkflowDropdown ? "block" : "hidden"
                                                         }`}
                                                     role="menu"
                                                     style={{
