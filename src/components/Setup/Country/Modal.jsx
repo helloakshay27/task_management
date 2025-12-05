@@ -1,10 +1,9 @@
-/* eslint-disable react/prop-types */
-import CloseIcon from "@mui/icons-material/Close";
-import { useEffect, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
-import { updateCountry, createCountry } from "../../../redux/slices/countrySlice";
+import CloseIcon from '@mui/icons-material/Close';
+import { useEffect, useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { updateCountry, createCountry } from '../../../redux/slices/countrySlice';
 
-import toast from "react-hot-toast";
+import toast from 'react-hot-toast';
 
 const AddCountryModel = ({
   openModal,
@@ -13,19 +12,17 @@ const AddCountryModel = ({
   initialData = null,
   onSuccess,
 }) => {
-  const token = localStorage.getItem("token");
+  const token = localStorage.getItem('token');
   const dispatch = useDispatch();
 
   const { loading } = useSelector((state) => state.createCountry);
-  const { loading: editLoading } = useSelector(
-    (state) => state.updateCountry
-  );
+  const { loading: editLoading } = useSelector((state) => state.updateCountry);
 
   //   const {fetchCountry: countries} = useSelector((state) => state.fetchCountry);
-  const [error, setError] = useState("");
+  const [error, setError] = useState('');
 
   const [formData, setFormData] = useState({
-    name: "",
+    name: '',
   });
 
   useEffect(() => {
@@ -35,22 +32,22 @@ const AddCountryModel = ({
       });
     } else {
       setFormData({
-        name: "",
+        name: '',
       });
     }
   }, [isEditMode, initialData]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (formData.name === "") {
-      setError("Please enter name");
+    if (formData.name === '') {
+      setError('Please enter name');
       return;
     }
 
     const payload = {
       country: {
         name: formData.name,
-        active: true
+        active: true,
       },
     };
     try {
@@ -72,15 +69,12 @@ const AddCountryModel = ({
       } else if (response.payload.user_exists) {
         setError(response.payload.message);
       } else {
-        toast.success(
-          `Country ${isEditMode ? "updated" : "created"} successfully`,
-          {
-            iconTheme: {
-              primary: "green",
-              secondary: "white",
-            },
-          }
-        );
+        toast.success(`Country ${isEditMode ? 'updated' : 'created'} successfully`, {
+          iconTheme: {
+            primary: 'green',
+            secondary: 'white',
+          },
+        });
         handleSuccess();
       }
     } catch (error) {
@@ -91,17 +85,17 @@ const AddCountryModel = ({
 
   const handleSuccess = () => {
     setFormData({
-      name: "",
+      name: '',
     });
-    setError("");
+    setError('');
     onSuccess();
   };
 
   const handleClose = () => {
     setFormData({
-      name: "",
+      name: '',
     });
-    setError("");
+    setError('');
     setOpenModal(false);
   };
 
@@ -124,9 +118,7 @@ const AddCountryModel = ({
               placeholder="Enter name here"
               className="border border-[#C0C0C0] w-full py-2 px-3 text-[#1B1B1B] text-[13px] focus:outline-none"
               value={formData.name}
-              onChange={(e) =>
-                setFormData({ ...formData, name: e.target.value })
-              }
+              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
             />
           </div>
         </div>
@@ -147,11 +139,7 @@ const AddCountryModel = ({
             onClick={handleSubmit}
             disabled={loading || editLoading}
           >
-            {loading || editLoading
-              ? "Submitting..."
-              : isEditMode
-                ? "Update"
-                : "Save"}
+            {loading || editLoading ? 'Submitting...' : isEditMode ? 'Update' : 'Save'}
           </button>
           <button
             className="border border-[#C72030] text-[#1B1B1B] text-[13px] px-8 py-2"

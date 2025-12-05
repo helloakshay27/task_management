@@ -1,4 +1,3 @@
-
 import { useState, useMemo, useEffect } from 'react';
 import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
@@ -10,7 +9,11 @@ import {
   getPaginationRowModel,
 } from '@tanstack/react-table';
 import { useDispatch, useSelector } from 'react-redux';
-import { deleteProjectType, fetchProjectTypes, updateProjectType } from '../../../redux/slices/projectSlice';
+import {
+  deleteProjectType,
+  fetchProjectTypes,
+  updateProjectType,
+} from '../../../redux/slices/projectSlice';
 import Modal from './Modal';
 import toast from 'react-hot-toast';
 import { DeleteConfirmationModal } from '../../DeleteConfirmationModal';
@@ -113,7 +116,10 @@ const TypesTable = () => {
               onClick={() => handleEditClick(row)}
             />
             <button title="Delete">
-              <DeleteOutlineOutlinedIcon sx={{ fontSize: '20px' }} onClick={() => setIsDeleteModalOpen(true)} />
+              <DeleteOutlineOutlinedIcon
+                sx={{ fontSize: '20px' }}
+                onClick={() => setIsDeleteModalOpen(true)}
+              />
             </button>
           </div>
         </div>
@@ -121,12 +127,12 @@ const TypesTable = () => {
           isOpen={isDeleteModalOpen}
           onClose={() => setIsDeleteModalOpen(false)}
           onConfirm={() => {
-            handleDeleteClick(row.original.id)
+            handleDeleteClick(row.original.id);
             setIsDeleteModalOpen(false);
           }}
         />
       </>
-    )
+    );
   };
 
   function formatToDDMMYYYY(dateString) {
@@ -222,7 +228,10 @@ const TypesTable = () => {
   return (
     <>
       <div className="project-table-container text-[14px] font-light">
-        <div className="table-wrapper overflow-x-auto" style={{ height: `${desiredTableHeight}px` }}>
+        <div
+          className="table-wrapper overflow-x-auto"
+          style={{ height: `${desiredTableHeight}px` }}
+        >
           <table className="w-full">
             <thead>
               {table.getHeaderGroups().map((headerGroup) => (
@@ -244,7 +253,8 @@ const TypesTable = () => {
             </thead>
             <tbody className="divide-y" style={{ height: `${fixedRowsPerPage * rowHeight}px` }}>
               {pageRows.map((row) => {
-                const isDataRowConsideredEmpty = !row.original || Object.values(row.original).every((v) => v === null || v === '');
+                const isDataRowConsideredEmpty =
+                  !row.original || Object.values(row.original).every((v) => v === null || v === '');
 
                 return (
                   <tr
@@ -258,7 +268,9 @@ const TypesTable = () => {
                         style={{ width: cell.column.getSize() }}
                         className={`${cell.column.columnDef.meta?.cellClassName || ''} whitespace-nowrap px-3 py-2 border-r-2`}
                       >
-                        {!isDataRowConsideredEmpty ? flexRender(cell.column.columnDef.cell, cell.getContext()) : null}
+                        {!isDataRowConsideredEmpty
+                          ? flexRender(cell.column.columnDef.cell, cell.getContext())
+                          : null}
                       </td>
                     ))}
                   </tr>

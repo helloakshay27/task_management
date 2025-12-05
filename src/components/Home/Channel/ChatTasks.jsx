@@ -1,42 +1,33 @@
-import {
-  useState,
-  useEffect,
-  useRef,
-  Fragment,
-  useCallback,
-} from "react";
+import { useState, useEffect, useRef, Fragment, useCallback } from 'react';
 import {
   useReactTable,
   getCoreRowModel,
   flexRender,
   getExpandedRowModel,
-} from "@tanstack/react-table";
-import { useDispatch, useSelector } from "react-redux";
-import StatusBadge from "../Projects/statusBadge";
-import {
-  ChevronDownIcon,
-  ChevronRightIcon,
-} from "@heroicons/react/20/solid";
-import { Link, useParams } from "react-router-dom";
-import "../../Home/Sprints/Table.css";
-import { getTaskPaths, useIsCloudRoute } from "../../../utils/navigationUtils";
+} from '@tanstack/react-table';
+import { useDispatch, useSelector } from 'react-redux';
+import StatusBadge from '../Projects/statusBadge';
+import { ChevronDownIcon, ChevronRightIcon } from '@heroicons/react/20/solid';
+import { Link, useParams } from 'react-router-dom';
+import '../../Home/Sprints/Table.css';
+import { getTaskPaths, useIsCloudRoute } from '../../../utils/navigationUtils';
 import {
   createTask,
   changeTaskStatus,
   updateTask,
   filterTask,
-} from "../../../redux/slices/taskSlice";
-import { fetchUsers } from "../../../redux/slices/userSlice";
-import SelectBox from "../../SelectBox";
-import Loader from "../../Loader";
-import { useLocation } from "react-router-dom";
-import qs from "qs";
-import { X } from "lucide-react";
-import { DndProvider } from "react-dnd";
-import { HTML5Backend } from "react-dnd-html5-backend";
+} from '../../../redux/slices/taskSlice';
+import { fetchUsers } from '../../../redux/slices/userSlice';
+import SelectBox from '../../SelectBox';
+import Loader from '../../Loader';
+import { useLocation } from 'react-router-dom';
+import qs from 'qs';
+import { X } from 'lucide-react';
+import { DndProvider } from 'react-dnd';
+import { HTML5Backend } from 'react-dnd-html5-backend';
 
-const globalPriorityOptions = ["None", "Low", "Medium", "High", "Urgent"];
-const globalStatusOptions = ["open", "in_progress", "completed", "on_hold", "overdue"];
+const globalPriorityOptions = ['None', 'Low', 'Medium', 'High', 'Urgent'];
+const globalStatusOptions = ['open', 'in_progress', 'completed', 'on_hold', 'overdue'];
 
 const EditableTextField = ({
   value,
@@ -51,7 +42,7 @@ const EditableTextField = ({
   const [localValue, setLocalValue] = useState(value);
   useEffect(() => setLocalValue(value), [value]);
   const handleKeyDown = (event) => {
-    if (event.key === "Enter") {
+    if (event.key === 'Enter') {
       onEnterPress?.();
     }
   };
@@ -60,21 +51,21 @@ const EditableTextField = ({
     <input
       ref={inputRef}
       type="text"
-      value={localValue || ""}
+      value={localValue || ''}
       onChange={(e) => setLocalValue(e.target.value)}
       onBlur={handleBlur}
       onKeyDown={handleKeyDown}
       data-task-id={taskId}
       data-field-name={fieldName}
-      className={`${validator ? "border border-red-600" : "border-none"} focus:outline-none w-full h-full p-1 rounded text-[12px] bg-transparent`}
+      className={`${validator ? 'border border-red-600' : 'border-none'} focus:outline-none w-full h-full p-1 rounded text-[12px] bg-transparent`}
     />
   );
 };
 
 const formatDate = (input) => {
-  if (!input) return "";
+  if (!input) return '';
   const d = new Date(input);
-  return d.toISOString().split("T")[0];
+  return d.toISOString().split('T')[0];
 };
 
 const DateEditor = ({
@@ -83,7 +74,7 @@ const DateEditor = ({
   isNewRow,
   onEnterPress,
   className,
-  placeholder = "Select date",
+  placeholder = 'Select date',
   validator,
   min,
   max,
@@ -98,12 +89,12 @@ const DateEditor = ({
     performUpdate(newDate);
   };
   const handleKeyDown = (event) => {
-    if (event.key === "Enter") {
+    if (event.key === 'Enter') {
       onEnterPress?.();
     }
   };
   const handleBlur = () => performUpdate(date);
-  const isInvalid = typeof validator === "function" ? !validator(date) : false;
+  const isInvalid = typeof validator === 'function' ? !validator(date) : false;
   return (
     <input
       ref={inputRef}
@@ -112,7 +103,7 @@ const DateEditor = ({
       onChange={handleInputChange}
       onBlur={handleBlur}
       onKeyDown={handleKeyDown}
-      className={`${isInvalid ? "border border-red-400" : "border-none"} w-full focus:outline-none bg-transparent rounded text-[12px] p-1 ${className || ""}`}
+      className={`${isInvalid ? 'border border-red-400' : 'border-none'} w-full focus:outline-none bg-transparent rounded text-[12px] p-1 ${className || ''}`}
       placeholder={placeholder}
       min={min}
       max={max}
@@ -128,7 +119,7 @@ const calculateDuration = (start, end) => {
   endDate.setHours(23, 59, 59, 999);
 
   if (now < startDate) {
-    return { text: "Not started", isOverdue: false };
+    return { text: 'Not started', isOverdue: false };
   }
 
   const diffMs = endDate - now;
@@ -143,7 +134,7 @@ const calculateDuration = (start, end) => {
   const remainingHours = hours % 24;
   const remainingMinutes = minutes % 60;
 
-  const timeStr = `${days > 0 ? days + "d " : "0d "}${remainingHours > 0 ? remainingHours + "h " : "0h "}${remainingMinutes > 0 ? remainingMinutes + "m " : "0m"}`;
+  const timeStr = `${days > 0 ? days + 'd ' : '0d '}${remainingHours > 0 ? remainingHours + 'h ' : '0h '}${remainingMinutes > 0 ? remainingMinutes + 'm ' : '0m'}`;
 
   return {
     text: isOverdue ? `${timeStr}` : timeStr,
@@ -163,7 +154,9 @@ const CountdownTimer = ({ startDate, targetDate }) => {
   }, [targetDate]);
 
   return (
-    <div className={`text-left text-[12px] ${countdown.isOverdue ? "text-red-600 font-medium" : ""}`}>
+    <div
+      className={`text-left text-[12px] ${countdown.isOverdue ? 'text-red-600 font-medium' : ''}`}
+    >
       {countdown.text}
     </div>
   );
@@ -175,30 +168,30 @@ const calculateTaskStatus = (task) => {
   }
 
   const subtasks = task.sub_tasks_managements;
-  const statuses = subtasks.map(st => st.status?.toLowerCase() || "open");
+  const statuses = subtasks.map((st) => st.status?.toLowerCase() || 'open');
 
-  if (statuses.some(status => status === "on_hold" || status === "hold")) {
-    return "on_hold";
+  if (statuses.some((status) => status === 'on_hold' || status === 'hold')) {
+    return 'on_hold';
   }
 
-  if (statuses.every(status => status === "completed")) {
-    return "completed";
+  if (statuses.every((status) => status === 'completed')) {
+    return 'completed';
   }
 
-  if (statuses.some(status => status === "in_progress" || status === "progress")) {
-    return "in_progress";
+  if (statuses.some((status) => status === 'in_progress' || status === 'progress')) {
+    return 'in_progress';
   }
 
-  return "open";
+  return 'open';
 };
 
 const processTaskData = (task) => {
-  if (typeof task !== "object" || task === null) {
-    console.warn("Invalid task data encountered in processTaskData:", task);
+  if (typeof task !== 'object' || task === null) {
+    console.warn('Invalid task data encountered in processTaskData:', task);
     return {
       id: `invalid-${Math.random()}`,
-      taskTitle: "Invalid Task Data",
-      status: "error",
+      taskTitle: 'Invalid Task Data',
+      status: 'error',
       hasSubtasks: false,
       subRows: [],
       subRowsLoaded: true,
@@ -214,14 +207,14 @@ const processTaskData = (task) => {
 
   return {
     id: task.id,
-    taskTitle: task.title || task.name || "Unnamed Task",
+    taskTitle: task.title || task.name || 'Unnamed Task',
     status: calculatedStatus,
     originalStatus: task.status,
-    responsiblePerson: task.responsible_person?.name || "Unassigned",
+    responsiblePerson: task.responsible_person?.name || 'Unassigned',
     responsiblePersonId: task.responsible_person?.id || null,
     projectManagementId: task.project_management_id || 2,
-    startDate: task.expected_start_date?.split("T")[0],
-    endDate: task.target_date?.split("T")[0],
+    startDate: task.expected_start_date?.split('T')[0],
+    endDate: task.target_date?.split('T')[0],
     priority: task.priority,
     duration: calculateDuration(task.expected_start_date, task.target_date),
     predecessor: task.predecessor_task.length || 0,
@@ -233,7 +226,7 @@ const processTaskData = (task) => {
 };
 
 const ChatTasks = () => {
-  const token = localStorage.getItem("token");
+  const token = localStorage.getItem('token');
   const { id } = useParams();
   const dispatch = useDispatch();
   const location = useLocation().pathname;
@@ -272,15 +265,15 @@ const ChatTasks = () => {
 
     try {
       const filter = {
-        ...(location.includes('messages') && { "q[conversation_id_eq]": id }),
-        ...(location.includes('groups') && { "q[project_space_id_eq]": id }),
+        ...(location.includes('messages') && { 'q[conversation_id_eq]': id }),
+        ...(location.includes('groups') && { 'q[project_space_id_eq]': id }),
         page: 1,
       };
       const queryString = qs.stringify(filter);
       await dispatch(filterTask({ token, filter: queryString })).unwrap();
     } catch (error) {
-      console.log("Error fetching chat tasks:", error);
-      setLocalError("Failed to fetch tasks for this chat");
+      console.log('Error fetching chat tasks:', error);
+      setLocalError('Failed to fetch tasks for this chat');
     }
   }, [dispatch, id, token]);
 
@@ -293,11 +286,13 @@ const ChatTasks = () => {
       setLocalError(null);
 
       try {
-        await dispatch(updateTask({ token, id: taskId, payload: { task_management: payload } })).unwrap();
+        await dispatch(
+          updateTask({ token, id: taskId, payload: { task_management: payload } })
+        ).unwrap();
         await handleFetchTasksForChat();
       } catch (error) {
-        console.log("Error updating task:", error);
-        setLocalError("Failed to update task");
+        console.log('Error updating task:', error);
+        setLocalError('Failed to update task');
       } finally {
         setIsUpdatingTask(false);
       }
@@ -335,14 +330,14 @@ const ChatTasks = () => {
 
   const mainTableColumns = [
     {
-      accessorKey: "id",
-      header: "Task Id",
+      accessorKey: 'id',
+      header: 'Task Id',
       size: 100,
       cell: ({ getValue, row }) => {
-        let originalId = String(getValue() || "");
-        let displayId = originalId.startsWith("T-") ? originalId : `T-${originalId}`;
-        let linkIdPart = originalId.startsWith("T-") ? originalId.substring(2) : originalId;
-        const taskPaths = getTaskPaths("", "", linkIdPart, isCloudRoute);
+        let originalId = String(getValue() || '');
+        let displayId = originalId.startsWith('T-') ? originalId : `T-${originalId}`;
+        let linkIdPart = originalId.startsWith('T-') ? originalId.substring(2) : originalId;
+        const taskPaths = getTaskPaths('', '', linkIdPart, isCloudRoute);
         return (
           <Link
             to={taskPaths.taskDetailSimple}
@@ -355,8 +350,8 @@ const ChatTasks = () => {
       },
     },
     {
-      accessorKey: "taskTitle",
-      header: "Task Title",
+      accessorKey: 'taskTitle',
+      header: 'Task Title',
       size: 200,
       cell: ({ getValue, row }) => {
         const [editTitle, setEditTitle] = useState(getValue());
@@ -364,7 +359,7 @@ const ChatTasks = () => {
           <EditableTextField
             value={editTitle}
             onUpdate={(title) => setEditTitle(title)}
-            onEnterPress={() => handleUpdateTaskFieldCell(row.original.id, "title", editTitle, row)}
+            onEnterPress={() => handleUpdateTaskFieldCell(row.original.id, 'title', editTitle, row)}
             data-task-id={row.original.id}
             data-field-name="title"
           />
@@ -372,43 +367,48 @@ const ChatTasks = () => {
       },
     },
     {
-      accessorKey: "status",
-      header: "Status",
+      accessorKey: 'status',
+      header: 'Status',
       size: 150,
       cell: ({ getValue, row }) => (
         <StatusBadge
           status={getValue()}
           statusOptions={globalStatusOptions}
-          onStatusChange={(newStatus) => handleUpdateTaskFieldCell(row.original.id, "status", newStatus, row)}
+          onStatusChange={(newStatus) =>
+            handleUpdateTaskFieldCell(row.original.id, 'status', newStatus, row)
+          }
         />
       ),
     },
     {
-      accessorKey: "responsiblePersonId",
-      header: "Responsible Person",
+      accessorKey: 'responsiblePersonId',
+      header: 'Responsible Person',
       size: 180,
       cell: ({ getValue, row }) => (
         <SelectBox
-          options={users
-            ?.map((user) => ({
-              value: user?.id,
-              label: user?.name || `${user?.firstname} ${user?.lastname}`,
-            }))}
+          options={users?.map((user) => ({
+            value: user?.id,
+            label: user?.name || `${user?.firstname} ${user?.lastname}`,
+          }))}
           value={getValue()}
-          onChange={(newValue) => handleUpdateTaskFieldCell(row.original.id, "responsible_person_id", newValue, row)}
+          onChange={(newValue) =>
+            handleUpdateTaskFieldCell(row.original.id, 'responsible_person_id', newValue, row)
+          }
           table={true}
           className="w-full"
         />
       ),
     },
     {
-      accessorKey: "startDate",
-      header: "Start Date",
+      accessorKey: 'startDate',
+      header: 'Start Date',
       size: 130,
       cell: ({ getValue, row }) => (
         <DateEditor
           value={getValue()}
-          onUpdate={(date) => handleUpdateTaskFieldCell(row.original.id, "expected_start_date", date, row)}
+          onUpdate={(date) =>
+            handleUpdateTaskFieldCell(row.original.id, 'expected_start_date', date, row)
+          }
           className="text-[12px]"
           min={row.original.startDate}
           max={row.original.endDate}
@@ -416,45 +416,49 @@ const ChatTasks = () => {
       ),
     },
     {
-      accessorKey: "endDate",
-      header: "End Date",
+      accessorKey: 'endDate',
+      header: 'End Date',
       size: 130,
       cell: ({ getValue, row }) => (
         <DateEditor
           value={getValue()}
-          onUpdate={(date) => handleUpdateTaskFieldCell(row.original.id, "target_date", date, row)}
+          onUpdate={(date) => handleUpdateTaskFieldCell(row.original.id, 'target_date', date, row)}
           className="text-[12px]"
           min={row.original.startDate}
         />
       ),
     },
     {
-      accessorKey: "duration",
-      header: "Duration",
+      accessorKey: 'duration',
+      header: 'Duration',
       size: 120,
-      cell: ({ row }) => <CountdownTimer startDate={row.original.startDate} targetDate={row.original.endDate} />,
+      cell: ({ row }) => (
+        <CountdownTimer startDate={row.original.startDate} targetDate={row.original.endDate} />
+      ),
     },
     {
-      accessorKey: "priority",
-      header: "Priority",
+      accessorKey: 'priority',
+      header: 'Priority',
       size: 110,
       cell: ({ getValue, row }) => (
         <StatusBadge
           status={getValue()}
           statusOptions={globalPriorityOptions}
-          onStatusChange={(newPriority) => handleUpdateTaskFieldCell(row.original.id, "priority", newPriority, row)}
+          onStatusChange={(newPriority) =>
+            handleUpdateTaskFieldCell(row.original.id, 'priority', newPriority, row)
+          }
         />
       ),
     },
     {
-      accessorKey: "predecessor",
-      header: "Predecessor",
+      accessorKey: 'predecessor',
+      header: 'Predecessor',
       size: 100,
       cell: ({ getValue }) => <span className="text-xs">{getValue()}</span>,
     },
     {
-      accessorKey: "successor",
-      header: "Successor",
+      accessorKey: 'successor',
+      header: 'Successor',
       size: 100,
       cell: ({ getValue }) => <span className="text-xs">{getValue()}</span>,
     },
@@ -481,9 +485,7 @@ const ChatTasks = () => {
     content = <Loader message="Loading tasks..." error={filterTasksError} />;
   } else if (data.length === 0) {
     content = (
-      <div className="p-4 text-center text-gray-500">
-        No tasks found for this conversation
-      </div>
+      <div className="p-4 text-center text-gray-500">No tasks found for this conversation</div>
     );
   } else {
     content = (
@@ -498,7 +500,9 @@ const ChatTasks = () => {
                     style={{ width: `${header.getSize()}px` }}
                     className="border border-gray-300 pl-3 text-center text-gray-600 font-semibold break-words text-[12px]"
                   >
-                    {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
+                    {header.isPlaceholder
+                      ? null
+                      : flexRender(header.column.columnDef.header, header.getContext())}
                   </th>
                 ))}
               </tr>
@@ -547,9 +551,7 @@ const ChatTasks = () => {
         {content}
         {data.length > 0 && !loadingFilterTasks && (
           <div className="flex items-center justify-start gap-4 mt-4 text-[12px]">
-            <span className="ml-4">
-              Total Records: {pagination.totalRecords}
-            </span>
+            <span className="ml-4">Total Records: {pagination.totalRecords}</span>
           </div>
         )}
       </div>

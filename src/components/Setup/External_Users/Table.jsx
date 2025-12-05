@@ -15,11 +15,8 @@ const ActionIcons = ({ row }) => (
   <div className="action-icons flex justify-between gap-5">
     <Switch color="danger" />
     <div>
-      <EditOutlinedIcon sx={{ fontSize: "20px" }} />
-      <button
-        onClick={() => alert(`Deleting: ${row.original.roles}`)}
-        title="Delete"
-      >
+      <EditOutlinedIcon sx={{ fontSize: '20px' }} />
+      <button onClick={() => alert(`Deleting: ${row.original.roles}`)} title="Delete">
         {/* <DeleteOutlineOutlinedIcon sx={{ fontSize: "20px" }} /> */}
       </button>
     </div>
@@ -28,18 +25,17 @@ const ActionIcons = ({ row }) => (
 
 const defaultData = [
   {
-    userName: "Rajkumar",
-    organisation: "Panchshil Realty",
-    emailId: "rajkumar.sharma@panchshil.com",
-    role: "Project IT Head",
-    invitationStatus: "Accepted",
-  }
-
+    userName: 'Rajkumar',
+    organisation: 'Panchshil Realty',
+    emailId: 'rajkumar.sharma@panchshil.com',
+    role: 'Project IT Head',
+    invitationStatus: 'Accepted',
+  },
 ];
 
 const ExternalTable = () => {
   const dispatch = useDispatch();
-  const { fetchExternalUser: externalUsers } = useSelector(state => state.fetchExternalUser)
+  const { fetchExternalUser: externalUsers } = useSelector((state) => state.fetchExternalUser);
 
   const [data, setData] = useState(externalUsers);
   const fixedRowsPerPage = 13;
@@ -96,7 +92,11 @@ const ExternalTable = () => {
         header: 'Invitation Status',
         size: 150,
         cell: ({ row, getValue }) => {
-          return row.original ? <span className={`${getValue() === 'Accepted' ? 'text-green-600' : 'text-yellow-600'}`}>{getValue()}</span> : null;
+          return row.original ? (
+            <span className={`${getValue() === 'Accepted' ? 'text-green-600' : 'text-yellow-600'}`}>
+              {getValue()}
+            </span>
+          ) : null;
         },
       },
       {
@@ -131,20 +131,16 @@ const ExternalTable = () => {
   const rowHeight = 40;
 
   const headerHeight = 48;
-  const desiredTableHeight = (fixedRowsPerPage * rowHeight) + headerHeight;
-
+  const desiredTableHeight = fixedRowsPerPage * rowHeight + headerHeight;
 
   return (
     <div className="project-table-container text-[14px] ">
-      <div
-        className="table-wrapper overflow-x-auto"
-        style={{ height: `${desiredTableHeight}px` }}
-      >
+      <div className="table-wrapper overflow-x-auto" style={{ height: `${desiredTableHeight}px` }}>
         <table className="w-full">
           <thead>
-            {table.getHeaderGroups().map(headerGroup => (
+            {table.getHeaderGroups().map((headerGroup) => (
               <tr key={headerGroup.id}>
-                {headerGroup.headers.map(header => (
+                {headerGroup.headers.map((header) => (
                   <th
                     key={header.id}
                     colSpan={header.colSpan}
@@ -152,12 +148,7 @@ const ExternalTable = () => {
                     className="bg-[#D5DBDB] px-3 py-3.5 text-center font-[500] border-r-2 border-[#FFFFFF]"
                   >
                     {header.isPlaceholder ? null : (
-                      <div>
-                        {flexRender(
-                          header.column.columnDef.header,
-                          header.getContext()
-                        )}
-                      </div>
+                      <div>{flexRender(header.column.columnDef.header, header.getContext())}</div>
                     )}
                   </th>
                 ))}
@@ -165,8 +156,9 @@ const ExternalTable = () => {
             ))}
           </thead>
           <tbody className="divide-y" style={{ height: `${fixedRowsPerPage * rowHeight}px` }}>
-            {pageRows.map(row => {
-              const isDataRowConsideredEmpty = !row.original || Object.values(row.original).every(v => v === null || v === '');
+            {pageRows.map((row) => {
+              const isDataRowConsideredEmpty =
+                !row.original || Object.values(row.original).every((v) => v === null || v === '');
 
               return (
                 <tr
@@ -174,12 +166,13 @@ const ExternalTable = () => {
                   className={`hover:bg-gray-50 even:bg-[#D5DBDB4D] ${isDataRowConsideredEmpty ? 'pointer-events-none text-transparent' : ''}`}
                   style={{ height: `${rowHeight}px` }}
                 >
-                  {row.getVisibleCells().map(cell => (
+                  {row.getVisibleCells().map((cell) => (
                     <td
                       key={cell.id}
                       style={{ width: cell.column.getSize() }}
-                      className={`${cell.column.columnDef.meta?.cellClassName || ''
-                        } whitespace-nowrap px-3 py-2 border-r-2
+                      className={`${
+                        cell.column.columnDef.meta?.cellClassName || ''
+                      } whitespace-nowrap px-3 py-2 border-r-2
                         }`}
                     >
                       {!isDataRowConsideredEmpty
@@ -196,7 +189,7 @@ const ExternalTable = () => {
                 style={{ height: `${rowHeight}px` }}
                 className="even:bg-[#D5DBDB4D] pointer-events-none"
               >
-                {table.getAllLeafColumns().map(column => (
+                {table.getAllLeafColumns().map((column) => (
                   <td
                     key={`empty-cell-${index}-${column.id}`}
                     style={{ width: column.getSize() }}

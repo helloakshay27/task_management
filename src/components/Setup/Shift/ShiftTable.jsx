@@ -1,4 +1,3 @@
-/* eslint-disable react/prop-types */
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import Switch from '@mui/joy/Switch';
@@ -27,13 +26,15 @@ const ActionIcons = ({ row, onEdit }) => {
     };
 
     try {
-      await dispatch(fetchUpdateUser({ token, userId: userData.id, updatedData: payload })).unwrap();
+      await dispatch(
+        fetchUpdateUser({ token, userId: userData.id, updatedData: payload })
+      ).unwrap();
       toast.dismiss();
       toast.success(`Status ${updatedValue ? 'activated' : 'deactivated'} successfully`, {
         iconTheme: {
           primary: updatedValue ? 'green' : 'red',
           secondary: 'white',
-        }
+        },
       });
     } catch (error) {
       toast.dismiss();
@@ -69,19 +70,18 @@ const ActionIcons = ({ row, onEdit }) => {
   );
 };
 
-
 const ShiftTable = () => {
   const token = localStorage.getItem('token');
   const dispatch = useDispatch();
-  const { fetchExternalUser: externalUsers } = useSelector(state => state.fetchExternalUser);
+  const { fetchExternalUser: externalUsers } = useSelector((state) => state.fetchExternalUser);
 
   useEffect(() => {
     const fetchUsers = async () => {
       try {
         await dispatch(fetchExternalUser({ token })).unwrap();
       } catch (error) {
-        console.error("Error fetching external users:", error);
-        toast.error("Failed to load external users");
+        console.error('Error fetching external users:', error);
+        toast.error('Failed to load external users');
       }
     };
 
@@ -89,7 +89,6 @@ const ShiftTable = () => {
       fetchUsers();
     }
   }, [dispatch, token]);
-
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
@@ -109,53 +108,51 @@ const ShiftTable = () => {
 
   const handleSuccess = useCallback(() => {
     dispatch(fetchExternalUser({ token })); // refresh roles list
-    setIsModalOpen(false);  // close modal
+    setIsModalOpen(false); // close modal
   }, [dispatch]);
 
-  const columns = useMemo(() => [
-    {
-      accessorKey: 'Timings',
-      header: 'Timings',
-      size: 150,
-    //   cell: ({ row }) => {
-    //     const { firstname, lastname } = row.original;
-    //     return `${firstname} ${lastname}`;
-    //   },
-    },
-    {
-      accessorKey: 'total_hours',
-      header: 'Total Hours',
-      size: 200,
-    },
-    {
-      accessorKey: 'check_in_margin',
-      header: 'Check In Margin',
-      size: 200,
-    //   cell: ({ getValue }) => (
-    //     <div className="px-4"> {/* px-4 = horizontal padding */}
-    //       {getValue()}
-    //     </div>
-    //   ),
-    },
+  const columns = useMemo(
+    () => [
+      {
+        accessorKey: 'Timings',
+        header: 'Timings',
+        size: 150,
+        //   cell: ({ row }) => {
+        //     const { firstname, lastname } = row.original;
+        //     return `${firstname} ${lastname}`;
+        //   },
+      },
+      {
+        accessorKey: 'total_hours',
+        header: 'Total Hours',
+        size: 200,
+      },
+      {
+        accessorKey: 'check_in_margin',
+        header: 'Check In Margin',
+        size: 200,
+        //   cell: ({ getValue }) => (
+        //     <div className="px-4"> {/* px-4 = horizontal padding */}
+        //       {getValue()}
+        //     </div>
+        //   ),
+      },
 
-     {
-      accessorKey: 'created_at',
-      header: 'Created On',
-      size: 200,
-    },
-   
-    {
-      id: 'actions',
-      header: 'Actions',
-      size: 120,
-      cell: ({ row }) => (
-        <ActionIcons
-          row={row}
-          onEdit={handleEditClick}
-        />
-      ),
-    },
-  ], [externalUsers]);
+      {
+        accessorKey: 'created_at',
+        header: 'Created On',
+        size: 200,
+      },
+
+      {
+        id: 'actions',
+        header: 'Actions',
+        size: 120,
+        cell: ({ row }) => <ActionIcons row={row} onEdit={handleEditClick} />,
+      },
+    ],
+    [externalUsers]
+  );
 
   return (
     <div>
@@ -168,18 +165,15 @@ const ShiftTable = () => {
         showDropdown
         onAdd={handleAddUser}
       />
-      {
-        isModalOpen && (
-          <AddShiftModal
-            open={isModalOpen}
-            onClose={() => setIsModalOpen(false)}
-            isEditMode={isEditMode}
-            initialData={selectedUser}
-            onSuccess={handleSuccess}
-          />
-        )
-      }
-
+      {isModalOpen && (
+        <AddShiftModal
+          open={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          isEditMode={isEditMode}
+          initialData={selectedUser}
+          onSuccess={handleSuccess}
+        />
+      )}
     </div>
   );
 };

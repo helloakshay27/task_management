@@ -1,4 +1,4 @@
-import { Box, Tooltip, Typography } from "@mui/joy";
+import { Box, Tooltip, Typography } from '@mui/joy';
 
 const MomTasks = ({ tasks = [] }) => {
   return (
@@ -19,10 +19,7 @@ const MomTasks = ({ tasks = [] }) => {
           <tbody className="divide-y divide-gray-200 text-gray-700">
             {tasks.length > 0 ? (
               tasks.map((task) => (
-                <tr
-                  key={task.id}
-                  className="hover:bg-gray-50 transition-colors duration-150"
-                >
+                <tr key={task.id} className="hover:bg-gray-50 transition-colors duration-150">
                   <td className="px-4 py-3 text-gray-600">{task.id}</td>
 
                   <td className="px-4 py-3 max-w-[22rem] truncate">
@@ -44,46 +41,40 @@ const MomTasks = ({ tasks = [] }) => {
                         </Box>
                       }
                     >
-                      <span>{task.description || "—"}</span>
+                      <span>{task.description || '—'}</span>
                     </Tooltip>
                   </td>
 
-                  <td className="!px-4 py-3 text-gray-600">
-                    {task.raised_by || "N/A"}
-                  </td>
+                  <td className="!px-4 py-3 text-gray-600">{task.raised_by || 'N/A'}</td>
 
                   <td className="px-4 py-3 max-w-[12rem] truncate">
-                    {task.responsible_person_name || "N/A"}
+                    {task.responsible_person_name || 'N/A'}
                   </td>
 
-                  <td className="px-4 py-3 whitespace-nowrap">
-                    {task.target_date || "—"}
-                  </td>
+                  <td className="px-4 py-3 whitespace-nowrap">{task.target_date || '—'}</td>
 
                   <td className="px-4 py-3 font-medium">
                     {task.status ? (
                       <span
-                        className={`px-2 py-1 rounded-full text-xs font-semibold ${task.status === "Completed"
-                          ? "bg-green-100 text-green-700"
-                          : task.status === "In Progress"
-                            ? "bg-yellow-100 text-yellow-700"
-                            : "bg-gray-100 text-gray-600"
-                          }`}
+                        className={`px-2 py-1 rounded-full text-xs font-semibold ${
+                          task.status === 'Completed'
+                            ? 'bg-green-100 text-green-700'
+                            : task.status === 'In Progress'
+                              ? 'bg-yellow-100 text-yellow-700'
+                              : 'bg-gray-100 text-gray-600'
+                        }`}
                       >
                         {task.status}
                       </span>
                     ) : (
-                      "N/A"
+                      'N/A'
                     )}
                   </td>
                 </tr>
               ))
             ) : (
               <tr>
-                <td
-                  colSpan="6"
-                  className="text-center py-8 text-gray-500 italic"
-                >
+                <td colSpan="6" className="text-center py-8 text-gray-500 italic">
                   No Tasks Available
                 </td>
               </tr>

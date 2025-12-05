@@ -1,36 +1,32 @@
-import { useState, useCallback, useEffect } from "react";
-import CloseIcon from "@mui/icons-material/Close";
-import { useDispatch, useSelector } from "react-redux";
+import { useState, useCallback, useEffect } from 'react';
+import CloseIcon from '@mui/icons-material/Close';
+import { useDispatch, useSelector } from 'react-redux';
 import {
   createProjectGroup,
   fetchProjectGroup,
   removeMembersFromGroup,
   removeMembersFromTeam,
   updateProjectGroup,
-} from "../../../redux/slices/projectSlice";
+} from '../../../redux/slices/projectSlice';
 
-import { fetchUsers } from "../../../redux/slices/userSlice";
-import MultiSelectBox from "../../MultiSelectBox";
-import { set } from "react-hook-form";
-import { useDeepCompareEffectNoCheck } from "use-deep-compare-effect";
-import { toast } from "react-hot-toast";
+import { fetchUsers } from '../../../redux/slices/userSlice';
+import MultiSelectBox from '../../MultiSelectBox';
+import { set } from 'react-hook-form';
+import { useDeepCompareEffectNoCheck } from 'use-deep-compare-effect';
+import { toast } from 'react-hot-toast';
 
 const Modal = ({ openModal, setOpenModal, editMode, existingData }) => {
-  const token = localStorage.getItem("token");
-  const alreadySelectedUsers = existingData?.project_group_members.map(
-    (user) => ({ value: user.user_id, label: user.user_name, id: user.id })
-  );
-  const [groupName, setGroupName] = useState(
-    editMode ? existingData?.name || "" : ""
-  );
-  const [selectedUsers, setSelectedUsers] = useState(
-    editMode ? alreadySelectedUsers || [] : []
-  );
+  const token = localStorage.getItem('token');
+  const alreadySelectedUsers = existingData?.project_group_members.map((user) => ({
+    value: user.user_id,
+    label: user.user_name,
+    id: user.id,
+  }));
+  const [groupName, setGroupName] = useState(editMode ? existingData?.name || '' : '');
+  const [selectedUsers, setSelectedUsers] = useState(editMode ? alreadySelectedUsers || [] : []);
   const [warningOpen, setWarningOpen] = useState(false);
-  const [error, setError] = useState("");
-  const [prevMembers, setPrevMembers] = useState(
-    editMode ? alreadySelectedUsers || [] : []
-  );
+  const [error, setError] = useState('');
+  const [prevMembers, setPrevMembers] = useState(editMode ? alreadySelectedUsers || [] : []);
 
   const dispatch = useDispatch();
   const { loading } = useSelector((state) => state.createProjectGroup);
@@ -38,11 +34,11 @@ const Modal = ({ openModal, setOpenModal, editMode, existingData }) => {
 
   const resetModal = useCallback(() => {
     dispatch(fetchProjectGroup({ token }));
-    setGroupName("");
+    setGroupName('');
     setSelectedUsers([]);
     setWarningOpen(false);
     setOpenModal(false);
-    setError("");
+    setError('');
   }, [setOpenModal]);
 
   useEffect(() => {
@@ -52,17 +48,17 @@ const Modal = ({ openModal, setOpenModal, editMode, existingData }) => {
   const handleSave = async () => {
     console.log(editMode);
     setWarningOpen(false);
-    setError("");
+    setError('');
     const trimmedName = groupName.trim();
 
     if (!trimmedName) {
       setWarningOpen(true);
-      setError("Group name cannot be empty");
+      setError('Group name cannot be empty');
       return;
     }
     if (selectedUsers.length === 0) {
       setWarningOpen(true);
-      setError("Please select at least one user");
+      setError('Please select at least one user');
       return;
     }
 
@@ -70,7 +66,7 @@ const Modal = ({ openModal, setOpenModal, editMode, existingData }) => {
 
     const payload = {
       name: trimmedName,
-      created_by_id: JSON.parse(localStorage.getItem("user")).id,
+      created_by_id: JSON.parse(localStorage.getItem('user')).id,
       user_ids: selectedUsers.map((user) => user.value),
       active: existingData?.active || true,
     };
@@ -81,24 +77,19 @@ const Modal = ({ openModal, setOpenModal, editMode, existingData }) => {
           updateProjectGroup({ token, id: existingData.id, payload })
         ).unwrap();
       } else {
-        response = await dispatch(
-          createProjectGroup({ token, payload })
-        ).unwrap();
+        response = await dispatch(createProjectGroup({ token, payload })).unwrap();
       }
       console.log(response);
-      if (response.name[0] === "has already been taken") {
+      if (response.name[0] === 'has already been taken') {
         setWarningOpen(true);
-        setError("Group name already exists");
+        setError('Group name already exists');
       } else {
-        toast.success(
-          `Group ${editMode ? "updated" : "created"} successfully`,
-          {
-            iconTheme: {
-              primary: "green", // This might directly change the color of the success icon
-              secondary: "white", // The circle background
-            },
-          }
-        );
+        toast.success(`Group ${editMode ? 'updated' : 'created'} successfully`, {
+          iconTheme: {
+            primary: 'green', // This might directly change the color of the success icon
+            secondary: 'white', // The circle background
+          },
+        });
         resetModal();
       }
     } catch (error) {
@@ -108,9 +99,7 @@ const Modal = ({ openModal, setOpenModal, editMode, existingData }) => {
 
   const handleChange = (values) => {
     console.log(values);
-    const removed = prevMembers.find(
-      (prev) => !values.some((curr) => curr.value === prev.value)
-    );
+    const removed = prevMembers.find((prev) => !values.some((curr) => curr.value === prev.value));
     console.log(removed);
     if (removed && editMode) {
       dispatch(removeMembersFromGroup({ token, id: removed.id }));
@@ -133,7 +122,7 @@ const Modal = ({ openModal, setOpenModal, editMode, existingData }) => {
         <div className="flex flex-col gap-4">
           <div className="px-6">
             <label className="block  text-[#1B1B1B] mb-2">
-              {editMode ? "Edit Project Group" : "New Project Group"}
+              {editMode ? 'Edit Project Group' : 'New Project Group'}
               <span className="text-red-500 ml-1">*</span>
             </label>
             <input
@@ -150,12 +139,14 @@ const Modal = ({ openModal, setOpenModal, editMode, existingData }) => {
             </label>
             <MultiSelectBox
               options={
-                users ? users.map((user) => ({
-                  value: user.id,
-                  label: `${user.firstname} ${user.lastname}`,
-                })) : []
+                users
+                  ? users.map((user) => ({
+                      value: user.id,
+                      label: `${user.firstname} ${user.lastname}`,
+                    }))
+                  : []
               }
-              placeholder={"Select Users"}
+              placeholder={'Select Users'}
               value={selectedUsers}
               onChange={(values) => handleChange(values)}
             />
@@ -163,9 +154,7 @@ const Modal = ({ openModal, setOpenModal, editMode, existingData }) => {
         </div>
 
         <div className="flex justify-end mr-5 mt-1">
-          {warningOpen && (
-            <p className="text-red-600 text-[12px] mt-1">{error}</p>
-          )}
+          {warningOpen && <p className="text-red-600 text-[12px] mt-1">{error}</p>}
         </div>
         {/* Footer Buttons */}
         <div className="absolute bottom-0 left-0 right-0 bg-[#D5DBDB] h-[60px] flex justify-center items-center gap-4">
@@ -174,7 +163,7 @@ const Modal = ({ openModal, setOpenModal, editMode, existingData }) => {
             onClick={handleSave}
             disabled={loading}
           >
-            {loading ? "Submitting..." : editMode ? "Update" : "Save"}
+            {loading ? 'Submitting...' : editMode ? 'Update' : 'Save'}
           </button>
           <button
             className="border border-[#C72030] text-[#1B1B1B] text-[16px] px-8 py-1"

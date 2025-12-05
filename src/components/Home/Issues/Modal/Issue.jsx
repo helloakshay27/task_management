@@ -1,29 +1,29 @@
-import { useEffect, useState, useCallback, useRef } from "react";
-import SelectBox from "../../../SelectBox";
-import { useDispatch, useSelector } from "react-redux";
-import { fetchUsers, fetchUserAvailability, fetchUserShift } from "../../../../redux/slices/userSlice";
+import { useEffect, useState, useCallback, useRef } from 'react';
+import SelectBox from '../../../SelectBox';
+import { useDispatch, useSelector } from 'react-redux';
 import {
-  createIssue,
-  fetchIssue,
-  fetchIssueType,
-} from "../../../../redux/slices/IssueSlice";
-import { fetchMilestone } from "../../../../redux/slices/milestoneSlice";
-import { fetchKanbanProjects } from "../../../../redux/slices/projectSlice";
-import { fetchTargetDateTasks } from "../../../../redux/slices/taskSlice";
-import toast from "react-hot-toast";
-import { fetchKanbanTasks } from "../../../../redux/slices/taskSlice";
-import gsap from "gsap";
-import { CalendarIcon, X } from "lucide-react";
-import { TaskDatePicker } from "@/components/TaskDatePicker";
-import TasksOfDate from "@/components/TasksOfDate";
-import { CustomCalender } from "@/components/CustomCalender";
-import { DurationPicker } from "@/components/DurationPicker";
+  fetchUsers,
+  fetchUserAvailability,
+  fetchUserShift,
+} from '../../../../redux/slices/userSlice';
+import { createIssue, fetchIssue, fetchIssueType } from '../../../../redux/slices/IssueSlice';
+import { fetchMilestone } from '../../../../redux/slices/milestoneSlice';
+import { fetchKanbanProjects } from '../../../../redux/slices/projectSlice';
+import { fetchTargetDateTasks } from '../../../../redux/slices/taskSlice';
+import toast from 'react-hot-toast';
+import { fetchKanbanTasks } from '../../../../redux/slices/taskSlice';
+import gsap from 'gsap';
+import { CalendarIcon, X } from 'lucide-react';
+import { TaskDatePicker } from '@/components/TaskDatePicker';
+import TasksOfDate from '@/components/TasksOfDate';
+import { CustomCalender } from '@/components/CustomCalender';
+import { DurationPicker } from '@/components/DurationPicker';
 
 const globalPriorityOptions = [
-  { value: 2, label: "Low" },
-  { value: 3, label: "Medium" },
-  { value: 4, label: "High" },
-  { value: 5, label: "Urgent" },
+  { value: 2, label: 'Low' },
+  { value: 3, label: 'Medium' },
+  { value: 4, label: 'High' },
+  { value: 5, label: 'Urgent' },
 ];
 
 const Attachments = ({ attachments, setAttachments }) => {
@@ -53,7 +53,7 @@ const Attachments = ({ attachments, setAttachments }) => {
     setAttachments(updatedAttachments);
   };
 
-  const isImage = (file) => file.type.startsWith("image/");
+  const isImage = (file) => file.type.startsWith('image/');
   const getFileUrl = (file) => URL.createObjectURL(file);
 
   return (
@@ -80,10 +80,7 @@ const Attachments = ({ attachments, setAttachments }) => {
       {files?.length > 0 && (
         <div className="flex flex-wrap gap-4 mt-2">
           {files.map((file, index) => (
-            <div
-              key={index}
-              className="relative w-[80px] h-[80px] border rounded-md"
-            >
+            <div key={index} className="relative w-[80px] h-[80px] border rounded-md">
               <button
                 type="button"
                 onClick={() => handleRemoveFile(index)}
@@ -112,20 +109,20 @@ const Attachments = ({ attachments, setAttachments }) => {
 };
 
 const Issues = ({ closeModal }) => {
-  const [title, setTitle] = useState("");
-  const [responsiblePerson, setResponsiblePerson] = useState("");
+  const [title, setTitle] = useState('');
+  const [responsiblePerson, setResponsiblePerson] = useState('');
   const [endDate, setEndDate] = useState(null);
   const [startDate, setStartDate] = useState(null);
-  const [type, setType] = useState("");
-  const [priority, setPriority] = useState("");
-  const [description, setDescription] = useState("")
-  const [comments, setComments] = useState("");
+  const [type, setType] = useState('');
+  const [priority, setPriority] = useState('');
+  const [description, setDescription] = useState('');
+  const [comments, setComments] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [newIssuesProjectId, setNewIssuesProjectId] = useState("");
-  const [newIssuesMilestoneId, setNewIssuesMilestoneId] = useState("");
-  const [newIssuesTaskId, setNewIssuesTaskId] = useState("");
+  const [newIssuesProjectId, setNewIssuesProjectId] = useState('');
+  const [newIssuesMilestoneId, setNewIssuesMilestoneId] = useState('');
+  const [newIssuesTaskId, setNewIssuesTaskId] = useState('');
   // Add state for subtask ID and subtask options
-  const [newIssuesSubtaskId, setNewIssuesSubtaskId] = useState("");
+  const [newIssuesSubtaskId, setNewIssuesSubtaskId] = useState('');
   const [subtaskOptions, setSubtaskOptions] = useState([]);
   const [attachments, setAttachments] = useState([]);
 
@@ -141,9 +138,9 @@ const Issues = ({ closeModal }) => {
   const [totalWorkingHours, setTotalWorkingHours] = useState(0);
   const [dateWiseHours, setDateWiseHours] = useState([]);
 
-  console.log(dateWiseHours)
+  console.log(dateWiseHours);
 
-  const token = localStorage.getItem("token");
+  const token = localStorage.getItem('token');
   const isSubmittingRef = useRef(false);
   const startDateRef = useRef(null);
   const endDateRef = useRef(null);
@@ -151,36 +148,29 @@ const Issues = ({ closeModal }) => {
   const startCollapsibleRef = useRef(null);
 
   const monthNames = [
-    "Jan",
-    "Feb",
-    "Mar",
-    "Apr",
-    "May",
-    "Jun",
-    "Jul",
-    "Aug",
-    "Sep",
-    "Oct",
-    "Nov",
-    "Dec",
+    'Jan',
+    'Feb',
+    'Mar',
+    'Apr',
+    'May',
+    'Jun',
+    'Jul',
+    'Aug',
+    'Sep',
+    'Oct',
+    'Nov',
+    'Dec',
   ];
 
-  const {
-    fetchUsers: users,
-    loading: loadingUsers
-  } = useSelector(
+  const { fetchUsers: users, loading: loadingUsers } = useSelector(
     (state) => state.fetchUsers || { users: [], loading: false, error: null }
   );
 
-  const {
-    fetchUserAvailability: userAvailability = [],
-  } = useSelector(
+  const { fetchUserAvailability: userAvailability = [] } = useSelector(
     (state) => state.fetchUserAvailability || { fetchUserAvailability: [], loading: false }
   );
 
-  const {
-    fetchUserShift: shift = {},
-  } = useSelector(
+  const { fetchUserShift: shift = {} } = useSelector(
     (state) => state.fetchUserShift || { fetchUserShift: {}, loading: false }
   );
 
@@ -189,8 +179,7 @@ const Issues = ({ closeModal }) => {
     loading: loadingProjects,
     error: projectsFetchError,
   } = useSelector(
-    (state) =>
-      state.fetchKanbanProjects || { projects: [], loading: false, error: null }
+    (state) => state.fetchKanbanProjects || { projects: [], loading: false, error: null }
   );
 
   const {
@@ -198,8 +187,7 @@ const Issues = ({ closeModal }) => {
     loading: loadingMilestone,
     error: milestoneFetchError,
   } = useSelector(
-    (state) =>
-      state.fetchMilestone || { milestone: [], loading: false, error: null }
+    (state) => state.fetchMilestone || { milestone: [], loading: false, error: null }
   );
 
   const {
@@ -228,17 +216,17 @@ const Issues = ({ closeModal }) => {
 
     if (showDatePicker) {
       gsap.to(el, {
-        height: "auto",
+        height: 'auto',
         opacity: 1,
         duration: 0.4,
-        ease: "power2.out",
+        ease: 'power2.out',
       });
     } else {
       gsap.to(el, {
         height: 0,
         opacity: 0,
         duration: 0.3,
-        ease: "power2.in",
+        ease: 'power2.in',
       });
     }
   }, [showDatePicker]);
@@ -250,17 +238,17 @@ const Issues = ({ closeModal }) => {
 
     if (showStartDatePicker) {
       gsap.to(el, {
-        height: "auto",
+        height: 'auto',
         opacity: 1,
         duration: 0.4,
-        ease: "power2.out",
+        ease: 'power2.out',
       });
     } else {
       gsap.to(el, {
         height: 0,
         opacity: 0,
         duration: 0.3,
-        ease: "power2.in",
+        ease: 'power2.in',
       });
     }
   }, [showStartDatePicker]);
@@ -281,9 +269,10 @@ const Issues = ({ closeModal }) => {
     const getStartDateTasks = async () => {
       if (!startDate) return;
 
-      const formattedStartDate = `${startDate.year}-${String(
-        startDate.month + 1
-      ).padStart(2, "0")}-${String(startDate.date).padStart(2, "0")}`;
+      const formattedStartDate = `${startDate.year}-${String(startDate.month + 1).padStart(
+        2,
+        '0'
+      )}-${String(startDate.date).padStart(2, '0')}`;
 
       try {
         const response = await dispatch(
@@ -309,9 +298,10 @@ const Issues = ({ closeModal }) => {
     const getTargetDateTasks = async () => {
       if (!endDate) return;
 
-      const formattedEndDate = `${endDate.year}-${String(
-        endDate.month + 1
-      ).padStart(2, "0")}-${String(endDate.date).padStart(2, "0")}`;
+      const formattedEndDate = `${endDate.year}-${String(endDate.month + 1).padStart(
+        2,
+        '0'
+      )}-${String(endDate.date).padStart(2, '0')}`;
 
       try {
         const response = await dispatch(
@@ -343,7 +333,7 @@ const Issues = ({ closeModal }) => {
           }))
         );
       } catch (error) {
-        toast.error("Failed to load issue types.");
+        toast.error('Failed to load issue types.');
       }
     };
 
@@ -351,29 +341,18 @@ const Issues = ({ closeModal }) => {
   }, [dispatch]);
 
   useEffect(() => {
-    if (
-      !loadingMilestone &&
-      milestoneOptions?.length > 0 &&
-      !milestoneFetchError
-    ) {
-      if (newIssuesMilestoneId)
-        dispatch(fetchKanbanTasks({ id: newIssuesMilestoneId, token }));
-      setNewIssuesTaskId("");
+    if (!loadingMilestone && milestoneOptions?.length > 0 && !milestoneFetchError) {
+      if (newIssuesMilestoneId) dispatch(fetchKanbanTasks({ id: newIssuesMilestoneId, token }));
+      setNewIssuesTaskId('');
       setTaskOptions([]);
       // Clear subtask options and selection when milestone changes
-      setNewIssuesSubtaskId("");
+      setNewIssuesSubtaskId('');
       setSubtaskOptions([]);
     }
-  }, [
-    dispatch,
-    loadingMilestone,
-    milestoneFetchError,
-    newIssuesMilestoneId,
-    milestoneOptions,
-  ]);
+  }, [dispatch, loadingMilestone, milestoneFetchError, newIssuesMilestoneId, milestoneOptions]);
 
   useEffect(() => {
-    dispatch(fetchKanbanTasks({ id: "", token }));
+    dispatch(fetchKanbanTasks({ id: '', token }));
   }, [dispatch]);
 
   useEffect(() => {
@@ -407,10 +386,10 @@ const Issues = ({ closeModal }) => {
         setSubtaskOptions([]);
       }
       // Reset subtask selection when task changes
-      setNewIssuesSubtaskId("");
+      setNewIssuesSubtaskId('');
     } else {
       setSubtaskOptions([]);
-      setNewIssuesSubtaskId("");
+      setNewIssuesSubtaskId('');
     }
   }, [newIssuesTaskId, tasks]);
 
@@ -422,34 +401,25 @@ const Issues = ({ closeModal }) => {
       !projectsFetchError
     ) {
       dispatch(fetchMilestone({ id: newIssuesProjectId, token })).unwrap();
-      setNewIssuesMilestoneId("");
+      setNewIssuesMilestoneId('');
       setMilestoneOptions([]);
-      setNewIssuesTaskId("");
+      setNewIssuesTaskId('');
       setTaskOptions([]);
       // Clear subtask options and selection when project changes
-      setNewIssuesSubtaskId("");
+      setNewIssuesSubtaskId('');
       setSubtaskOptions([]);
     }
-  }, [
-    dispatch,
-    newIssuesProjectId,
-    projectOptions,
-    loadingProjects,
-    projectsFetchError,
-  ]);
+  }, [dispatch, newIssuesProjectId, projectOptions, loadingProjects, projectsFetchError]);
 
   useEffect(() => {
-    if (
-      !loadingProjects &&
-      (!Array.isArray(projectOptions) || projectOptions?.length === 0)
-    ) {
+    if (!loadingProjects && (!Array.isArray(projectOptions) || projectOptions?.length === 0)) {
       dispatch(fetchKanbanProjects({ token })).unwrap();
       setProjectOptions(
         projects
           ? projects.project_managements.map((project) => ({
-            value: project.id,
-            label: project.title,
-          }))
+              value: project.id,
+              label: project.title,
+            }))
           : []
       );
     }
@@ -478,31 +448,31 @@ const Issues = ({ closeModal }) => {
       if (isSubmittingRef.current) return;
       console.log(newIssuesProjectId);
       if (!newIssuesTaskId) {
-        toast.error("Task is required");
+        toast.error('Task is required');
         return;
       }
       if (!title.trim()) {
-        toast.error("Title is required");
+        toast.error('Title is required');
         return;
       }
       if (!responsiblePerson) {
-        toast.error("Responsible Person is required");
+        toast.error('Responsible Person is required');
         return;
       }
       if (!type) {
-        toast.error("Issue Type is required");
+        toast.error('Issue Type is required');
         return;
       }
       if (!priority) {
-        toast.error("Priority is required");
+        toast.error('Priority is required');
         return;
       }
       if (!endDate) {
-        toast.error("End Date is required");
+        toast.error('End Date is required');
         return;
       }
       if (!comments.trim()) {
-        toast.error("Comment is required");
+        toast.error('Comment is required');
         return;
       }
 
@@ -511,62 +481,51 @@ const Issues = ({ closeModal }) => {
       const formData = new FormData();
 
       const formattedStartDate = startDate
-        ? `${startDate.year}-${String(startDate.month + 1).padStart(2, "0")}-${String(
-          startDate.date
-        ).padStart(2, "0")}`
-        : "";
+        ? `${startDate.year}-${String(startDate.month + 1).padStart(2, '0')}-${String(
+            startDate.date
+          ).padStart(2, '0')}`
+        : '';
 
-      const formattedEndDate = `${endDate.year}-${String(
-        endDate.month + 1
-      ).padStart(2, "0")}-${String(endDate.date).padStart(2, "0")}`;
+      const formattedEndDate = `${endDate.year}-${String(endDate.month + 1).padStart(
+        2,
+        '0'
+      )}-${String(endDate.date).padStart(2, '0')}`;
 
-      formData.append("issue[title]", title.trim());
-      formData.append("issue[status]", "open");
-      formData.append("issue[responsible_person_id]", responsiblePerson);
-      formData.append("issue[project_management_id]", newIssuesProjectId || "");
-      formData.append("issue[milestone_id]", newIssuesMilestoneId || "");
+      formData.append('issue[title]', title.trim());
+      formData.append('issue[status]', 'open');
+      formData.append('issue[responsible_person_id]', responsiblePerson);
+      formData.append('issue[project_management_id]', newIssuesProjectId || '');
+      formData.append('issue[milestone_id]', newIssuesMilestoneId || '');
+      formData.append('issue[task_management_id]', newIssuesSubtaskId || newIssuesTaskId || '');
+      formData.append('issue[description]', description || '');
+      formData.append('issue[start_date]', formattedStartDate || '');
+      formData.append('issue[end_date]', formattedEndDate || '');
       formData.append(
-        "issue[task_management_id]",
-        newIssuesSubtaskId || newIssuesTaskId || ""
+        'issue[priority]',
+        globalPriorityOptions.find((option) => option.value === priority)?.label || null
       );
-      formData.append("issue[description]", description || "");
-      formData.append("issue[start_date]", formattedStartDate || "");
-      formData.append("issue[end_date]", formattedEndDate || "");
-      formData.append(
-        "issue[priority]",
-        globalPriorityOptions.find((option) => option.value === priority)
-          ?.label || null
-      );
-      formData.append(
-        "issue[created_by_id]",
-        JSON.parse(localStorage.getItem("user"))?.id || ""
-      );
-      formData.append(
-        "issue[issue_type]",
-        type || null
-      );
-      formData.append("issue[comment]", comments || "");
-      formData.append("issue[estimated_hour]", totalWorkingHours || 0);
+      formData.append('issue[created_by_id]', JSON.parse(localStorage.getItem('user'))?.id || '');
+      formData.append('issue[issue_type]', type || null);
+      formData.append('issue[comment]', comments || '');
+      formData.append('issue[estimated_hour]', totalWorkingHours || 0);
       // formData.append("issue[issue_allocation_times_attributes]", dateWiseHours);
-      dateWiseHours.map(date => {
-        formData.append("issue[issue_allocation_times_attributes][][hours]", date.hours);
-        formData.append("issue[issue_allocation_times_attributes][][minutes]", date.minutes);
-        formData.append("issue[issue_allocation_times_attributes][][date]", date.date);
-      })
+      dateWiseHours.map((date) => {
+        formData.append('issue[issue_allocation_times_attributes][][hours]', date.hours);
+        formData.append('issue[issue_allocation_times_attributes][][minutes]', date.minutes);
+        formData.append('issue[issue_allocation_times_attributes][][date]', date.date);
+      });
       attachments.forEach((file) => {
-        formData.append("issue[attachments][]", file);
+        formData.append('issue[attachments][]', file);
       });
 
       try {
         await dispatch(createIssue({ token, payload: formData })).unwrap();
         dispatch(fetchIssue({ token }));
         closeModal();
-        toast.success("Issue created successfully!");
+        toast.success('Issue created successfully!');
       } catch (error) {
-        console.error("Error submitting Issue:", error);
-        toast.error(
-          `Issue creation failed: ${error.message || "Unknown error"}`
-        );
+        console.error('Error submitting Issue:', error);
+        toast.error(`Issue creation failed: ${error.message || 'Unknown error'}`);
       } finally {
         setIsSubmitting(false);
       }
@@ -615,7 +574,7 @@ const Issues = ({ closeModal }) => {
               options={projectOptions}
               value={newIssuesProjectId}
               onChange={(selectedValue) => setNewIssuesProjectId(selectedValue)}
-              placeholder={"Select Project"}
+              placeholder={'Select Project'}
             />
           </div>
           <div className="w-1/2 flex flex-col justify-between">
@@ -623,10 +582,8 @@ const Issues = ({ closeModal }) => {
             <SelectBox
               options={milestoneOptions}
               value={newIssuesMilestoneId}
-              onChange={(selectedValue) =>
-                setNewIssuesMilestoneId(selectedValue)
-              }
-              placeholder={"Select Milestone"}
+              onChange={(selectedValue) => setNewIssuesMilestoneId(selectedValue)}
+              placeholder={'Select Milestone'}
             />
           </div>
         </div>
@@ -639,7 +596,7 @@ const Issues = ({ closeModal }) => {
               options={taskOptions}
               value={newIssuesTaskId}
               onChange={(selectedValue) => setNewIssuesTaskId(selectedValue)}
-              placeholder={"Select Task"}
+              placeholder={'Select Task'}
             />
           </div>
           <div className="w-1/2 flex flex-col justify-between">
@@ -648,7 +605,7 @@ const Issues = ({ closeModal }) => {
               options={subtaskOptions} // Use subtaskOptions
               value={newIssuesSubtaskId}
               onChange={(selectedValue) => setNewIssuesSubtaskId(selectedValue)}
-              placeholder={"Select Subtask"}
+              placeholder={'Select Subtask'}
             />
           </div>
         </div>
@@ -671,9 +628,9 @@ const Issues = ({ closeModal }) => {
             options={
               users
                 ? users.map((user) => ({
-                  value: user.id,
-                  label: `${user.firstname || ""} ${user.lastname || ""}`.trim(),
-                }))
+                    value: user.id,
+                    label: `${user.firstname || ''} ${user.lastname || ''}`.trim(),
+                  }))
                 : []
             }
             value={responsiblePerson}
@@ -704,7 +661,7 @@ const Issues = ({ closeModal }) => {
                 <div className="text-black flex items-center justify-between w-full">
                   <CalendarIcon className="w-4 h-4" />
                   <div>
-                    Start Date : {startDate?.date?.toString().padStart(2, "0")}{" "}
+                    Start Date : {startDate?.date?.toString().padStart(2, '0')}{' '}
                     {monthNames[startDate.month]}
                   </div>
                   <X className="w-4 h-4 cursor-pointer" onClick={() => setStartDate(null)} />
@@ -735,7 +692,7 @@ const Issues = ({ closeModal }) => {
                 <div className="text-black flex items-center justify-between w-full">
                   <CalendarIcon className="w-4 h-4" />
                   <div>
-                    End Date : {endDate.date.toString().padStart(2, "0")}{" "}
+                    End Date : {endDate.date.toString().padStart(2, '0')}{' '}
                     {monthNames[endDate.month]}
                   </div>
                   <X className="w-4 h-4 cursor-pointer" onClick={() => setEndDate(null)} />
@@ -751,16 +708,16 @@ const Issues = ({ closeModal }) => {
 
         <div className="flex justify-between mt-3 gap-2 text-[12px]">
           <div className="space-y-2 w-full">
-            <label className="block">
-              Efforts Duration
-            </label>
+            <label className="block">Efforts Duration</label>
             <DurationPicker
               value={issueDuration}
               onChange={setIssueDuration}
               onDateWiseHoursChange={setDateWiseHours}
               startDate={startDate}
               endDate={endDate}
-              resposiblePerson={responsiblePerson ? users.find(u => u.id === responsiblePerson)?.firstname : ""}
+              resposiblePerson={
+                responsiblePerson ? users.find((u) => u.id === responsiblePerson)?.firstname : ''
+              }
               totalWorkingHours={totalWorkingHours}
               setTotalWorkingHours={setTotalWorkingHours}
               shift={shift}
@@ -771,7 +728,7 @@ const Issues = ({ closeModal }) => {
         <div
           ref={startCollapsibleRef}
           className="overflow-hidden opacity-0 h-0"
-          style={{ willChange: "height, opacity" }}
+          style={{ willChange: 'height, opacity' }}
         >
           {!startDate ? (
             showStartCalender ? (
@@ -794,7 +751,7 @@ const Issues = ({ closeModal }) => {
           ) : (
             <TasksOfDate
               selectedDate={startDate}
-              onClose={() => { }}
+              onClose={() => {}}
               tasks={startDateTasks}
               selectedUser={responsiblePerson}
               userAvailability={userAvailability}
@@ -805,7 +762,7 @@ const Issues = ({ closeModal }) => {
         <div
           ref={collapsibleRef}
           className="overflow-hidden opacity-0 h-0"
-          style={{ willChange: "height, opacity" }}
+          style={{ willChange: 'height, opacity' }}
         >
           {!endDate ? (
             showCalender ? (
@@ -828,7 +785,7 @@ const Issues = ({ closeModal }) => {
           ) : (
             <TasksOfDate
               selectedDate={endDate}
-              onClose={() => { }}
+              onClose={() => {}}
               tasks={targetDateTasks}
               selectedUser={responsiblePerson}
               userAvailability={userAvailability}
@@ -845,7 +802,7 @@ const Issues = ({ closeModal }) => {
               options={issueTypeOptions}
               value={type}
               onChange={(selectedValue) => setType(selectedValue)}
-              placeholder={"Select Type"}
+              placeholder={'Select Type'}
             />
           </div>
           <div className="w-1/2 flex flex-col justify-between">
@@ -881,7 +838,7 @@ const Issues = ({ closeModal }) => {
             className="flex items-center justify-center border-2 text-[black] border-[red] px-4 py-2 w-[100px]"
             disabled={isSubmitting || loadingUsers}
           >
-            {isSubmitting ? "Submitting..." : "Submit"}
+            {isSubmitting ? 'Submitting...' : 'Submit'}
           </button>
         </div>
       </div>

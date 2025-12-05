@@ -1,27 +1,22 @@
-/* eslint-disable react/prop-types */
-import { useState, useMemo, useEffect, useCallback } from "react";
-import DeleteOutlineOutlinedIcon from "@mui/icons-material/DeleteOutlineOutlined";
-import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
-import Switch from "@mui/joy/Switch";
+import { useState, useMemo, useEffect, useCallback } from 'react';
+import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined';
+import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
+import Switch from '@mui/joy/Switch';
 import {
   useReactTable,
   getCoreRowModel,
   flexRender,
   getPaginationRowModel,
-} from "@tanstack/react-table";
-import { useDispatch, useSelector } from "react-redux";
-import { fetchRegion } from "../../../redux/slices/regionSlice";
-import {
-  fetchZone,
-  updateZone,
-  deleteZone,
-} from "../../../redux/slices/zoneSlice";
-import AddZoneModel from "./Model";
-import toast from "react-hot-toast";
+} from '@tanstack/react-table';
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchRegion } from '../../../redux/slices/regionSlice';
+import { fetchZone, updateZone, deleteZone } from '../../../redux/slices/zoneSlice';
+import AddZoneModel from './Model';
+import toast from 'react-hot-toast';
 import { DeleteConfirmationModal } from '../../DeleteConfirmationModal';
 
 const ZoneTable = ({ openModal, setOpenModal, editMode, setEditMode }) => {
-  const token = localStorage.getItem("token");
+  const token = localStorage.getItem('token');
   const [selectedData, setSelectedData] = useState(null);
   const dispatch = useDispatch();
   const { fetchRegion: Region } = useSelector((state) => state.fetchRegion);
@@ -32,13 +27,13 @@ const ZoneTable = ({ openModal, setOpenModal, editMode, setEditMode }) => {
       try {
         await Promise.all([
           dispatch(fetchRegion({ token })).unwrap(),
-          dispatch(fetchZone({ token })).unwrap()
+          dispatch(fetchZone({ token })).unwrap(),
         ]);
       } catch (error) {
-        console.error("Failed to fetch initial zone/region data:", error);
+        console.error('Failed to fetch initial zone/region data:', error);
         toast.dismiss();
-        toast.error("Failed to load Zone or Region data", {
-          iconTheme: { primary: "red", secondary: "white" },
+        toast.error('Failed to load Zone or Region data', {
+          iconTheme: { primary: 'red', secondary: 'white' },
         });
       }
     };
@@ -62,17 +57,17 @@ const ZoneTable = ({ openModal, setOpenModal, editMode, setEditMode }) => {
   const handleDeleteClick = useCallback(
     async (id) => {
       try {
-        console.log("Deleting zone:", id);
+        console.log('Deleting zone:', id);
         await dispatch(deleteZone({ token, id })).unwrap();
         toast.dismiss();
-        toast.success("Zone deleted successfully", {
-          iconTheme: { primary: "red", secondary: "white" },
+        toast.success('Zone deleted successfully', {
+          iconTheme: { primary: 'red', secondary: 'white' },
         });
         await dispatch(fetchZone({ token }));
       } catch (error) {
-        console.error("Failed to delete zone:", error);
-        toast.error("Failed to delete Zone.", {
-          iconTheme: { primary: "red", secondary: "white" },
+        console.error('Failed to delete zone:', error);
+        toast.error('Failed to delete Zone.', {
+          iconTheme: { primary: 'red', secondary: 'white' },
         });
       }
     },
@@ -84,24 +79,19 @@ const ZoneTable = ({ openModal, setOpenModal, editMode, setEditMode }) => {
       const updatedValue = !row.original.active;
       const payload = { active: updatedValue };
       try {
-        await dispatch(
-          updateZone({ token, id: row.original.id, payload })
-        ).unwrap();
+        await dispatch(updateZone({ token, id: row.original.id, payload })).unwrap();
         toast.dismiss();
-        toast.success(
-          `Status ${updatedValue ? "activated" : "deactivated"} successfully`,
-          {
-            iconTheme: {
-              primary: updatedValue ? "green" : "red",
-              secondary: "white",
-            },
-          }
-        );
+        toast.success(`Status ${updatedValue ? 'activated' : 'deactivated'} successfully`, {
+          iconTheme: {
+            primary: updatedValue ? 'green' : 'red',
+            secondary: 'white',
+          },
+        });
         await dispatch(fetchZone({ token }));
       } catch (error) {
-        console.error("Failed to update toggle:", error);
-        toast.error("Failed to update status", {
-          iconTheme: { primary: "red", secondary: "white" },
+        console.error('Failed to update toggle:', error);
+        toast.error('Failed to update status', {
+          iconTheme: { primary: 'red', secondary: 'white' },
         });
       }
     },
@@ -114,11 +104,11 @@ const ZoneTable = ({ openModal, setOpenModal, editMode, setEditMode }) => {
       <>
         <div className="action-icons flex justify-between gap-5">
           <EditOutlinedIcon
-            sx={{ fontSize: "20px", cursor: "pointer" }}
+            sx={{ fontSize: '20px', cursor: 'pointer' }}
             onClick={() => handleEditClick(row)}
           />
           <DeleteOutlineOutlinedIcon
-            sx={{ fontSize: "20px", cursor: "pointer" }}
+            sx={{ fontSize: '20px', cursor: 'pointer' }}
             onClick={() => setIsDeleteModalOpen(true)}
           />
         </div>
@@ -126,12 +116,12 @@ const ZoneTable = ({ openModal, setOpenModal, editMode, setEditMode }) => {
           isOpen={isDeleteModalOpen}
           onClose={() => setIsDeleteModalOpen(false)}
           onConfirm={() => {
-            handleDeleteClick(row.original.id)
+            handleDeleteClick(row.original.id);
             setIsDeleteModalOpen(false);
           }}
         />
       </>
-    )
+    );
   };
 
   const regionMap = useMemo(() => {
@@ -147,44 +137,40 @@ const ZoneTable = ({ openModal, setOpenModal, editMode, setEditMode }) => {
   const columns = useMemo(
     () => [
       {
-        accessorKey: "name",
-        header: "Zone",
+        accessorKey: 'name',
+        header: 'Zone',
         size: 150,
         cell: ({ getValue }) => {
           const value = getValue();
           return value ? (
-            <span className="pl-2">
-              {value.charAt(0).toUpperCase() + value.slice(1)}
-            </span>
+            <span className="pl-2">{value.charAt(0).toUpperCase() + value.slice(1)}</span>
           ) : null;
         },
       },
       {
-        accessorKey: "region_id",
-        header: "Country",
+        accessorKey: 'region_id',
+        header: 'Country',
         size: 150,
         cell: ({ row }) => {
           const regionId = row.original.region_id;
           const regionMatch = Region.find((r) => r.id === regionId);
-          return regionMatch ? regionMatch.country_name : "-";
+          return regionMatch ? regionMatch.country_name : '-';
         },
       },
       {
-        accessorKey: "region_id",
-        header: "Region",
+        accessorKey: 'region_id',
+        header: 'Region',
         size: 150,
         cell: ({ getValue }) => {
           const value = regionMap[getValue()];
           return value ? (
-            <span className="pl-2">
-              {value.charAt(0).toUpperCase() + value.slice(1)}
-            </span>
+            <span className="pl-2">{value.charAt(0).toUpperCase() + value.slice(1)}</span>
           ) : null;
         },
       },
       {
-        accessorKey: "status",
-        header: "Status",
+        accessorKey: 'status',
+        header: 'Status',
         size: 150,
         cell: ({ row }) => {
           const isActive = row.original.active;
@@ -192,7 +178,7 @@ const ZoneTable = ({ openModal, setOpenModal, editMode, setEditMode }) => {
             <div className="flex gap-4">
               <span>Inactive</span>
               <Switch
-                color={isActive ? "success" : "danger"}
+                color={isActive ? 'success' : 'danger'}
                 checked={isActive}
                 onChange={() => handleToggle(row)}
               />
@@ -202,11 +188,11 @@ const ZoneTable = ({ openModal, setOpenModal, editMode, setEditMode }) => {
         },
       },
       {
-        id: "actions",
-        header: "Actions",
+        id: 'actions',
+        header: 'Actions',
         size: 60,
         cell: ({ row }) => (row.original ? <ActionIcons row={row} /> : null),
-        meta: { cellClassName: "actions-cell-content" },
+        meta: { cellClassName: 'actions-cell-content' },
       },
     ],
     [regionMap, handleToggle]
@@ -254,44 +240,34 @@ const ZoneTable = ({ openModal, setOpenModal, editMode, setEditMode }) => {
                     >
                       {header.isPlaceholder
                         ? null
-                        : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext()
-                        )}
+                        : flexRender(header.column.columnDef.header, header.getContext())}
                     </th>
                   ))}
                 </tr>
               ))}
             </thead>
-            <tbody
-              className="divide-y"
-              style={{ height: `${fixedRowsPerPage * rowHeight}px` }}
-            >
+            <tbody className="divide-y" style={{ height: `${fixedRowsPerPage * rowHeight}px` }}>
               {pageRows.map((row) => {
                 const isEmpty =
-                  !row.original ||
-                  Object.values(row.original).every(
-                    (v) => v === null || v === ""
-                  );
+                  !row.original || Object.values(row.original).every((v) => v === null || v === '');
                 return (
                   <tr
                     key={row.id}
-                    className={`hover:bg-gray-50 even:bg-[#D5DBDB4D] ${isEmpty ? "pointer-events-none text-transparent" : ""
-                      }`}
+                    className={`hover:bg-gray-50 even:bg-[#D5DBDB4D] ${
+                      isEmpty ? 'pointer-events-none text-transparent' : ''
+                    }`}
                     style={{ height: `${rowHeight}px` }}
                   >
                     {row.getVisibleCells().map((cell) => (
                       <td
                         key={cell.id}
                         style={{ width: cell.column.getSize() }}
-                        className={`${cell.column.columnDef.meta?.cellClassName || ""
-                          } whitespace-nowrap px-3 py-2 border-r-2`}
+                        className={`${
+                          cell.column.columnDef.meta?.cellClassName || ''
+                        } whitespace-nowrap px-3 py-2 border-r-2`}
                       >
                         {!isEmpty
-                          ? flexRender(
-                            cell.column.columnDef.cell,
-                            cell.getContext()
-                          )
+                          ? flexRender(cell.column.columnDef.cell, cell.getContext())
                           : null}
                       </td>
                     ))}
@@ -325,16 +301,13 @@ const ZoneTable = ({ openModal, setOpenModal, editMode, setEditMode }) => {
               disabled={!table.getCanPreviousPage()}
               className="text-red-600 disabled:opacity-30"
             >
-              {"<"}
+              {'<'}
             </button>
             {(() => {
               const totalPages = table.getPageCount();
               const currentPage = table.getState().pagination.pageIndex;
               const visiblePages = 3;
-              let start = Math.max(
-                0,
-                currentPage - Math.floor(visiblePages / 2)
-              );
+              let start = Math.max(0, currentPage - Math.floor(visiblePages / 2));
               let end = start + visiblePages;
               if (end > totalPages) {
                 end = totalPages;
@@ -347,8 +320,7 @@ const ZoneTable = ({ openModal, setOpenModal, editMode, setEditMode }) => {
                   <button
                     key={page}
                     onClick={() => table.setPageIndex(page)}
-                    className={`px-3 py-1 ${isActive ? "bg-gray-200 font-bold" : ""
-                      }`}
+                    className={`px-3 py-1 ${isActive ? 'bg-gray-200 font-bold' : ''}`}
                   >
                     {page + 1}
                   </button>
@@ -360,7 +332,7 @@ const ZoneTable = ({ openModal, setOpenModal, editMode, setEditMode }) => {
               disabled={!table.getCanNextPage()}
               className="text-red-600 disabled:opacity-30"
             >
-              {">"}
+              {'>'}
             </button>
           </div>
         )}

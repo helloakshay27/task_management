@@ -1,19 +1,17 @@
-import { useEffect, useState, useRef } from "react";
-import DeleteOutlinedIcon from "@mui/icons-material/DeleteOutlined";
-import SelectBox from "../../../SelectBox";
-import { useDispatch, useSelector } from "react-redux";
-import {
-  fetchUsers
-} from "../../../../redux/slices/userSlice";
+import { useEffect, useState, useRef } from 'react';
+import DeleteOutlinedIcon from '@mui/icons-material/DeleteOutlined';
+import SelectBox from '../../../SelectBox';
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchUsers } from '../../../../redux/slices/userSlice';
 import {
   createMilestone,
   fetchMilestone,
   addSavedMilestone,
   clearSavedMilestones,
-} from "../../../../redux/slices/milestoneSlice";
-import { useLocation, useParams } from "react-router-dom";
-import toast from "react-hot-toast";
-import { fetchProjects } from "@/redux/slices/projectSlice";
+} from '../../../../redux/slices/milestoneSlice';
+import { useLocation, useParams } from 'react-router-dom';
+import toast from 'react-hot-toast';
+import { fetchProjects } from '@/redux/slices/projectSlice';
 
 const AddMilestoneModal = ({
   users,
@@ -39,7 +37,7 @@ const AddMilestoneModal = ({
   };
 
   const calculateDuration = (startDate, endDate) => {
-    if (!formData.startDate || !formData.endDate) return "";
+    if (!formData.startDate || !formData.endDate) return '';
 
     const start = new Date(formData.startDate);
     const end = new Date(formData.endDate);
@@ -64,7 +62,7 @@ const AddMilestoneModal = ({
         return `0d : ${hrs}h : ${mins}m`;
       } else {
         // End date is in the future
-        if (endDay < startDay) return "Invalid: End date before start date";
+        if (endDay < startDay) return 'Invalid: End date before start date';
 
         const daysDiff = Math.floor((endDay - today) / (1000 * 60 * 60 * 24));
 
@@ -81,7 +79,7 @@ const AddMilestoneModal = ({
       }
     } else {
       // For future dates, calculate days only
-      if (endDay < startDay) return "Invalid: End date before start date";
+      if (endDay < startDay) return 'Invalid: End date before start date';
 
       const days = Math.floor((endDay - startDay) / (1000 * 60 * 60 * 24)) + 1;
       return `${days}d : 0h : 0m`;
@@ -112,10 +110,10 @@ const AddMilestoneModal = ({
                 label: proj.title,
                 value: proj.id,
               }))}
-              onChange={(value) => handleSelectChange("projectId", value)}
+              onChange={(value) => handleSelectChange('projectId', value)}
               value={formData.projectId || null}
               placeholder="Select Project"
-              style={{ border: "1px solid #b3b2b2" }}
+              style={{ border: '1px solid #b3b2b2' }}
               disabled={isReadOnly}
             />
           </div>
@@ -132,7 +130,7 @@ const AddMilestoneModal = ({
           placeholder="Enter Milestone Title"
           className="w-full border h-[40px] outline-none border-gray-300 p-2 text-[12px]"
           onChange={handleInputChange}
-          value={formData.title || ""}
+          value={formData.title || ''}
           disabled={isReadOnly}
         />
       </div>
@@ -147,10 +145,10 @@ const AddMilestoneModal = ({
               label: `${user.firstname} ${user.lastname}`,
               value: user.id,
             }))}
-            onChange={(value) => handleSelectChange("ownerId", value)}
+            onChange={(value) => handleSelectChange('ownerId', value)}
             value={formData.ownerId || null}
             placeholder="Select Owner"
-            style={{ border: "1px solid #b3b2b2" }}
+            style={{ border: '1px solid #b3b2b2' }}
             disabled={isReadOnly}
           />
         </div>
@@ -163,10 +161,10 @@ const AddMilestoneModal = ({
           </label>
           <input
             name="startDate"
-            value={formData.startDate || ""}
+            value={formData.startDate || ''}
             onChange={handleInputChange}
             type="date"
-            min={new Date().toISOString().split("T")[0] || projectStartDate}
+            min={new Date().toISOString().split('T')[0] || projectStartDate}
             max={projectEndDate}
             className="w-full border outline-none border-gray-300 p-2 text-[12px] placeholder-shown:text-transparent"
             disabled={isReadOnly}
@@ -180,7 +178,7 @@ const AddMilestoneModal = ({
           <input
             name="endDate"
             type="date"
-            value={formData.endDate || ""}
+            value={formData.endDate || ''}
             onChange={handleInputChange}
             min={formData.startDate || projectStartDate}
             max={projectEndDate}
@@ -205,16 +203,16 @@ const AddMilestoneModal = ({
           <label className="block mb-2">Depends On</label>
           <SelectBox
             options={[
-              { label: "Select Dependency", value: "" },
+              { label: 'Select Dependency', value: '' },
               ...(Array.isArray(milestoneOptions)
                 ? milestoneOptions.map((m) => ({
-                  label: m.title,
-                  value: m.id
-                }))
-                : [])
+                    label: m.title,
+                    value: m.id,
+                  }))
+                : []),
             ]}
-            style={{ border: "1px solid #b3b2b2" }}
-            onChange={(value) => handleSelectChange("dependsOnId", value)}
+            style={{ border: '1px solid #b3b2b2' }}
+            onChange={(value) => handleSelectChange('dependsOnId', value)}
             value={formData.dependsOnId || null}
             placeholder="Select Dependency"
             disabled={isReadOnly}
@@ -226,7 +224,7 @@ const AddMilestoneModal = ({
 };
 
 const Milestones = ({ closeModal, opportunityId, prefillData, onSuccess }) => {
-  const token = localStorage.getItem("token");
+  const token = localStorage.getItem('token');
   const location = useLocation();
   const dispatch = useDispatch();
   const { id } = useParams();
@@ -235,23 +233,22 @@ const Milestones = ({ closeModal, opportunityId, prefillData, onSuccess }) => {
   const { fetchMilestone: milestone = [], savedMilestones = [] } = useSelector(
     (state) => state.fetchMilestone
   );
-  const { createProject: project = {} } = useSelector(
-    (state) => state.createProject
-  );
+  const { createProject: project = {} } = useSelector((state) => state.createProject);
   const { loading } = useSelector((state) => state.createMilestone);
-  const { fetchProjectDetails: projectDetail } = useSelector(
-    (state) => state.fetchProjectDetails
-  );
+  const { fetchProjectDetails: projectDetail } = useSelector((state) => state.fetchProjectDetails);
 
   const [nextId, setNextId] = useState(1);
   const [isDelete, setIsDelete] = useState(false);
   const [projects, setProjects] = useState([]);
   const isSubmittingRef = useRef(false);
   const [formData, setFormData] = useState({
-    title: prefillData?.title.replace(/@\[(.*?)\]\(\d+\)/g, "@$1").replace(/#\[(.*?)\]\(\d+\)/g, "#$1") || "",
+    title:
+      prefillData?.title
+        .replace(/@\[(.*?)\]\(\d+\)/g, '@$1')
+        .replace(/#\[(.*?)\]\(\d+\)/g, '#$1') || '',
     ownerId: null,
-    startDate: "",
-    endDate: "",
+    startDate: '',
+    endDate: '',
     dependsOnId: null,
     projectId: null,
   });
@@ -272,11 +269,11 @@ const Milestones = ({ closeModal, opportunityId, prefillData, onSuccess }) => {
             const projectsResponse = await dispatch(fetchProjects({ token })).unwrap();
             setProjects(projectsResponse);
           } catch (error) {
-            console.log("Failed to fetch projects:", error);
+            console.log('Failed to fetch projects:', error);
           }
         }
       } catch (error) {
-        toast.error("Failed to load data.");
+        toast.error('Failed to load data.');
       } finally {
         setIsLoading(false);
       }
@@ -286,26 +283,15 @@ const Milestones = ({ closeModal, opportunityId, prefillData, onSuccess }) => {
 
   const validateForm = (data) => {
     toast.dismiss();
-    if (!data.title)
-      return toast.error("Milestone title is required.") && false;
-    if (!data.ownerId) return toast.error("Select project owner.") && false;
-    if (opportunityId && !data.projectId) return toast.error("Select a project.") && false;
-    if (!data.startDate)
-      return toast.error("Milestone start date is required.") && false;
-    if (!data.endDate)
-      return toast.error("Milestone end date is required.") && false;
-    if (
-      data.startDate < projectDetail.startDate ||
-      data.startDate > projectDetail.endDate
-    )
-      return (
-        toast.error("Start date must be within project duration.") && false
-      );
-    if (
-      data.endDate < projectDetail.startDate ||
-      data.endDate > projectDetail.endDate
-    )
-      return toast.error("End date must be within project duration.") && false;
+    if (!data.title) return toast.error('Milestone title is required.') && false;
+    if (!data.ownerId) return toast.error('Select project owner.') && false;
+    if (opportunityId && !data.projectId) return toast.error('Select a project.') && false;
+    if (!data.startDate) return toast.error('Milestone start date is required.') && false;
+    if (!data.endDate) return toast.error('Milestone end date is required.') && false;
+    if (data.startDate < projectDetail.startDate || data.startDate > projectDetail.endDate)
+      return toast.error('Start date must be within project duration.') && false;
+    if (data.endDate < projectDetail.startDate || data.endDate > projectDetail.endDate)
+      return toast.error('End date must be within project duration.') && false;
     return true;
   };
 
@@ -313,12 +299,16 @@ const Milestones = ({ closeModal, opportunityId, prefillData, onSuccess }) => {
     const milestonePayload = {
       milestone: {
         title: data.title,
-        status: "open",
+        status: 'open',
         owner_id: data.ownerId,
         start_date: data.startDate,
         end_date: data.endDate,
         depends_on_id: data.dependsOnId,
-        project_management_id: opportunityId ? data.projectId : (location.pathname.includes("/milestones") ? id : project?.id),
+        project_management_id: opportunityId
+          ? data.projectId
+          : location.pathname.includes('/milestones')
+            ? id
+            : project?.id,
       },
     };
 
@@ -345,20 +335,20 @@ const Milestones = ({ closeModal, opportunityId, prefillData, onSuccess }) => {
 
     try {
       await dispatch(createMilestone({ token, payload })).unwrap();
-      toast.success("Milestone created successfully.");
+      toast.success('Milestone created successfully.');
       dispatch(addSavedMilestone({ id: nextId, formData }));
       setFormData({
-        title: "",
+        title: '',
         ownerId: null,
-        startDate: "",
-        endDate: "",
+        startDate: '',
+        endDate: '',
         dependsOnId: null,
         projectId: null,
       });
       setNextId(nextId + 1);
       await dispatch(fetchMilestone({ token, id: project?.id ? project.id : id })).unwrap();
     } catch {
-      toast.error("Error creating milestone.");
+      toast.error('Error creating milestone.');
     } finally {
       isSubmittingRef.current = false;
     }
@@ -393,12 +383,12 @@ const Milestones = ({ closeModal, opportunityId, prefillData, onSuccess }) => {
         }
       }
       toast.dismiss();
-      toast.success("Milestone created successfully.");
+      toast.success('Milestone created successfully.');
       await dispatch(fetchMilestone({ token, id })).unwrap();
       dispatch(clearSavedMilestones());
       window.location.reload();
     } catch {
-      toast.error("Error creating milestone.");
+      toast.error('Error creating milestone.');
     } finally {
       isSubmittingRef.current = false;
       setIsDelete(false);
@@ -406,25 +396,19 @@ const Milestones = ({ closeModal, opportunityId, prefillData, onSuccess }) => {
   };
 
   const isFormEmpty =
-    !formData.title &&
-    !formData.ownerId &&
-    !formData.startDate &&
-    !formData.endDate;
+    !formData.title && !formData.ownerId && !formData.startDate && !formData.endDate;
 
   // if (isLoading) return <div className="text-center py-4">Loading...</div>;
 
   return (
     <form className="pb-12 h-full text-[12px]" onSubmit={handleSubmit}>
-      <div
-        id="addTask"
-        className="max-w-[90%] mx-auto h-[calc(100%-4rem)] overflow-y-auto pr-3"
-      >
+      <div id="addTask" className="max-w-[90%] mx-auto h-[calc(100%-4rem)] overflow-y-auto pr-3">
         {savedMilestones.map((m) => (
           <AddMilestoneModal
             key={m.id}
             users={users}
             formData={m.formData}
-            setFormData={() => { }}
+            setFormData={() => {}}
             isReadOnly={true}
             milestoneOptions={milestone}
             hasSavedMilestones={savedMilestones.length > 0}
@@ -458,7 +442,7 @@ const Milestones = ({ closeModal, opportunityId, prefillData, onSuccess }) => {
             className="flex items-center justify-center border-2 text-[black] border-[red] px-4 py-2 w-[100px]"
             disabled={loading}
           >
-            {loading ? "Processing..." : "Save"}
+            {loading ? 'Processing...' : 'Save'}
           </button>
 
           {isFormEmpty ? (
@@ -469,10 +453,10 @@ const Milestones = ({ closeModal, opportunityId, prefillData, onSuccess }) => {
               onClick={() => {
                 if (savedMilestones.length === 0) {
                   setFormData({
-                    title: "",
+                    title: '',
                     ownerId: null,
-                    startDate: "",
-                    endDate: "",
+                    startDate: '',
+                    endDate: '',
                     dependsOnId: null,
                   });
                   closeModal();

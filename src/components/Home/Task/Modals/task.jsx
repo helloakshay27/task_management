@@ -1,38 +1,38 @@
-import { useCallback, useEffect, useRef, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import {
   fetchUserAvailability,
   fetchUsers,
   fetchUserShift,
   removeUserFromProject,
-} from "../../../../redux/slices/userSlice";
-import { fetchTags } from "../../../../redux/slices/tagsSlice";
-import MultiSelectBox from "../../../MultiSelectBox";
-import SelectBox from "../../../SelectBox";
+} from '../../../../redux/slices/userSlice';
+import { fetchTags } from '../../../../redux/slices/tagsSlice';
+import MultiSelectBox from '../../../MultiSelectBox';
+import SelectBox from '../../../SelectBox';
 import {
   createTask,
   editTask,
   fetchTargetDateTasks,
   fetchTasks,
-} from "../../../../redux/slices/taskSlice";
-import { useParams, useNavigate } from "react-router-dom";
+} from '../../../../redux/slices/taskSlice';
+import { useParams, useNavigate } from 'react-router-dom';
 import {
   fetchKanbanProjects,
   fetchProjectDetails,
   removeTagFromProject,
-} from "../../../../redux/slices/projectSlice";
-import { fetchMilestone, fetchMilestoneById } from "../../../../redux/slices/milestoneSlice";
-import toast from "react-hot-toast";
-import DeleteOutlinedIcon from "@mui/icons-material/DeleteOutlined";
-import { DurationPicker } from "@/components/DurationPicker";
-import { CalendarIcon, X } from "lucide-react";
-import gsap from "gsap";
-import { TaskDatePicker } from "@/components/TaskDatePicker";
-import TasksOfDate from "@/components/TasksOfDate";
-import { CustomCalender } from "@/components/CustomCalender";
-import TaskTitleAutocomplete from "../../../TaskTitleAutocomplete";
-import axios from "axios";
-import { baseURL } from "../../../../../apiDomain";
+} from '../../../../redux/slices/projectSlice';
+import { fetchMilestone, fetchMilestoneById } from '../../../../redux/slices/milestoneSlice';
+import toast from 'react-hot-toast';
+import DeleteOutlinedIcon from '@mui/icons-material/DeleteOutlined';
+import { DurationPicker } from '@/components/DurationPicker';
+import { CalendarIcon, X } from 'lucide-react';
+import gsap from 'gsap';
+import { TaskDatePicker } from '@/components/TaskDatePicker';
+import TasksOfDate from '@/components/TasksOfDate';
+import { CustomCalender } from '@/components/CustomCalender';
+import TaskTitleAutocomplete from '../../../TaskTitleAutocomplete';
+import axios from 'axios';
+import { baseURL } from '../../../../../apiDomain';
 
 const TaskForm = ({
   formData,
@@ -62,18 +62,16 @@ const TaskForm = ({
   endDate,
   setEndDate,
   mid,
-  setSelectedProjects
+  setSelectedProjects,
 }) => {
   const { fetchUserAvailability: userAvailability } = useSelector(
     (state) => state.fetchUserAvailability
   );
-  const { fetchUserShift: shift } = useSelector(
-    (state) => state.fetchUserShift
-  );
+  const { fetchUserShift: shift } = useSelector((state) => state.fetchUserShift);
 
   const startDateRef = useRef(null);
   const endDateRef = useRef(null);
-  console.log(users)
+  console.log(users);
 
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showStartDatePicker, setShowStartDatePicker] = useState(false);
@@ -83,22 +81,22 @@ const TaskForm = ({
   const [showStartCalender, setShowStartCalender] = useState(false);
   const [calendarTaskHours, setCalendarTaskHours] = useState([]);
   const [selectedProject, setSelectedProject] = useState(null);
-  const [projects, setProjects] = useState([])
+  const [projects, setProjects] = useState([]);
   const [milestones, setMilestones] = useState([]);
 
   const monthNames = [
-    "Jan",
-    "Feb",
-    "Mar",
-    "Apr",
-    "May",
-    "Jun",
-    "Jul",
-    "Aug",
-    "Sep",
-    "Oct",
-    "Nov",
-    "Dec",
+    'Jan',
+    'Feb',
+    'Mar',
+    'Apr',
+    'May',
+    'Jun',
+    'Jul',
+    'Aug',
+    'Sep',
+    'Oct',
+    'Nov',
+    'Dec',
   ];
 
   const collapsibleRef = useRef(null);
@@ -111,17 +109,17 @@ const TaskForm = ({
 
     if (showDatePicker) {
       gsap.to(el, {
-        height: "auto",
+        height: 'auto',
         opacity: 1,
         duration: 0.4,
-        ease: "power2.out",
+        ease: 'power2.out',
       });
     } else {
       gsap.to(el, {
         height: 0,
         opacity: 0,
         duration: 0.3,
-        ease: "power2.in",
+        ease: 'power2.in',
       });
     }
   }, [showDatePicker]);
@@ -134,27 +132,25 @@ const TaskForm = ({
       } catch (error) {
         console.log(error);
       }
-    }
+    };
 
     getProjects();
-  }, [])
+  }, []);
 
   useEffect(() => {
     const getMilestones = async () => {
       if (!selectedProject) return;
 
       try {
-        const response = await dispatch(
-          fetchMilestone({ token, id: selectedProject })
-        ).unwrap();
+        const response = await dispatch(fetchMilestone({ token, id: selectedProject })).unwrap();
         setMilestones(response);
       } catch (error) {
         console.log(error);
       }
-    }
+    };
 
     getMilestones();
-  }, [selectedProject])
+  }, [selectedProject]);
 
   useEffect(() => {
     const el = startCollapsibleRef.current;
@@ -162,17 +158,17 @@ const TaskForm = ({
 
     if (showStartDatePicker) {
       gsap.to(el, {
-        height: "auto",
+        height: 'auto',
         opacity: 1,
         duration: 0.4,
-        ease: "power2.out",
+        ease: 'power2.out',
       });
     } else {
       gsap.to(el, {
         height: 0,
         opacity: 0,
         duration: 0.3,
-        ease: "power2.in",
+        ease: 'power2.in',
       });
     }
   }, [showStartDatePicker]);
@@ -191,9 +187,10 @@ const TaskForm = ({
     const getStartDateTasks = async () => {
       if (!startDate) return;
 
-      const formattedStartDate = `${startDate.year}-${String(
-        startDate.month + 1
-      ).padStart(2, "0")}-${String(startDate.date).padStart(2, "0")}`;
+      const formattedStartDate = `${startDate.year}-${String(startDate.month + 1).padStart(
+        2,
+        '0'
+      )}-${String(startDate.date).padStart(2, '0')}`;
 
       try {
         const response = await dispatch(
@@ -216,9 +213,10 @@ const TaskForm = ({
 
   useEffect(() => {
     const getTargetDateTasks = async () => {
-      const formattedEndDate = `${endDate.year}-${String(
-        endDate.month + 1
-      ).padStart(2, "0")}-${String(endDate.date).padStart(2, "0")}`;
+      const formattedEndDate = `${endDate.year}-${String(endDate.month + 1).padStart(
+        2,
+        '0'
+      )}-${String(endDate.date).padStart(2, '0')}`;
       try {
         const response = await dispatch(
           fetchTargetDateTasks({
@@ -243,7 +241,7 @@ const TaskForm = ({
   };
 
   const handleMultiSelectChange = (name, selectedOptions) => {
-    if (name === "tags") {
+    if (name === 'tags') {
       const removed = prevTags.find(
         (prev) => !selectedOptions.some((curr) => curr.value === prev.value)
       );
@@ -255,7 +253,7 @@ const TaskForm = ({
       setPrevTags(selectedOptions);
     }
 
-    if (name === "observer") {
+    if (name === 'observer') {
       const removed = prevObservers.find(
         (prev) => !selectedOptions.some((curr) => curr.value === prev.value)
       );
@@ -278,12 +276,12 @@ const TaskForm = ({
             setFormData({
               project: formData.project,
               milestone: formData.milestone,
-              taskTitle: "",
-              description: "",
-              responsiblePerson: "",
-              department: "",
-              priority: "",
-              duration: "",
+              taskTitle: '',
+              description: '',
+              responsiblePerson: '',
+              department: '',
+              priority: '',
+              duration: '',
               expected_start_date: null,
               target_date: null,
               observer: [],
@@ -294,12 +292,12 @@ const TaskForm = ({
           className="absolute top-3 right-3 text-red-600 cursor-pointer"
         />
       )}
-      {(project &&
-        milestone &&
-        !Array.isArray(project) &&
-        !Array.isArray(milestone) &&
-        project.title &&
-        milestone.title) ? (
+      {project &&
+      milestone &&
+      !Array.isArray(project) &&
+      !Array.isArray(milestone) &&
+      project.title &&
+      milestone.title ? (
         <div className="flex items-center justify-between gap-3">
           <div className="mt-4 space-y-2 w-full">
             <label className="block ms-2">
@@ -327,9 +325,7 @@ const TaskForm = ({
       ) : (
         <div className="flex items-center justify-between gap-3">
           <div className="mt-4 space-y-2 w-full">
-            <label className="block ms-2">
-              Project
-            </label>
+            <label className="block ms-2">Project</label>
             <SelectBox
               options={[
                 ...projects.map((project) => ({
@@ -348,9 +344,7 @@ const TaskForm = ({
             />
           </div>
           <div className="mt-4 space-y-2 w-full">
-            <label className="block ms-2">
-              Milestone
-            </label>
+            <label className="block ms-2">Milestone</label>
             <SelectBox
               options={milestones.map((milestone) => ({
                 label: milestone.title,
@@ -402,21 +396,19 @@ const TaskForm = ({
             options={users.map((user) => ({
               label: user.name
                 ? user.name
-                : `${user.firstname ?? ""} ${user.lastname ?? ""}`.trim(),
+                : `${user.firstname ?? ''} ${user.lastname ?? ''}`.trim(),
               value: user.id,
             }))}
             placeholder="Select Person"
             value={formData.responsiblePerson}
             onChange={(value) => {
-              const user = users.find(
-                (u) => u.user_id === value || u.id === value
-              );
+              const user = users.find((u) => u.user_id === value || u.id === value);
 
               const responsiblePersonName = user
                 ? user.firstname || user.lastname
                   ? `${user.firstname} ${user.lastname}`
-                  : user.name || "-"
-                : "-";
+                  : user.name || '-'
+                : '-';
 
               setFormData((prev) => ({
                 ...prev,
@@ -431,15 +423,14 @@ const TaskForm = ({
             }}
             disabled={isReadOnly}
           />
-
         </div>
         <div className="mt-4 space-y-2 w-full">
           <label className="block">Role</label>
           <input
             type="text"
             value={
-              allUsers.find((user) => user.id === formData.responsiblePerson)
-                ?.lock_role?.display_name || ""
+              allUsers.find((user) => user.id === formData.responsiblePerson)?.lock_role
+                ?.display_name || ''
             }
             className="text-[13px] border-2 border-gray-300 px-2 py-[6px] w-full bg-gray-200"
             readOnly
@@ -467,8 +458,7 @@ const TaskForm = ({
               <div className="text-black flex items-center justify-between w-full">
                 <CalendarIcon className="w-4 h-4" />
                 <div>
-                  Target : {endDate.date.toString().padStart(2, "0")}{" "}
-                  {monthNames[endDate.month]}
+                  Target : {endDate.date.toString().padStart(2, '0')} {monthNames[endDate.month]}
                 </div>
                 <X className="w-4 h-4" onClick={() => setEndDate(null)} />
               </div>
@@ -497,7 +487,7 @@ const TaskForm = ({
               <div className="text-black flex items-center justify-between w-full">
                 <CalendarIcon className="w-4 h-4" />
                 <div>
-                  Start Date : {startDate?.date?.toString().padStart(2, "0")}{" "}
+                  Start Date : {startDate?.date?.toString().padStart(2, '0')}{' '}
                   {monthNames[startDate.month]}
                 </div>
                 <X className="w-4 h-4" onClick={() => setStartDate(null)} />
@@ -533,7 +523,7 @@ const TaskForm = ({
       <div
         ref={startCollapsibleRef}
         className="overflow-hidden opacity-0 h-0"
-        style={{ willChange: "height, opacity" }}
+        style={{ willChange: 'height, opacity' }}
       >
         {!startDate ? (
           showStartCalender ? (
@@ -558,7 +548,7 @@ const TaskForm = ({
         ) : (
           <TasksOfDate
             selectedDate={startDate}
-            onClose={() => { }}
+            onClose={() => {}}
             tasks={startDateTasks}
             selectedUser={formData.responsiblePerson}
             userAvailability={userAvailability}
@@ -570,7 +560,7 @@ const TaskForm = ({
       <div
         ref={collapsibleRef}
         className="overflow-hidden opacity-0 h-0"
-        style={{ willChange: "height, opacity" }}
+        style={{ willChange: 'height, opacity' }}
       >
         {!endDate ? (
           showCalender ? (
@@ -595,7 +585,7 @@ const TaskForm = ({
         ) : (
           <TasksOfDate
             selectedDate={endDate}
-            onClose={() => { }}
+            onClose={() => {}}
             tasks={targetDateTasks}
             selectedUser={formData.responsiblePerson}
             userAvailability={userAvailability}
@@ -611,9 +601,9 @@ const TaskForm = ({
           </label>
           <SelectBox
             options={[
-              { label: "High", value: "High" },
-              { label: "Medium", value: "Medium" },
-              { label: "Low", value: "Low" },
+              { label: 'High', value: 'High' },
+              { label: 'Medium', value: 'Medium' },
+              { label: 'Low', value: 'Low' },
             ]}
             placeholder="Select Priority"
             value={formData.priority}
@@ -630,12 +620,12 @@ const TaskForm = ({
           </label>
           <MultiSelectBox
             options={users.map((user) => ({
-              label: user.name ? user.name : user?.firstname + " " + user?.lastname,
+              label: user.name ? user.name : user?.firstname + ' ' + user?.lastname,
               value: user.id,
             }))}
             value={formData.observer}
             placeholder="Select Observer"
-            onChange={(values) => handleMultiSelectChange("observer", values)}
+            onChange={(values) => handleMultiSelectChange('observer', values)}
             disabled={isReadOnly}
           />
         </div>
@@ -649,7 +639,7 @@ const TaskForm = ({
           <MultiSelectBox
             options={tags.map((tag) => ({ value: tag.id, label: tag.name }))}
             value={formData.tags}
-            onChange={(values) => handleMultiSelectChange("tags", values)}
+            onChange={(values) => handleMultiSelectChange('tags', values)}
             placeholder="Select Tags"
             disabled={isReadOnly}
           />
@@ -660,7 +650,7 @@ const TaskForm = ({
 };
 
 const Tasks = ({ isEdit, onCloseModal, prefillData, onSuccess }) => {
-  const token = localStorage.getItem("token");
+  const token = localStorage.getItem('token');
   const { id, mid, tid } = useParams();
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -668,12 +658,8 @@ const Tasks = ({ isEdit, onCloseModal, prefillData, onSuccess }) => {
   const { fetchUsers: users = [] } = useSelector((state) => state.fetchUsers);
   const { fetchTags: tags = [] } = useSelector((state) => state.fetchTags);
   const { taskDetails: task } = useSelector((state) => state.taskDetails);
-  const { fetchProjectDetails: project } = useSelector(
-    (state) => state.fetchProjectDetails
-  );
-  const { fetchMilestoneById: milestone } = useSelector(
-    (state) => state.fetchMilestoneById
-  );
+  const { fetchProjectDetails: project } = useSelector((state) => state.fetchProjectDetails);
+  const { fetchMilestoneById: milestone } = useSelector((state) => state.fetchMilestoneById);
   const {
     loading: editLoading,
     success: editSuccess,
@@ -689,17 +675,17 @@ const Tasks = ({ isEdit, onCloseModal, prefillData, onSuccess }) => {
   const [dateWiseHours, setDateWiseHours] = useState([]);
   const [startDate, setStartDate] = useState(null);
   const [endDate, setEndDate] = useState(null);
-  const [members, setMembers] = useState([])
-  const [selectedProject, setSelectedProject] = useState({})
+  const [members, setMembers] = useState([]);
+  const [selectedProject, setSelectedProject] = useState({});
   const [formData, setFormData] = useState({
-    project: "",
-    milestone: "",
-    taskTitle: "",
-    description: "",
-    responsiblePerson: "",
-    responsiblePersonName: "",
-    department: "",
-    priority: "",
+    project: '',
+    milestone: '',
+    taskTitle: '',
+    description: '',
+    responsiblePerson: '',
+    responsiblePersonName: '',
+    department: '',
+    priority: '',
     observer: [],
     tags: [],
   });
@@ -715,11 +701,17 @@ const Tasks = ({ isEdit, onCloseModal, prefillData, onSuccess }) => {
     if (prefillData) {
       setFormData((prevFormData) => ({
         ...prevFormData,
-        taskTitle: prefillData?.title.replace(/@\[(.*?)\]\(\d+\)/g, "@$1").replace(/#\[(.*?)\]\(\d+\)/g, "#$1") || "",
-        project: prefillData?.project || "",
-        task: prefillData?.task || "",
-        description: prefillData?.description.replace(/@\[(.*?)\]\(\d+\)/g, "@$1").replace(/#\[(.*?)\]\(\d+\)/g, "#$1") || "",
-        opportunityId: prefillData?.opportunityId || "",
+        taskTitle:
+          prefillData?.title
+            .replace(/@\[(.*?)\]\(\d+\)/g, '@$1')
+            .replace(/#\[(.*?)\]\(\d+\)/g, '#$1') || '',
+        project: prefillData?.project || '',
+        task: prefillData?.task || '',
+        description:
+          prefillData?.description
+            .replace(/@\[(.*?)\]\(\d+\)/g, '@$1')
+            .replace(/#\[(.*?)\]\(\d+\)/g, '#$1') || '',
+        opportunityId: prefillData?.opportunityId || '',
       }));
     }
   }, [prefillData]);
@@ -734,10 +726,7 @@ const Tasks = ({ isEdit, onCloseModal, prefillData, onSuccess }) => {
     dispatch(fetchMilestoneById({ token, id: mid }));
   }, [dispatch, id, mid, token]);
 
-  const getTagName = useCallback(
-    (id) => tags.find((t) => t.id === id)?.name || "",
-    [tags]
-  );
+  const getTagName = useCallback((id) => tags.find((t) => t.id === id)?.name || '', [tags]);
 
   useEffect(() => {
     const team = project?.project_team || selectedProject?.project_team;
@@ -753,11 +742,7 @@ const Tasks = ({ isEdit, onCloseModal, prefillData, onSuccess }) => {
 
       setMembers(members);
     }
-  }, [
-    project?.project_team,
-    selectedProject?.project_team
-  ]);
-
+  }, [project?.project_team, selectedProject?.project_team]);
 
   useEffect(() => {
     if (isEdit && task) {
@@ -778,11 +763,11 @@ const Tasks = ({ isEdit, onCloseModal, prefillData, onSuccess }) => {
       setFormData({
         project: id,
         milestone: mid,
-        taskTitle: task.title || "",
-        description: task.description || "",
-        responsiblePerson: task.responsible_person_id || "",
-        department: "",
-        priority: task.priority || "",
+        taskTitle: task.title || '',
+        description: task.description || '',
+        responsiblePerson: task.responsible_person_id || '',
+        department: '',
+        priority: task.priority || '',
         observer: mappedObservers,
         tags: mappedTags,
       });
@@ -790,12 +775,12 @@ const Tasks = ({ isEdit, onCloseModal, prefillData, onSuccess }) => {
         date: new Date(task.expected_start_date).getDate(),
         month: new Date(task.expected_start_date).getMonth(),
         year: new Date(task.expected_start_date).getFullYear(),
-      })
+      });
       setEndDate({
         date: new Date(task.target_date).getDate(),
         month: new Date(task.target_date).getMonth(),
         year: new Date(task.target_date).getFullYear(),
-      })
+      });
 
       setPrevTags(mappedTags);
       setPrevObservers(mappedObservers);
@@ -803,10 +788,8 @@ const Tasks = ({ isEdit, onCloseModal, prefillData, onSuccess }) => {
   }, [isEdit, task, id, mid, getTagName]);
 
   const createTaskPayload = (data) => {
-    const formatedEndDate = `${endDate.year}-${endDate.month + 1}-${endDate.date
-      }`;
-    const formatedStartDate = `${startDate?.year}-${startDate?.month + 1}-${startDate?.date
-      }`;
+    const formatedEndDate = `${endDate.year}-${endDate.month + 1}-${endDate.date}`;
+    const formatedStartDate = `${startDate?.year}-${startDate?.month + 1}-${startDate?.date}`;
     const payload = {
       title: data.taskTitle,
       description: data.description,
@@ -848,7 +831,7 @@ const Tasks = ({ isEdit, onCloseModal, prefillData, onSuccess }) => {
       if (onCloseModal) {
         onCloseModal();
       } else {
-        console.log("Modal closed (onCloseModal not provided)");
+        console.log('Modal closed (onCloseModal not provided)');
       }
     } else {
       window.location.reload();
@@ -871,7 +854,7 @@ const Tasks = ({ isEdit, onCloseModal, prefillData, onSuccess }) => {
       !formData.tags.length
     ) {
       toast.dismiss();
-      toast.error("Please fill all required fields.");
+      toast.error('Please fill all required fields.');
       return;
     }
 
@@ -882,16 +865,16 @@ const Tasks = ({ isEdit, onCloseModal, prefillData, onSuccess }) => {
     try {
       await dispatch(createTask({ token, payload })).unwrap();
       toast.dismiss();
-      toast.success("Task created successfully.");
+      toast.success('Task created successfully.');
       setSavedTasks([...savedTasks, { id: nextId, formData }]);
       setFormData({
         project: id,
         milestone: mid,
-        taskTitle: "",
-        description: "",
-        responsiblePerson: "",
-        department: "",
-        priority: "",
+        taskTitle: '',
+        description: '',
+        responsiblePerson: '',
+        department: '',
+        priority: '',
         observer: [],
         tags: [],
       });
@@ -899,11 +882,11 @@ const Tasks = ({ isEdit, onCloseModal, prefillData, onSuccess }) => {
       setPrevObservers([]);
       setIsDelete(false);
       setNextId(nextId + 1);
-      dispatch(fetchTasks({ token, id: mid ? mid : "" }));
+      dispatch(fetchTasks({ token, id: mid ? mid : '' }));
     } catch (error) {
-      console.errorovate("Error creating task:", error);
+      console.errorovate('Error creating task:', error);
       toast.dismiss();
-      toast.error("Error creating task.");
+      toast.error('Error creating task.');
     } finally {
       setIsSubmitting(false);
     }
@@ -926,7 +909,7 @@ const Tasks = ({ isEdit, onCloseModal, prefillData, onSuccess }) => {
         !formData.tags.length)
     ) {
       toast.dismiss();
-      toast.error("Please fill all required fields.");
+      toast.error('Please fill all required fields.');
       return;
     }
 
@@ -944,9 +927,7 @@ const Tasks = ({ isEdit, onCloseModal, prefillData, onSuccess }) => {
         (!isEdit && createTask.fulfilled.match(resultAction))
       ) {
         toast.dismiss();
-        toast.success(
-          isEdit ? "Task updated successfully." : "Task created successfully."
-        );
+        toast.success(isEdit ? 'Task updated successfully.' : 'Task created successfully.');
 
         // If task was created from opportunity, use callback or redirect
         if (!isEdit && formData.opportunityId) {
@@ -962,14 +943,14 @@ const Tasks = ({ isEdit, onCloseModal, prefillData, onSuccess }) => {
                 `${baseURL}/opportunities/${formData.opportunityId}.json`,
                 {
                   opportunity: {
-                    status: "in_progress"
-                  }
+                    status: 'in_progress',
+                  },
                 },
                 {
                   headers: {
                     Authorization: `Bearer ${token}`,
                     'Content-Type': 'application/json',
-                  }
+                  },
                 }
               );
 
@@ -979,8 +960,8 @@ const Tasks = ({ isEdit, onCloseModal, prefillData, onSuccess }) => {
                 window.location.reload();
               }
             } catch (error) {
-              console.error("Error updating opportunity status:", error);
-              toast.error("Task created but failed to update opportunity status");
+              console.error('Error updating opportunity status:', error);
+              toast.error('Task created but failed to update opportunity status');
               window.location.reload();
             }
           }
@@ -988,11 +969,11 @@ const Tasks = ({ isEdit, onCloseModal, prefillData, onSuccess }) => {
           // window.location.reload();
         }
       } else {
-        toast.error(isEdit ? "Task update failed." : "Task creation failed.");
+        toast.error(isEdit ? 'Task update failed.' : 'Task creation failed.');
       }
     } catch (error) {
-      console.error(`Error ${isEdit ? "updating" : "creating"} task:`, error);
-      toast.error(`Error ${isEdit ? "updating" : "creating"} task.`);
+      console.error(`Error ${isEdit ? 'updating' : 'creating'} task:`, error);
+      toast.error(`Error ${isEdit ? 'updating' : 'creating'} task.`);
     } finally {
       setIsSubmitting(false);
     }
@@ -1003,15 +984,12 @@ const Tasks = ({ isEdit, onCloseModal, prefillData, onSuccess }) => {
       className="pb-12 h-full overflow-y-auto text-[12px]"
       onSubmit={(e) => handleSubmit(e, tid)}
     >
-      <div
-        id="addTask"
-        className="max-w-[95%] mx-auto h-[calc(100%-4rem)] overflow-y-auto pr-3"
-      >
+      <div id="addTask" className="max-w-[95%] mx-auto h-[calc(100%-4rem)] overflow-y-auto pr-3">
         {savedTasks.map((task) => (
           <TaskForm
             key={task.id}
             formData={task.formData}
-            setFormData={() => { }}
+            setFormData={() => {}}
             isReadOnly={true}
             project={project}
             milestone={milestone}
@@ -1080,11 +1058,7 @@ const Tasks = ({ isEdit, onCloseModal, prefillData, onSuccess }) => {
             className="flex items-center justify-center border-2 text-[red] border-[red] px-4 py-2 w-[100px]"
             disabled={isSubmitting}
           >
-            {loading || editLoading
-              ? "Processing..."
-              : isEdit
-                ? "Update"
-                : "Create"}
+            {loading || editLoading ? 'Processing...' : isEdit ? 'Update' : 'Create'}
           </button>
 
           {!isEdit &&

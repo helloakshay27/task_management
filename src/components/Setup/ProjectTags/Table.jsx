@@ -47,7 +47,10 @@ const ActionIcons = ({ row, onEdit }) => {
           onClick={() => onEdit(row.original)}
         />
         <button title="Delete">
-          <DeleteOutlineOutlinedIcon sx={{ fontSize: '20px' }} onClick={() => setIsDeleteModalOpen(true)} />
+          <DeleteOutlineOutlinedIcon
+            sx={{ fontSize: '20px' }}
+            onClick={() => setIsDeleteModalOpen(true)}
+          />
         </button>
       </div>
 
@@ -189,11 +192,7 @@ const TagsTable = () => {
           setIsModalOpen(true);
         }}
       />
-      <Modal
-        open={isModalOpen}
-        setOpenModal={setIsModalOpen}
-        editData={selectedTag}
-      />
+      <Modal open={isModalOpen} setOpenModal={setIsModalOpen} editData={selectedTag} />
     </>
   );
 };

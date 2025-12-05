@@ -17,7 +17,9 @@ import { DeleteConfirmationModal } from '../../DeleteConfirmationModal';
 const TeamsTable = () => {
   const token = localStorage.getItem('token');
   const dispatch = useDispatch();
-  const { fetchProjectTeams: projectTeams = [] } = useSelector(state => state.fetchProjectTeams || {});
+  const { fetchProjectTeams: projectTeams = [] } = useSelector(
+    (state) => state.fetchProjectTeams || {}
+  );
 
   const [data, setData] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -57,13 +59,10 @@ const TeamsTable = () => {
       <>
         <div className="action-icons flex justify-between gap-5">
           <button onClick={() => open(row.original.id)}>
-            <EditOutlinedIcon sx={{ fontSize: "20px" }} />
+            <EditOutlinedIcon sx={{ fontSize: '20px' }} />
           </button>
-          <button
-            onClick={() => setIsDeleteModalOpen(true)}
-            title="Delete"
-          >
-            <DeleteOutlineOutlinedIcon sx={{ fontSize: "20px" }} />
+          <button onClick={() => setIsDeleteModalOpen(true)} title="Delete">
+            <DeleteOutlineOutlinedIcon sx={{ fontSize: '20px' }} />
           </button>
         </div>
 
@@ -98,7 +97,7 @@ const TeamsTable = () => {
   // ✅ Safe mapping
   useEffect(() => {
     if (Array.isArray(projectTeams)) {
-      const transformedData = projectTeams.map(team => ({
+      const transformedData = projectTeams.map((team) => ({
         id: team?.id ?? '',
         name: team?.name ?? 'N/A',
         lead: team?.team_lead?.name ?? 'N/A',
@@ -117,7 +116,7 @@ const TeamsTable = () => {
         accessorKey: 'name',
         header: 'Team name',
         size: 350,
-        cell: ({ row, getValue }) => (
+        cell: ({ row, getValue }) =>
           row.original ? (
             <Link
               to={`/setup/project-teams/details/${row.original.id}`}
@@ -125,24 +124,24 @@ const TeamsTable = () => {
             >
               {getValue()}
             </Link>
-          ) : null
-        ),
+          ) : null,
       },
       {
         accessorKey: 'lead',
         header: 'Team Lead',
         size: 150,
-        cell: ({ row, getValue }) => row.original ? getValue() : null,
+        cell: ({ row, getValue }) => (row.original ? getValue() : null),
       },
       {
         accessorKey: 'TeamMember',
-        header: () => <div>Team Members (<i>TL+Members</i>)</div>,
-        size: 150,
-        cell: ({ row, getValue }) => (
-          row.original ? (
-            <span style={{ paddingLeft: '12px' }}>{getValue()}</span>
-          ) : null
+        header: () => (
+          <div>
+            Team Members (<i>TL+Members</i>)
+          </div>
         ),
+        size: 150,
+        cell: ({ row, getValue }) =>
+          row.original ? <span style={{ paddingLeft: '12px' }}>{getValue()}</span> : null,
       },
       {
         id: 'actions',
@@ -181,7 +180,7 @@ const TeamsTable = () => {
   const numEmptyRowsToAdd = Math.max(0, fixedRowsPerPage - numDataRowsOnPage);
   const rowHeight = 40;
   const headerHeight = 48;
-  const desiredTableHeight = (fixedRowsPerPage * rowHeight) + headerHeight;
+  const desiredTableHeight = fixedRowsPerPage * rowHeight + headerHeight;
 
   return (
     <>
@@ -192,9 +191,9 @@ const TeamsTable = () => {
         >
           <table className="w-full">
             <thead>
-              {table.getHeaderGroups().map(headerGroup => (
+              {table.getHeaderGroups().map((headerGroup) => (
                 <tr key={headerGroup.id}>
-                  {headerGroup.headers.map(header => (
+                  {headerGroup.headers.map((header) => (
                     <th
                       key={header.id}
                       colSpan={header.colSpan}
@@ -202,35 +201,27 @@ const TeamsTable = () => {
                       className="bg-[#D5DBDB] px-3 py-3.5 text-center font-[500] border-r-2 border-[#FFFFFF66]"
                     >
                       {header.isPlaceholder ? null : (
-                        <div>
-                          {flexRender(
-                            header.column.columnDef.header,
-                            header.getContext()
-                          )}
-                        </div>
+                        <div>{flexRender(header.column.columnDef.header, header.getContext())}</div>
                       )}
                     </th>
                   ))}
                 </tr>
               ))}
             </thead>
-            <tbody
-              className="divide-y"
-              style={{ height: `${fixedRowsPerPage * rowHeight}px` }}
-            >
-              {pageRows.map(row => {
+            <tbody className="divide-y" style={{ height: `${fixedRowsPerPage * rowHeight}px` }}>
+              {pageRows.map((row) => {
                 const isEmptyRow =
-                  !row.original ||
-                  Object.values(row.original).every(v => v === null || v === '');
+                  !row.original || Object.values(row.original).every((v) => v === null || v === '');
 
                 return (
                   <tr
                     key={row.id}
-                    className={`hover:bg-gray-50 even:bg-[#D5DBDB4D] ${isEmptyRow ? 'pointer-events-none text-transparent' : ''
-                      }`}
+                    className={`hover:bg-gray-50 even:bg-[#D5DBDB4D] ${
+                      isEmptyRow ? 'pointer-events-none text-transparent' : ''
+                    }`}
                     style={{ height: `${rowHeight}px` }}
                   >
-                    {row.getVisibleCells().map(cell => (
+                    {row.getVisibleCells().map((cell) => (
                       <td
                         key={cell.id}
                         style={{ width: cell.column.getSize() }}
@@ -250,7 +241,7 @@ const TeamsTable = () => {
                   style={{ height: `${rowHeight}px` }}
                   className="even:bg-[#D5DBDB4D] pointer-events-none"
                 >
-                  {table.getAllLeafColumns().map(column => (
+                  {table.getAllLeafColumns().map((column) => (
                     <td
                       key={`empty-cell-${index}-${column.id}`}
                       style={{ width: column.getSize() }}
@@ -272,7 +263,7 @@ const TeamsTable = () => {
               disabled={!table.getCanPreviousPage()}
               className="text-red-600 disabled:opacity-30"
             >
-              {"<"}
+              {'<'}
             </button>
             {(() => {
               const totalPages = table.getPageCount();
@@ -295,7 +286,7 @@ const TeamsTable = () => {
                   <button
                     key={page}
                     onClick={() => table.setPageIndex(page)}
-                    className={`px-3 py-1 ${isActive ? "bg-gray-200 font-bold" : ""}`}
+                    className={`px-3 py-1 ${isActive ? 'bg-gray-200 font-bold' : ''}`}
                   >
                     {page + 1}
                   </button>
@@ -307,7 +298,7 @@ const TeamsTable = () => {
               disabled={!table.getCanNextPage()}
               className="text-red-600 disabled:opacity-30"
             >
-              {">"}
+              {'>'}
             </button>
           </div>
         )}

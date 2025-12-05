@@ -1,9 +1,7 @@
 import EscalationTableWrapper from '../../components/Setup/Escalation_Matrix/Table';
 
 const EscalationMatrix = () => {
-  return (
-    <EscalationTableWrapper/>
-  )
-}
+  return <EscalationTableWrapper />;
+};
 
-export default EscalationMatrix
+export default EscalationMatrix;

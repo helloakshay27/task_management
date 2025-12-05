@@ -1,11 +1,10 @@
-import { useLocation } from "react-router-dom";
+import { useLocation } from 'react-router-dom';
 
 // Utility function to generate navigation paths based on current route
 export const getNavigationPath = (basePath, isCloudRoute = null) => {
-  const currentPath = isCloudRoute !== null 
-    ? isCloudRoute 
-    : window.location.pathname.startsWith('/cloud-');
-  
+  const currentPath =
+    isCloudRoute !== null ? isCloudRoute : window.location.pathname.startsWith('/cloud-');
+
   return currentPath ? `/cloud-${basePath}` : `/${basePath}`;
 };
 
@@ -17,44 +16,41 @@ export const useIsCloudRoute = () => {
 
 // Generate task navigation paths
 export const getTaskPaths = (projectId, milestoneId, taskId, isCloudRoute = null) => {
-  const isCloud = isCloudRoute !== null 
-    ? isCloudRoute 
-    : window.location.pathname.startsWith('/cloud-');
-  
+  const isCloud =
+    isCloudRoute !== null ? isCloudRoute : window.location.pathname.startsWith('/cloud-');
+
   const basePrefix = isCloud ? '/cloud-projects' : '/projects';
-  
+
   return {
     project: `${basePrefix}/${projectId}`,
     milestone: `${basePrefix}/${projectId}/milestones`,
     tasks: `${basePrefix}/${projectId}/milestones/${milestoneId}/tasks`,
     taskDetail: `${basePrefix}/${projectId}/milestones/${milestoneId}/tasks/${taskId}`,
-    taskDetailSimple: isCloud ? `/cloud-tasks/${taskId}` : `/tasks/${taskId}`
+    taskDetailSimple: isCloud ? `/cloud-tasks/${taskId}` : `/tasks/${taskId}`,
   };
 };
 
 // Generate project navigation paths
 export const getProjectPaths = (projectId, isCloudRoute = null) => {
-  const isCloud = isCloudRoute !== null 
-    ? isCloudRoute 
-    : window.location.pathname.startsWith('/cloud-');
-  
+  const isCloud =
+    isCloudRoute !== null ? isCloudRoute : window.location.pathname.startsWith('/cloud-');
+
   const basePrefix = isCloud ? '/cloud-projects' : '/projects';
-  
+
   return {
     project: `${basePrefix}/${projectId}`,
-    milestones: `${basePrefix}/${projectId}/milestones`
+    milestones: `${basePrefix}/${projectId}/milestones`,
   };
 };
 
 // Generate MoM navigation paths
 export const getMoMPaths = (momId, isCloudRoute = null) => {
-  const isCloud = isCloudRoute !== null 
-    ? isCloudRoute 
-    : window.location.pathname.startsWith('/cloud-');
-  
+  const isCloud =
+    isCloudRoute !== null ? isCloudRoute : window.location.pathname.startsWith('/cloud-');
+
   return {
     mom: isCloud ? `/cloud-minutes/${momId}` : `/mom/${momId}`,
-    newMom: isCloud ? `/cloud-minutes/new-mom` : `/new-mom`
+    newMom: isCloud ? `/cloud-minutes/new-mom` : `/new-mom`,
   };
 };
 
@@ -63,19 +59,19 @@ export const CLOUD_PORTALS = {
   PROJECTS: {
     login: '/cloud-projects-login',
     home: '/cloud-projects',
-    routes: ['/cloud-projects', '/cloud-tasks', '/cloud-issues']
+    routes: ['/cloud-projects', '/cloud-tasks', '/cloud-issues'],
   },
   MINUTES: {
-    login: '/cloud-minutes-login', 
+    login: '/cloud-minutes-login',
     home: '/cloud-minutes',
-    routes: ['/cloud-minutes', '/cloud-mom']
-  }
+    routes: ['/cloud-minutes', '/cloud-mom'],
+  },
 };
 
 // Smart function to determine which cloud portal a route belongs to
 export const getCloudPortalForRoute = (pathname) => {
-  return Object.values(CLOUD_PORTALS).find(portal => 
-    portal.routes.some(route => pathname.startsWith(route))
+  return Object.values(CLOUD_PORTALS).find((portal) =>
+    portal.routes.some((route) => pathname.startsWith(route))
   );
 };
 
@@ -87,6 +83,6 @@ export const getCloudLoginRoute = (pathname) => {
 
 // Get the home route for any cloud portal login
 export const getCloudHomeRoute = (loginPath) => {
-  const portal = Object.values(CLOUD_PORTALS).find(p => p.login === loginPath);
+  const portal = Object.values(CLOUD_PORTALS).find((p) => p.login === loginPath);
   return portal ? portal.home : '/projects';
 };

@@ -1,9 +1,8 @@
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from 'react-router-dom';
 
 const ProjectDetail = () => {
-
   const location = useLocation();
-  const navigate = useNavigate()
+  const navigate = useNavigate();
   const userData = location.state || JSON.parse(sessionStorage.getItem('ProjectUser'));
 
   const { teamName, teamLead, associatedProjects, teamMembers } = userData;
@@ -20,11 +19,14 @@ const ProjectDetail = () => {
             <div>
               <h1 className="text-lg font-medium">{teamName}</h1>
               <p className="text-sm text-gray-500">
-                Total Team Members : {teamMembers} &nbsp;&nbsp;|&nbsp;&nbsp; Associated Projects : {associatedProjects}
+                Total Team Members : {teamMembers} &nbsp;&nbsp;|&nbsp;&nbsp; Associated Projects :{' '}
+                {associatedProjects}
               </p>
             </div>
           </div>
-          <button className="text-gray-600 text-sm" onClick={() => navigate(-1)}>&lt; Back</button>
+          <button className="text-gray-600 text-sm" onClick={() => navigate(-1)}>
+            &lt; Back
+          </button>
         </div>
 
         {/* Milestones and Tasks */}

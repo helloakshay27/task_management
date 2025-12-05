@@ -1,4 +1,3 @@
-/* eslint-disable react/prop-types */
 import React, { useEffect, useMemo, useState, useCallback } from 'react';
 import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
@@ -99,10 +98,7 @@ const ActionIcons = ({ row, onEdit }) => {
             className="cursor-pointer"
             onClick={() => onEdit(row.original)}
           />
-          <button
-            onClick={() => setIsDeleteModalOpen(true)}
-            title="Delete"
-          >
+          <button onClick={() => setIsDeleteModalOpen(true)} title="Delete">
             <DeleteOutlineOutlinedIcon sx={{ fontSize: '20px' }} />
           </button>
         </div>
@@ -117,20 +113,19 @@ const ActionIcons = ({ row, onEdit }) => {
   );
 };
 
-
 const RoleTable = () => {
   const token = localStorage.getItem('token');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedRole, setSelectedRole] = useState(null);
   const [modalMode, setModalMode] = useState('create');
-  const [searchQuery, setSearchQuery] = useState('')
+  const [searchQuery, setSearchQuery] = useState('');
 
   const dispatch = useDispatch();
   const { fetchRoles: roles = [] } = useSelector((state) => state.fetchRoles);
 
-  const filteredRoles = roles?.filter(role => (
+  const filteredRoles = roles?.filter((role) =>
     role.display_name.toLowerCase().includes(searchQuery.toLowerCase())
-  ));
+  );
 
   useEffect(() => {
     const fetchData = async () => {
@@ -160,51 +155,54 @@ const RoleTable = () => {
     }
   }, [dispatch, token]);
 
-  const columns = useMemo(() => [
-    {
-      accessorKey: 'display_name',
-      header: 'Roles',
-      size: 650,
-      cell: ({ row, getValue }) => {
-        try {
-          const value = row.original ? getValue() : null;
-          return value || '-';
-        } catch (error) {
-          console.error('Error rendering display_name:', error);
-          return '-';
-        }
+  const columns = useMemo(
+    () => [
+      {
+        accessorKey: 'display_name',
+        header: 'Roles',
+        size: 650,
+        cell: ({ row, getValue }) => {
+          try {
+            const value = row.original ? getValue() : null;
+            return value || '-';
+          } catch (error) {
+            console.error('Error rendering display_name:', error);
+            return '-';
+          }
+        },
       },
-    },
-    {
-      accessorKey: 'created_at',
-      header: 'Created On',
-      size: 100,
-      cell: ({ getValue }) => {
-        try {
-          const rawDate = getValue();
-          if (!rawDate) return '-';
-          const date = new Date(rawDate);
-          return date.toLocaleDateString('en-GB', {
-            day: '2-digit',
-            month: 'short',
-            year: 'numeric',
-          });
-        } catch (error) {
-          console.error('Error formatting date:', error);
-          return '-';
-        }
+      {
+        accessorKey: 'created_at',
+        header: 'Created On',
+        size: 100,
+        cell: ({ getValue }) => {
+          try {
+            const rawDate = getValue();
+            if (!rawDate) return '-';
+            const date = new Date(rawDate);
+            return date.toLocaleDateString('en-GB', {
+              day: '2-digit',
+              month: 'short',
+              year: 'numeric',
+            });
+          } catch (error) {
+            console.error('Error formatting date:', error);
+            return '-';
+          }
+        },
       },
-    },
-    {
-      id: 'actions',
-      header: 'Actions',
-      size: 60,
-      cell: ({ row }) => <ActionIcons row={row} onEdit={handleEdit} />,
-      meta: {
-        cellClassName: 'actions-cell-content',
+      {
+        id: 'actions',
+        header: 'Actions',
+        size: 60,
+        cell: ({ row }) => <ActionIcons row={row} onEdit={handleEdit} />,
+        meta: {
+          cellClassName: 'actions-cell-content',
+        },
       },
-    },
-  ], [handleEdit]);
+    ],
+    [handleEdit]
+  );
 
   return (
     <>

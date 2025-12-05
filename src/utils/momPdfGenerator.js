@@ -14,7 +14,7 @@ export const generateMomPDF = async (momData) => {
     if (!role) return '';
     return role
       .split('_')
-      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
       .join(' ');
   };
 
@@ -60,11 +60,13 @@ export const generateMomPDF = async (momData) => {
   doc.setFont('helvetica', 'bold');
   doc.text('Date', rightColumn, yPosition);
   doc.setFont('helvetica', 'normal');
-  const meetingDate = momData.meeting_date ? new Date(momData.meeting_date).toLocaleDateString('en-GB', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric'
-  }) : 'N/A';
+  const meetingDate = momData.meeting_date
+    ? new Date(momData.meeting_date).toLocaleDateString('en-GB', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+      })
+    : 'N/A';
   doc.text(`: ${meetingDate}`, rightColumn + labelWidth, yPosition);
 
   yPosition += 7;
@@ -74,12 +76,20 @@ export const generateMomPDF = async (momData) => {
     doc.setFont('helvetica', 'bold');
     doc.text('Meeting Type', leftColumn, yPosition);
     doc.setFont('helvetica', 'normal');
-    doc.text(`: ${momData.meeting_type ? momData.meeting_type.charAt(0).toUpperCase() + momData.meeting_type.slice(1) : 'N/A'}`, leftColumn + labelWidth, yPosition);
+    doc.text(
+      `: ${momData.meeting_type ? momData.meeting_type.charAt(0).toUpperCase() + momData.meeting_type.slice(1) : 'N/A'}`,
+      leftColumn + labelWidth,
+      yPosition
+    );
 
     doc.setFont('helvetica', 'bold');
     doc.text('Meeting Mode', rightColumn, yPosition);
     doc.setFont('helvetica', 'normal');
-    doc.text(`: ${momData.meeting_mode ? momData.meeting_mode.charAt(0).toUpperCase() + momData.meeting_mode.slice(1) : 'N/A'}`, rightColumn + labelWidth, yPosition);
+    doc.text(
+      `: ${momData.meeting_mode ? momData.meeting_mode.charAt(0).toUpperCase() + momData.meeting_mode.slice(1) : 'N/A'}`,
+      rightColumn + labelWidth,
+      yPosition
+    );
 
     yPosition += 7;
   }
@@ -99,12 +109,13 @@ export const generateMomPDF = async (momData) => {
   yPosition += 5;
 
   // Attendees Table
-  const attendeesData = momData.mom_attendees?.map(attendee => [
-    attendee.name || '',
-    attendee.email || '',
-    formatRole(attendee.role),
-    attendee.organization || ''
-  ]) || [];
+  const attendeesData =
+    momData.mom_attendees?.map((attendee) => [
+      attendee.name || '',
+      attendee.email || '',
+      formatRole(attendee.role),
+      attendee.organization || '',
+    ]) || [];
 
   autoTable(doc, {
     startY: yPosition,
@@ -115,18 +126,18 @@ export const generateMomPDF = async (momData) => {
       fillColor: [200, 200, 200],
       textColor: [0, 0, 0],
       fontStyle: 'bold',
-      halign: 'center'
+      halign: 'center',
     },
     bodyStyles: {
       halign: 'center',
-      fontSize: 9
+      fontSize: 9,
     },
     columnStyles: {
       0: { cellWidth: 40 },
       1: { cellWidth: 50 },
       2: { cellWidth: 40 },
-      3: { cellWidth: 40 }
-    }
+      3: { cellWidth: 40 },
+    },
   });
 
   yPosition = doc.lastAutoTable.finalY + 10;
@@ -138,13 +149,14 @@ export const generateMomPDF = async (momData) => {
   yPosition += 5;
 
   // Discussion Points Table
-  const discussionData = momData.mom_tasks?.map((task, index) => [
-    `${index + 1}`,
-    task.description || '',
-    task.responsible_person_name || '',
-    task.target_date ? new Date(task.target_date).toLocaleDateString('en-GB') : '',
-    'Closed'
-  ]) || [];
+  const discussionData =
+    momData.mom_tasks?.map((task, index) => [
+      `${index + 1}`,
+      task.description || '',
+      task.responsible_person_name || '',
+      task.target_date ? new Date(task.target_date).toLocaleDateString('en-GB') : '',
+      'Closed',
+    ]) || [];
 
   autoTable(doc, {
     startY: yPosition,
@@ -155,18 +167,18 @@ export const generateMomPDF = async (momData) => {
       fillColor: [200, 200, 200],
       textColor: [0, 0, 0],
       fontStyle: 'bold',
-      halign: 'center'
+      halign: 'center',
     },
     bodyStyles: {
       fontSize: 8,
-      cellPadding: 3
+      cellPadding: 3,
     },
     columnStyles: {
       0: { cellWidth: 10, halign: 'center', fontStyle: 'bold' },
       1: { cellWidth: 85, halign: 'left' },
       2: { cellWidth: 30, halign: 'center' },
       3: { cellWidth: 25, halign: 'center' },
-      4: { cellWidth: 20, halign: 'center' }
+      4: { cellWidth: 20, halign: 'center' },
     },
     didParseCell: function (data) {
       // Color code status column
@@ -180,7 +192,7 @@ export const generateMomPDF = async (momData) => {
           data.cell.styles.textColor = [200, 0, 0]; // Red
         }
       }
-    }
+    },
   });
 
   yPosition = doc.lastAutoTable.finalY + 10;
@@ -194,8 +206,10 @@ export const generateMomPDF = async (momData) => {
   doc.setFontSize(8);
   doc.setFont('helvetica', 'italic');
   doc.setTextColor(100, 100, 100);
-  const disclaimer = "The above notes constitute the writer's understanding of the meeting content. If there are any errors,";
-  const disclaimer2 = "omissions or discrepancies please notify the writer within 24 hours of distribution.";
+  const disclaimer =
+    "The above notes constitute the writer's understanding of the meeting content. If there are any errors,";
+  const disclaimer2 =
+    'omissions or discrepancies please notify the writer within 24 hours of distribution.';
   doc.text(disclaimer, pageWidth / 2, yPosition, { align: 'center' });
   doc.text(disclaimer2, pageWidth / 2, yPosition + 5, { align: 'center' });
 
@@ -217,7 +231,7 @@ export const generateDetailedMomPDF = async (momData) => {
     if (!role) return '';
     return role
       .split('_')
-      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
       .join(' ');
   };
 
@@ -272,11 +286,13 @@ export const generateDetailedMomPDF = async (momData) => {
   doc.setFont('helvetica', 'bold');
   doc.text('Date', rightColumn, yPosition);
   doc.setFont('helvetica', 'normal');
-  const meetingDate = momData.meeting_date ? new Date(momData.meeting_date).toLocaleDateString('en-GB', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric'
-  }) : 'N/A';
+  const meetingDate = momData.meeting_date
+    ? new Date(momData.meeting_date).toLocaleDateString('en-GB', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+      })
+    : 'N/A';
   doc.text(`: ${meetingDate}`, rightColumn + labelWidth, yPosition);
 
   yPosition += 7;
@@ -286,12 +302,20 @@ export const generateDetailedMomPDF = async (momData) => {
     doc.setFont('helvetica', 'bold');
     doc.text('Meeting Type', leftColumn, yPosition);
     doc.setFont('helvetica', 'normal');
-    doc.text(`: ${momData.meeting_type ? momData.meeting_type.charAt(0).toUpperCase() + momData.meeting_type.slice(1) : 'N/A'}`, leftColumn + labelWidth, yPosition);
+    doc.text(
+      `: ${momData.meeting_type ? momData.meeting_type.charAt(0).toUpperCase() + momData.meeting_type.slice(1) : 'N/A'}`,
+      leftColumn + labelWidth,
+      yPosition
+    );
 
     doc.setFont('helvetica', 'bold');
     doc.text('Meeting Mode', rightColumn, yPosition);
     doc.setFont('helvetica', 'normal');
-    doc.text(`: ${momData.meeting_mode ? momData.meeting_mode.charAt(0).toUpperCase() + momData.meeting_mode.slice(1) : 'N/A'}`, rightColumn + labelWidth, yPosition);
+    doc.text(
+      `: ${momData.meeting_mode ? momData.meeting_mode.charAt(0).toUpperCase() + momData.meeting_mode.slice(1) : 'N/A'}`,
+      rightColumn + labelWidth,
+      yPosition
+    );
 
     yPosition += 7;
   }
@@ -311,12 +335,13 @@ export const generateDetailedMomPDF = async (momData) => {
   yPosition += 5;
 
   // Attendees Table
-  const attendeesData = momData.mom_attendees?.map(attendee => [
-    attendee.name || '',
-    attendee.email || '',
-    formatRole(attendee.role),
-    attendee.organization || ''
-  ]) || [];
+  const attendeesData =
+    momData.mom_attendees?.map((attendee) => [
+      attendee.name || '',
+      attendee.email || '',
+      formatRole(attendee.role),
+      attendee.organization || '',
+    ]) || [];
 
   autoTable(doc, {
     startY: yPosition,
@@ -327,12 +352,12 @@ export const generateDetailedMomPDF = async (momData) => {
       fillColor: [200, 200, 200],
       textColor: [0, 0, 0],
       fontStyle: 'bold',
-      halign: 'center'
+      halign: 'center',
     },
     bodyStyles: {
       halign: 'center',
-      fontSize: 9
-    }
+      fontSize: 9,
+    },
   });
 
   yPosition = doc.lastAutoTable.finalY + 10;
@@ -345,18 +370,19 @@ export const generateDetailedMomPDF = async (momData) => {
   yPosition += 5;
 
   // Discussion Points Table with full descriptions
-  const discussionData = momData.mom_tasks?.map((task, index) => [
-    `${index + 1}`,
-    task.description || '',
-    task.responsible_person_name || '',
-    task.target_date ? new Date(task.target_date).toLocaleDateString('en-GB') : '',
-    task.status
-      ? task.status
-        .split('_')
-        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-        .join(' ')
-      : ''
-  ]) || [];
+  const discussionData =
+    momData.mom_tasks?.map((task, index) => [
+      `${index + 1}`,
+      task.description || '',
+      task.responsible_person_name || '',
+      task.target_date ? new Date(task.target_date).toLocaleDateString('en-GB') : '',
+      task.status
+        ? task.status
+            .split('_')
+            .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+            .join(' ')
+        : '',
+    ]) || [];
 
   autoTable(doc, {
     startY: yPosition,
@@ -367,18 +393,18 @@ export const generateDetailedMomPDF = async (momData) => {
       fillColor: [200, 200, 200],
       textColor: [0, 0, 0],
       fontStyle: 'bold',
-      halign: 'center'
+      halign: 'center',
     },
     bodyStyles: {
       fontSize: 8,
-      cellPadding: 3
+      cellPadding: 3,
     },
     columnStyles: {
       0: { cellWidth: 10, halign: 'center', fontStyle: 'bold' },
       1: { cellWidth: 85, halign: 'left' },
       2: { cellWidth: 30, halign: 'center' },
       3: { cellWidth: 25, halign: 'center' },
-      4: { cellWidth: 20, halign: 'center' }
+      4: { cellWidth: 20, halign: 'center' },
     },
     didParseCell: function (data) {
       // Color code status column
@@ -392,7 +418,7 @@ export const generateDetailedMomPDF = async (momData) => {
           data.cell.styles.textColor = [200, 0, 0]; // Red
         }
       }
-    }
+    },
   });
 
   yPosition = doc.lastAutoTable.finalY + 10;
@@ -402,8 +428,10 @@ export const generateDetailedMomPDF = async (momData) => {
   doc.setFontSize(8);
   doc.setFont('helvetica', 'italic');
   doc.setTextColor(100, 100, 100);
-  const disclaimer = "The above notes constitute the writer's understanding of the meeting content. If there are any errors,";
-  const disclaimer2 = "omissions or discrepancies please notify the writer within 24 hours of distribution.";
+  const disclaimer =
+    "The above notes constitute the writer's understanding of the meeting content. If there are any errors,";
+  const disclaimer2 =
+    'omissions or discrepancies please notify the writer within 24 hours of distribution.';
   doc.text(disclaimer, pageWidth / 2, yPosition, { align: 'center' });
   doc.text(disclaimer2, pageWidth / 2, yPosition + 5, { align: 'center' });
 

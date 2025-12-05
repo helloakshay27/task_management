@@ -1,28 +1,23 @@
-import { useState, useCallback } from "react";
-import CloseIcon from "@mui/icons-material/Close";
-import { useDispatch, useSelector } from "react-redux";
+import { useState, useCallback } from 'react';
+import CloseIcon from '@mui/icons-material/Close';
+import { useDispatch, useSelector } from 'react-redux';
 import {
   createProjectType,
   fetchProjectTypes,
   updateProjectType,
-} from "../../../redux/slices/projectSlice";
-import { toast } from "react-hot-toast";
+} from '../../../redux/slices/projectSlice';
+import { toast } from 'react-hot-toast';
 
-const Modal = ({
-  openModal,
-  setOpenModal,
-  editMode = false,
-  existingData = {},
-}) => {
-  const token = localStorage.getItem("token");
-  const [type, setType] = useState(editMode ? existingData?.name || "" : "");
+const Modal = ({ openModal, setOpenModal, editMode = false, existingData = {} }) => {
+  const token = localStorage.getItem('token');
+  const [type, setType] = useState(editMode ? existingData?.name || '' : '');
   const [warningOpen, setWarningOpen] = useState(false);
 
   const dispatch = useDispatch();
   const { loading } = useSelector((state) => state.createdProjectTypes);
 
   const resetModal = useCallback(() => {
-    setType("");
+    setType('');
     setWarningOpen(false);
     setOpenModal(false);
   }, [setOpenModal]);
@@ -34,7 +29,7 @@ const Modal = ({
 
     const payload = {
       name: trimmedType,
-      created_by_id: JSON.parse(localStorage.getItem("user"))?.id || "",
+      created_by_id: JSON.parse(localStorage.getItem('user'))?.id || '',
       active: true,
     };
 
@@ -44,16 +39,13 @@ const Modal = ({
         response = await dispatch(
           updateProjectType({ token, id: existingData.id, data: payload })
         ).unwrap();
-      } else
-        response = await dispatch(
-          createProjectType({ token, payload })
-        ).unwrap();
-      if (response.name[0] != "has already been taken") {
+      } else response = await dispatch(createProjectType({ token, payload })).unwrap();
+      if (response.name[0] != 'has already been taken') {
         toast.dismiss();
-        toast.success(`Type ${editMode ? "Updated" : "Created"} successfully`, {
+        toast.success(`Type ${editMode ? 'Updated' : 'Created'} successfully`, {
           iconTheme: {
-            primary: "green", // This might directly change the color of the success icon
-            secondary: "white", // The circle background
+            primary: 'green', // This might directly change the color of the success icon
+            secondary: 'white', // The circle background
           },
         });
         resetModal();
@@ -80,14 +72,15 @@ const Modal = ({
         {/* Input Section */}
         <div className="px-6">
           <label className="block text-[14px] text-[#1B1B1B] mb-1">
-            {editMode ? "Edit Project Type" : "New Project Type"}
+            {editMode ? 'Edit Project Type' : 'New Project Type'}
             <span className="text-red-500 ml-1">*</span>
           </label>
           <input
             type="text"
             placeholder="Enter project type name here..."
-            className={`border w-full px-4 py-3 text-[#1B1B1B] text-[13px] ${warningOpen ? "border-red-600" : "border-[#C0C0C0]"
-              }`}
+            className={`border w-full px-4 py-3 text-[#1B1B1B] text-[13px] ${
+              warningOpen ? 'border-red-600' : 'border-[#C0C0C0]'
+            }`}
             value={type}
             onChange={(e) => setType(e.target.value)}
           />
@@ -105,7 +98,7 @@ const Modal = ({
             onClick={handleSave}
             disabled={loading}
           >
-            {loading ? "Submitting..." : editMode ? "Update" : "Save"}
+            {loading ? 'Submitting...' : editMode ? 'Update' : 'Save'}
           </button>
           <button
             className="border border-[#C72030] text-[#1B1B1B] text-[14px] px-8 py-2"

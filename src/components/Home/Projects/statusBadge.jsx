@@ -1,11 +1,7 @@
-import { useState, useEffect, useRef } from "react";
-import { createPortal } from "react-dom";
+import { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 
-const StatusBadge = ({
-  status: initialStatus,
-  statusOptions,
-  onStatusChange,
-}) => {
+const StatusBadge = ({ status: initialStatus, statusOptions, onStatusChange }) => {
   const [currentStatus, setCurrentStatus] = useState(initialStatus);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0 });
@@ -48,7 +44,7 @@ const StatusBadge = ({
   useEffect(() => {
     const handleClickOutside = (event) => {
       // Don't close if clicking on dropdown items
-      if (event.target.classList.contains("dropdown-item")) {
+      if (event.target.classList.contains('dropdown-item')) {
         return;
       }
 
@@ -58,21 +54,21 @@ const StatusBadge = ({
     };
 
     if (isDropdownOpen) {
-      document.addEventListener("mousedown", handleClickOutside);
+      document.addEventListener('mousedown', handleClickOutside);
     } else {
-      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener('mousedown', handleClickOutside);
     }
 
     // Cleanup listener on unmount or when dropdown closes
     return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener('mousedown', handleClickOutside);
     };
   }, [isDropdownOpen]);
 
   return (
     <div
       className="status-badge-wrapper"
-      style={{ position: "relative", display: "inline-block" }}
+      style={{ position: 'relative', display: 'inline-block' }}
       ref={wrapperRef}
     >
       <div
@@ -81,21 +77,19 @@ const StatusBadge = ({
         role="button"
         tabIndex={0}
         ref={triggerRef}
-        onKeyDown={(e) =>
-          (e.key === "Enter" || e.key === " ") && toggleDropdown()
-        }
+        onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && toggleDropdown()}
       >
         <span
           className={`status-${currentStatus
             ?.toLowerCase()
-            .replace("_", "-")} rounded-full w-[5px] h-[5px]`}
+            .replace('_', '-')} rounded-full w-[5px] h-[5px]`}
         ></span>
         <span>
           {currentStatus &&
             currentStatus
-              .split("_")
+              .split('_')
               .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-              .join(" ")}
+              .join(' ')}
         </span>
       </div>
 
@@ -104,15 +98,15 @@ const StatusBadge = ({
           <div
             className="status-dropdown"
             style={{
-              position: "fixed",
+              position: 'fixed',
               top: `${dropdownPosition.top}px`,
               left: `${dropdownPosition.left}px`,
-              minWidth: "150px",
+              minWidth: '150px',
               zIndex: 9999,
-              backgroundColor: "white",
-              border: "1px solid #ccc",
-              borderRadius: "4px",
-              boxShadow: "0 2px 8px rgba(0, 0, 0, 0.15)",
+              backgroundColor: 'white',
+              border: '1px solid #ccc',
+              borderRadius: '4px',
+              boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)',
             }}
           >
             {statusOptions &&
@@ -120,55 +114,55 @@ const StatusBadge = ({
                 <span
                   key={option}
                   onClick={(e) => handleDropdownItemClick(e, option)}
-                  className={`dropdown-item ${option?.toLowerCase().replace(" ", "-") ===
-                    currentStatus?.toLowerCase().replace(" ", "-")
-                    ? "selected"
-                    : ""
-                    }`}
+                  className={`dropdown-item ${
+                    option?.toLowerCase().replace(' ', '-') ===
+                    currentStatus?.toLowerCase().replace(' ', '-')
+                      ? 'selected'
+                      : ''
+                  }`}
                   style={{
-                    display: "block",
-                    padding: "8px 12px",
-                    cursor: "pointer",
+                    display: 'block',
+                    padding: '8px 12px',
+                    cursor: 'pointer',
                     backgroundColor:
-                      option?.toLowerCase().replace(" ", "-") ===
-                        currentStatus?.toLowerCase().replace(" ", "-")
-                        ? "#D3D3D3"
-                        : "transparent",
-                    fontSize: "12px",
+                      option?.toLowerCase().replace(' ', '-') ===
+                      currentStatus?.toLowerCase().replace(' ', '-')
+                        ? '#D3D3D3'
+                        : 'transparent',
+                    fontSize: '12px',
                   }}
                   onMouseEnter={(e) => {
                     if (
-                      option?.toLowerCase().replace(" ", "-") !==
-                      currentStatus?.toLowerCase().replace(" ", "-")
+                      option?.toLowerCase().replace(' ', '-') !==
+                      currentStatus?.toLowerCase().replace(' ', '-')
                     ) {
-                      e.target.style.backgroundColor = "#c72030";
-                      e.target.style.color = "white";
+                      e.target.style.backgroundColor = '#c72030';
+                      e.target.style.color = 'white';
                     }
                   }}
                   onMouseLeave={(e) => {
                     if (
-                      option?.toLowerCase().replace(" ", "-") !==
-                      currentStatus?.toLowerCase().replace(" ", "-")
+                      option?.toLowerCase().replace(' ', '-') !==
+                      currentStatus?.toLowerCase().replace(' ', '-')
                     ) {
-                      e.target.style.backgroundColor = "transparent";
-                      e.target.style.color = "black";
+                      e.target.style.backgroundColor = 'transparent';
+                      e.target.style.color = 'black';
                     }
                   }}
                   role="option"
                   aria-selected={
-                    option?.toLowerCase().replace(" ", "-") ===
-                    currentStatus?.toLowerCase().replace(" ", "-")
+                    option?.toLowerCase().replace(' ', '-') ===
+                    currentStatus?.toLowerCase().replace(' ', '-')
                   }
                   tabIndex={0}
                   onKeyDown={(e) =>
-                    (e.key === "Enter" || e.key === " ") &&
-                    handleDropdownItemClick(e, option)
+                    (e.key === 'Enter' || e.key === ' ') && handleDropdownItemClick(e, option)
                   }
                 >
                   {option
-                    .split("_")
+                    .split('_')
                     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-                    .join(" ")}
+                    .join(' ')}
                 </span>
               ))}
           </div>,

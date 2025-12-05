@@ -1,62 +1,62 @@
-import { useGSAP } from "@gsap/react";
-import React, { useRef, useEffect, useState } from "react";
-import { X } from "lucide-react";
-import gsap from "gsap";
+import { useGSAP } from '@gsap/react';
+import React, { useRef, useEffect, useState } from 'react';
+import { X } from 'lucide-react';
+import gsap from 'gsap';
 import SearchOutlinedIcon from '@mui/icons-material/SearchOutlined';
 import FolderIcon from '@mui/icons-material/Folder';
 import KeyboardArrowRightIcon from '@mui/icons-material/KeyboardArrowRight';
-import AddProjectModal from "./AddProjectModal.jsx";
-import { useDispatch, useSelector } from "react-redux";
-import { fetchProjectDetails, fetchTemplates } from "../../../redux/slices/projectSlice.js";
+import AddProjectModal from './AddProjectModal.jsx';
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchProjectDetails, fetchTemplates } from '../../../redux/slices/projectSlice.js';
 
 const AddProjectTemplate = ({ isModalOpen, setIsModalOpen }) => {
-  const token = localStorage.getItem('token')
+  const token = localStorage.getItem('token');
   const dispatch = useDispatch();
 
-  const { fetchTemplates: templates } = useSelector(state => state.fetchTemplates)
-  const { fetchProjectDetails: details } = useSelector(state => state.fetchProjectDetails)
+  const { fetchTemplates: templates } = useSelector((state) => state.fetchTemplates);
+  const { fetchProjectDetails: details } = useSelector((state) => state.fetchProjectDetails);
 
   const addTaskModalRef = useRef(null);
-  const [tab, setTab] = useState("All");
+  const [tab, setTab] = useState('All');
   const [AddProjectModalOpen, setAddProjectModalOpen] = useState(false);
-  const [templateDetails, setTemplateDetails] = useState({})
-  const [searchQuery, setSearchQuery] = useState("")
+  const [templateDetails, setTemplateDetails] = useState({});
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
-    dispatch(fetchTemplates({ token }))
-  }, [dispatch])
+    dispatch(fetchTemplates({ token }));
+  }, [dispatch]);
 
   useGSAP(() => {
     if (isModalOpen) {
       gsap.fromTo(
         addTaskModalRef.current,
-        { x: "100%" },
-        { x: "0%", duration: 0.5, ease: "power3.out" }
+        { x: '100%' },
+        { x: '0%', duration: 0.5, ease: 'power3.out' }
       );
     }
   }, [isModalOpen]);
 
   const closeModal = () => {
     gsap.to(addTaskModalRef.current, {
-      x: "100%",
+      x: '100%',
       duration: 0.5,
-      ease: "power3.in",
+      ease: 'power3.in',
       onComplete: () => setIsModalOpen(false),
     });
   };
 
   const handleOpenTemplate = (id) => {
-    setAddProjectModalOpen(true)
-    dispatch(fetchProjectDetails({ token, id }))
-  }
+    setAddProjectModalOpen(true);
+    dispatch(fetchProjectDetails({ token, id }));
+  };
 
   useEffect(() => {
     if (details) {
-      setTemplateDetails(details)
+      setTemplateDetails(details);
     }
-  }, [details])
+  }, [details]);
 
-  console.log(templates)
+  console.log(templates);
 
   const filteredTemplates = templates?.project_managements?.filter((template) => {
     return template.title.toLowerCase().includes(searchQuery.toLowerCase());
@@ -76,19 +76,14 @@ const AddProjectTemplate = ({ isModalOpen, setIsModalOpen }) => {
             ref={addTaskModalRef}
             className="bg-white py-6 rounded-lg shadow-lg w-1/3 relative h-full right-0"
           >
-            <h3 className="text-[14px] font-medium text-center">
-              Project Templates
-            </h3>
-            <X
-              className="absolute top-[26px] right-8 cursor-pointer"
-              onClick={closeModal}
-            />
+            <h3 className="text-[14px] font-medium text-center">Project Templates</h3>
+            <X className="absolute top-[26px] right-8 cursor-pointer" onClick={closeModal} />
 
             <hr className="border border-[#E95420] my-4" />
 
             {/* Tabs */}
             <div className="flex items-center justify-center gap-6">
-              {["All", "Project Templates", "Marketing", "Development"].map((label) => (
+              {['All', 'Project Templates', 'Marketing', 'Development'].map((label) => (
                 <div
                   key={label}
                   onClick={() => setTab(label)}
@@ -100,8 +95,8 @@ const AddProjectTemplate = ({ isModalOpen, setIsModalOpen }) => {
             </div>
 
             <hr className="border" />
-            {
-              tab === "All" && <div className="flex flex-col p-4 gap-4 h-[80vh] overflow-y-auto">
+            {tab === 'All' && (
+              <div className="flex flex-col p-4 gap-4 h-[80vh] overflow-y-auto">
                 <div className="relative border-2 border-gray-300">
                   <SearchOutlinedIcon className="text-[red] absolute top-2 left-3" />
                   <input
@@ -136,7 +131,10 @@ const AddProjectTemplate = ({ isModalOpen, setIsModalOpen }) => {
 
                 {(filteredTemplates || []).map((template) => (
                   <React.Fragment key={template.id}>
-                    <div className="flex justify-between gap-3 cursor-pointer mt-2 border-b border-gray-300 pb-2" onClick={() => handleOpenTemplate(template.id)}>
+                    <div
+                      className="flex justify-between gap-3 cursor-pointer mt-2 border-b border-gray-300 pb-2"
+                      onClick={() => handleOpenTemplate(template.id)}
+                    >
                       <div className="flex items-center gap-2 w-2/3">
                         <FolderIcon />
                         <span>{template.title}</span>
@@ -146,30 +144,31 @@ const AddProjectTemplate = ({ isModalOpen, setIsModalOpen }) => {
                   </React.Fragment>
                 ))}
               </div>
-            }
+            )}
 
-            {
-              tab === "Project Templates" && (
-                <div className="px-4 space-y-4 overflow-y-auto mt-2">
-                  {(templates || []).map((template) => (
-                    <div key={template.id}>
-                      <div className="flex justify-between gap-3 cursor-pointer mt-2 border-b border-gray-300 pb-2" onClick={() => handleOpenTemplate(template.id)}>
-                        <div className="flex items-center gap-2 w-2/3">
-                          <FolderIcon />
-                          <span>{template.title}</span>
-                        </div>
-                        <KeyboardArrowRightIcon />
+            {tab === 'Project Templates' && (
+              <div className="px-4 space-y-4 overflow-y-auto mt-2">
+                {(templates || []).map((template) => (
+                  <div key={template.id}>
+                    <div
+                      className="flex justify-between gap-3 cursor-pointer mt-2 border-b border-gray-300 pb-2"
+                      onClick={() => handleOpenTemplate(template.id)}
+                    >
+                      <div className="flex items-center gap-2 w-2/3">
+                        <FolderIcon />
+                        <span>{template.title}</span>
                       </div>
+                      <KeyboardArrowRightIcon />
                     </div>
-                  ))}
-                </div>
-              )
-            }
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
-        </div >
+        </div>
       )}
     </>
   );
-}
+};
 
 export default AddProjectTemplate;

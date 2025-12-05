@@ -1,12 +1,11 @@
-/* eslint-disable react/prop-types */
-import { useState, useEffect, useRef } from "react";
-import { useGSAP } from "@gsap/react";
-import gsap from "gsap";
+import { useState, useEffect, useRef } from 'react';
+import { useGSAP } from '@gsap/react';
+import gsap from 'gsap';
 import CloseIcon from '@mui/icons-material/Close';
 import { Listbox, ListboxButton, ListboxOptions, ListboxOption } from '@headlessui/react';
 import { ChevronDownIcon } from '@heroicons/react/20/solid';
 import SearchOutlinedIcon from '@mui/icons-material/SearchOutlined';
-import SelectBox from "../../SelectBox";
+import SelectBox from '../../SelectBox';
 
 const UserCustomDropdown = ({ options, value, onChange, onKeyDown }) => {
   const [selectedOption, setSelectedOption] = useState(value);
@@ -52,7 +51,8 @@ const UserCustomDropdown = ({ options, value, onChange, onKeyDown }) => {
               <ListboxOption
                 key={option}
                 className={({ active }) =>
-                  `relative cursor-default select-none py-2 pl-3 pr-4 text-[12px] ${active ? 'bg-[#C72030] text-white' : 'text-gray-900'
+                  `relative cursor-default select-none py-2 pl-3 pr-4 text-[12px] ${
+                    active ? 'bg-[#C72030] text-white' : 'text-gray-900'
                   }`
                 }
                 value={option}
@@ -80,34 +80,36 @@ const AddEscalationModal = ({ isModalOpen, setIsModalOpen }) => {
   const [noOfEscalations, setNoOfEscalations] = useState(0);
 
   useEffect(() => {
-    if (!isModalOpen) { /* empty */ }
+    if (!isModalOpen) {
+      /* empty */
+    }
   }, [isModalOpen]);
 
   useGSAP(() => {
     if (isModalOpen) {
       gsap.fromTo(
         addTaskModalRef.current,
-        { x: "100%" },
-        { x: "0%", duration: 0.5, ease: "power3.out" }
+        { x: '100%' },
+        { x: '0%', duration: 0.5, ease: 'power3.out' }
       );
     }
   }, [isModalOpen]);
 
   const closeModal = () => {
     gsap.to(addTaskModalRef.current, {
-      x: "100%",
+      x: '100%',
       duration: 0.5,
-      ease: "power3.in",
+      ease: 'power3.in',
       onComplete: () => setIsModalOpen(false),
     });
   };
 
   const onSubmit = (data) => {
-    const existingTasks = JSON.parse(localStorage.getItem("tasks")) || [];
+    const existingTasks = JSON.parse(localStorage.getItem('tasks')) || [];
 
     const updatedTasks = [...existingTasks, data];
 
-    localStorage.setItem("tasks", JSON.stringify(updatedTasks));
+    localStorage.setItem('tasks', JSON.stringify(updatedTasks));
 
     reset();
     setIsModalOpen(false);
@@ -119,60 +121,87 @@ const AddEscalationModal = ({ isModalOpen, setIsModalOpen }) => {
         className="bg-white py-6 rounded-lg shadow-lg w-1/3 relative h-full right-0"
       >
         <h3 className="text-[14px] font-medium text-center ">Escalation Details</h3>
-        <CloseIcon
-          className="absolute top-[26px] right-8 cursor-pointer"
-          onClick={closeModal}
-        />
+        <CloseIcon className="absolute top-[26px] right-8 cursor-pointer" onClick={closeModal} />
 
         <hr className="border border-[#E95420] my-4" />
 
         <div className="flex flex-col gap-4 text-[12px] p-4">
           <div className="flex flex-col gap-2">
-            <label>Matrix Title <span>*</span></label>
-            <input placeholder="Enter Matrix Title" className="w-full border-[0.5px] border-[#C0C0C0] p-2" />
-          </div>
-          <div className="flex flex-col gap-2">
-            <label>Trigger Event <span>*</span></label>
-            <input placeholder="Enter Trigger Event" className="w-full border-[0.5px] border-[#C0C0C0] p-2" />
-          </div>
-          <div className="flex flex-col gap-2 w-1/2">
-            <label>Notification Type<span>*</span></label>
-            <SelectBox
-              options={
-                [
-                  { label: "Email", value: "emails" },
-                  { label: "Sms", value: "Sms" },
-                ]
-              }
+            <label>
+              Matrix Title <span>*</span>
+            </label>
+            <input
+              placeholder="Enter Matrix Title"
+              className="w-full border-[0.5px] border-[#C0C0C0] p-2"
             />
           </div>
           <div className="flex flex-col gap-2">
-            <label>No Of escalations<span>*</span></label>
-            <input type="text" onChange={(e) => { setNoOfEscalations(e.target.value) }} className="w-1/2 border-[0.5px] border-[#C0C0C0] p-2" placeholder="Enter Number of Escalations" />
+            <label>
+              Trigger Event <span>*</span>
+            </label>
+            <input
+              placeholder="Enter Trigger Event"
+              className="w-full border-[0.5px] border-[#C0C0C0] p-2"
+            />
+          </div>
+          <div className="flex flex-col gap-2 w-1/2">
+            <label>
+              Notification Type<span>*</span>
+            </label>
+            <SelectBox
+              options={[
+                { label: 'Email', value: 'emails' },
+                { label: 'Sms', value: 'Sms' },
+              ]}
+            />
+          </div>
+          <div className="flex flex-col gap-2">
+            <label>
+              No Of escalations<span>*</span>
+            </label>
+            <input
+              type="text"
+              onChange={(e) => {
+                setNoOfEscalations(e.target.value);
+              }}
+              className="w-1/2 border-[0.5px] border-[#C0C0C0] p-2"
+              placeholder="Enter Number of Escalations"
+            />
           </div>
           {noOfEscalations > 0 &&
             [...Array(Number(noOfEscalations)).keys()].map((id) => (
               <div key={id} className="flex gap-2 justify-start mb-4">
                 <div className="w-1/2 flex flex-col gap-2">
-                  <label>{`Level ${id + 1} escalates to`}<span>*</span></label>
-                  <UserCustomDropdown options={["Manager", "CEO", "Founder"]} value={"Manager"} />
+                  <label>
+                    {`Level ${id + 1} escalates to`}
+                    <span>*</span>
+                  </label>
+                  <UserCustomDropdown options={['Manager', 'CEO', 'Founder']} value={'Manager'} />
                 </div>
                 <div className="w-1/2 flex flex-col gap-2">
-                  <label>After<span>*</span></label>
-                  <input placeholder="Enter Days" className="w-full border-[0.5px] border-[#C0C0C0] p-2" />
+                  <label>
+                    After<span>*</span>
+                  </label>
+                  <input
+                    placeholder="Enter Days"
+                    className="w-full border-[0.5px] border-[#C0C0C0] p-2"
+                  />
                 </div>
               </div>
-            ))
-          }
-
+            ))}
         </div>
         <div className="flex justify-center gap-2 ">
           <button className="bg-[#C72030] text-white px-4 py-2">Save</button>
-          <button className="border-2 border-[#C72030] text-[#C72030] px-4 py-2" onClick={closeModal}>Cancel</button>
+          <button
+            className="border-2 border-[#C72030] text-[#C72030] px-4 py-2"
+            onClick={closeModal}
+          >
+            Cancel
+          </button>
         </div>
       </div>
     </div>
-  )
-}
+  );
+};
 
 export default AddEscalationModal;

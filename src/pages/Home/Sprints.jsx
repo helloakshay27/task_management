@@ -1,19 +1,19 @@
-import { useEffect, useRef, useState } from "react";
-import { ArrowLeft, ChevronDown, Search } from "lucide-react";
-import { useDispatch, useSelector } from "react-redux";
-import { fetchProjects } from "../../redux/slices/projectSlice";
-import { fetchTasksOfProject } from "../../redux/slices/taskSlice";
-import { useNavigate } from "react-router-dom";
-import SprintsBoardSection from "@/components/Home/Sprints/SprintsBoardSection";
+import { useEffect, useRef, useState } from 'react';
+import { ArrowLeft, ChevronDown, Search } from 'lucide-react';
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchProjects } from '../../redux/slices/projectSlice';
+import { fetchTasksOfProject } from '../../redux/slices/taskSlice';
+import { useNavigate } from 'react-router-dom';
+import SprintsBoardSection from '@/components/Home/Sprints/SprintsBoardSection';
 
 const Sprints = () => {
-  const token = localStorage.getItem("token");
+  const token = localStorage.getItem('token');
   const [isOpen, setIsOpen] = useState(false);
   const [selectedProject, setSelectedProject] = useState({});
-  const [searchTerm, setSearchTerm] = useState("");
+  const [searchTerm, setSearchTerm] = useState('');
   const [hasFetchedInitial, setHasFetchedInitial] = useState(false);
 
-  const navigate = useNavigate()
+  const navigate = useNavigate();
 
   const dropdownRef = useRef(null);
   const dispatch = useDispatch();
@@ -28,13 +28,9 @@ const Sprints = () => {
 
   // ⬇️ Automatically select and fetch the first project on page load
   useEffect(() => {
-    if (
-      !hasFetchedInitial &&
-      fetchProject?.fetchProjects?.length > 0 &&
-      !selectedProject?.id
-    ) {
+    if (!hasFetchedInitial && fetchProject?.fetchProjects?.length > 0 && !selectedProject?.id) {
       const firstProject = fetchProject.fetchProjects[0];
-      setSelectedProject("All");
+      setSelectedProject('All');
       dispatch(fetchTasksOfProject({ token, id: firstProject.id }));
       setHasFetchedInitial(true);
     }
@@ -46,8 +42,8 @@ const Sprints = () => {
         setIsOpen(false);
       }
     };
-    document.addEventListener("mousedown", handler);
-    return () => document.removeEventListener("mousedown", handler);
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
   }, []);
 
   const handleSelect = (project) => {
@@ -57,7 +53,7 @@ const Sprints = () => {
     }
     setSelectedProject(project);
     setIsOpen(false);
-    setSearchTerm("");
+    setSearchTerm('');
   };
 
   const handleSearch = () => {
@@ -75,7 +71,10 @@ const Sprints = () => {
       <div className="flex items-center justify-between mx-6 mt-3 mb-2">
         <h3 className="text-base">Sprint Planning</h3>
         <div className="flex items-center gap-6">
-          <div className="flex items-center gap-1 text-[13px] text-[#E95420] cursor-pointer" onClick={() => navigate(-1)}>
+          <div
+            className="flex items-center gap-1 text-[13px] text-[#E95420] cursor-pointer"
+            onClick={() => navigate(-1)}
+          >
             <ArrowLeft size={13} color="#000" />
             Back
           </div>
@@ -89,7 +88,7 @@ const Sprints = () => {
             onClick={() => setIsOpen(!isOpen)}
             className="flex justify-between select-none items-center w-full border px-4 py-2 cursor-pointer text-sm bg-white"
           >
-            <span>{selectedProject?.title || "Select project"}</span>
+            <span>{selectedProject?.title || 'Select project'}</span>
             <ChevronDown className="w-4 h-4" />
           </div>
 
@@ -108,7 +107,12 @@ const Sprints = () => {
               </div>
 
               <ul className="text-sm divide-y">
-                <li className="cursor-pointer px-3 py-2 hover:bg-red-50 hover:text-red-600 transition-colors" onClick={() => handleSelect("All")}>All</li>
+                <li
+                  className="cursor-pointer px-3 py-2 hover:bg-red-50 hover:text-red-600 transition-colors"
+                  onClick={() => handleSelect('All')}
+                >
+                  All
+                </li>
                 {filteredProjects?.length ? (
                   filteredProjects.map((project) => (
                     <li

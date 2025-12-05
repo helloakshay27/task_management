@@ -1,4 +1,3 @@
-/* eslint-disable react/prop-types */
 import { useState, useMemo, useEffect } from 'react';
 import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
@@ -10,11 +9,7 @@ import {
   getPaginationRowModel,
 } from '@tanstack/react-table';
 import { useDispatch, useSelector } from 'react-redux';
-import {
-  fetchRegion,
-  updateRegion,
-  deleteRegion,
-} from '../../../redux/slices/regionSlice';
+import { fetchRegion, updateRegion, deleteRegion } from '../../../redux/slices/regionSlice';
 import { fetchCountry } from '../../../redux/slices/countrySlice';
 import AddRegionModel from './Model';
 import toast from 'react-hot-toast';
@@ -72,11 +67,13 @@ const RegionTable = ({ openModal, setOpenModal, editMode, setEditMode }) => {
   const handleToggle = async (row) => {
     const updatedValue = !row.original.active;
     try {
-      await dispatch(updateRegion({
-        token,
-        id: row.original.id,
-        payload: { active: updatedValue },
-      })).unwrap();
+      await dispatch(
+        updateRegion({
+          token,
+          id: row.original.id,
+          payload: { active: updatedValue },
+        })
+      ).unwrap();
 
       toast.dismiss();
       toast.success(`Status ${updatedValue ? 'activated' : 'deactivated'} successfully`, {
@@ -115,12 +112,12 @@ const RegionTable = ({ openModal, setOpenModal, editMode, setEditMode }) => {
           isOpen={isDeleteModalOpen}
           onClose={() => setIsDeleteModalOpen(false)}
           onConfirm={() => {
-            handleDeleteClick(row.original.id)
+            handleDeleteClick(row.original.id);
             setIsDeleteModalOpen(false);
           }}
         />
       </>
-    )
+    );
   };
 
   const columns = useMemo(
@@ -132,7 +129,7 @@ const RegionTable = ({ openModal, setOpenModal, editMode, setEditMode }) => {
         cell: ({ getValue }) => {
           const value = getValue();
           return value ? <span>{value.charAt(0).toUpperCase() + value.slice(1)}</span> : null;
-        }
+        },
       },
       {
         accessorKey: 'country_name',
@@ -163,7 +160,7 @@ const RegionTable = ({ openModal, setOpenModal, editMode, setEditMode }) => {
         id: 'actions',
         header: 'Actions',
         size: 60,
-        cell: ({ row }) => row.original ? <ActionIcons row={row} /> : null,
+        cell: ({ row }) => (row.original ? <ActionIcons row={row} /> : null),
         meta: { cellClassName: 'actions-cell-content' },
       },
     ],
@@ -197,9 +194,9 @@ const RegionTable = ({ openModal, setOpenModal, editMode, setEditMode }) => {
         <div className="table-wrapper overflow-x-auto" style={{ height: `${desiredHeight}px` }}>
           <table className="w-full">
             <thead>
-              {table.getHeaderGroups().map(headerGroup => (
+              {table.getHeaderGroups().map((headerGroup) => (
                 <tr key={headerGroup.id}>
-                  {headerGroup.headers.map(header => (
+                  {headerGroup.headers.map((header) => (
                     <th
                       key={header.id}
                       colSpan={header.colSpan}
@@ -213,13 +210,13 @@ const RegionTable = ({ openModal, setOpenModal, editMode, setEditMode }) => {
               ))}
             </thead>
             <tbody style={{ height: `${pagination.pageSize * rowHeight}px` }}>
-              {pageRows.map(row => (
+              {pageRows.map((row) => (
                 <tr
                   key={row.id}
                   className="hover:bg-gray-50 even:bg-[#D5DBDB4D]"
                   style={{ height: `${rowHeight}px` }}
                 >
-                  {row.getVisibleCells().map(cell => (
+                  {row.getVisibleCells().map((cell) => (
                     <td
                       key={cell.id}
                       className={`whitespace-nowrap px-3 py-2 border-r-2 ${cell.column.columnDef.meta?.cellClassName || ''}`}
@@ -236,8 +233,12 @@ const RegionTable = ({ openModal, setOpenModal, editMode, setEditMode }) => {
                   style={{ height: `${rowHeight}px` }}
                   className="even:bg-[#D5DBDB4D] pointer-events-none"
                 >
-                  {table.getAllLeafColumns().map(col => (
-                    <td key={col.id} className="whitespace-nowrap px-3 py-2 text-transparent" style={{ width: col.getSize() }}>
+                  {table.getAllLeafColumns().map((col) => (
+                    <td
+                      key={col.id}
+                      className="whitespace-nowrap px-3 py-2 text-transparent"
+                      style={{ width: col.getSize() }}
+                    >
                       &nbsp;
                     </td>
                   ))}
@@ -249,7 +250,13 @@ const RegionTable = ({ openModal, setOpenModal, editMode, setEditMode }) => {
 
         {data.length > 0 && (
           <div className="flex items-center justify-start gap-4 mt-4 text-[12px]">
-            <button onClick={() => table.previousPage()} disabled={!table.getCanPreviousPage()} className="text-red-600 disabled:opacity-30">{'<'}</button>
+            <button
+              onClick={() => table.previousPage()}
+              disabled={!table.getCanPreviousPage()}
+              className="text-red-600 disabled:opacity-30"
+            >
+              {'<'}
+            </button>
             {[...Array(Math.min(3, table.getPageCount()))].map((_, i) => {
               const pageIndex = Math.max(0, table.getState().pagination.pageIndex - 1 + i);
               return (
@@ -262,7 +269,13 @@ const RegionTable = ({ openModal, setOpenModal, editMode, setEditMode }) => {
                 </button>
               );
             })}
-            <button onClick={() => table.nextPage()} disabled={!table.getCanNextPage()} className="text-red-600 disabled:opacity-30">{'>'}</button>
+            <button
+              onClick={() => table.nextPage()}
+              disabled={!table.getCanNextPage()}
+              className="text-red-600 disabled:opacity-30"
+            >
+              {'>'}
+            </button>
           </div>
         )}
       </div>

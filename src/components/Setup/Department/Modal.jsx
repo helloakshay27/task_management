@@ -1,9 +1,8 @@
-/* eslint-disable react/prop-types */
-import CloseIcon from "@mui/icons-material/Close";
-import { useEffect, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
-import { updateDepartment, createDepartment } from "../../../redux/slices/departmentSlice";
-import toast from "react-hot-toast";
+import CloseIcon from '@mui/icons-material/Close';
+import { useEffect, useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { updateDepartment, createDepartment } from '../../../redux/slices/departmentSlice';
+import toast from 'react-hot-toast';
 
 const AddDepartmentModel = ({
   openModal,
@@ -12,19 +11,17 @@ const AddDepartmentModel = ({
   initialData = null,
   onSuccess,
 }) => {
-  const token = localStorage.getItem("token");
+  const token = localStorage.getItem('token');
   const dispatch = useDispatch();
 
   const { loading } = useSelector((state) => state.createDepartment);
-  const { loading: editLoading } = useSelector(
-    (state) => state.updateDepartment
-  );
+  const { loading: editLoading } = useSelector((state) => state.updateDepartment);
 
   //   const {fetchCountry: countries} = useSelector((state) => state.fetchCountry);
-  const [error, setError] = useState("");
+  const [error, setError] = useState('');
 
   const [formData, setFormData] = useState({
-    name: "",
+    name: '',
   });
 
   useEffect(() => {
@@ -34,15 +31,15 @@ const AddDepartmentModel = ({
       });
     } else {
       setFormData({
-        name: "",
+        name: '',
       });
     }
   }, [isEditMode, initialData]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (formData.name === "") {
-      setError("Please enter department name");
+    if (formData.name === '') {
+      setError('Please enter department name');
       return;
     }
 
@@ -64,15 +61,12 @@ const AddDepartmentModel = ({
       } else {
         await dispatch(createDepartment({ token, payload })).unwrap();
       }
-      toast.success(
-        `Department ${isEditMode ? "updated" : "created"} successfully`,
-        {
-          iconTheme: {
-            primary: "green",
-            secondary: "white",
-          },
-        }
-      );
+      toast.success(`Department ${isEditMode ? 'updated' : 'created'} successfully`, {
+        iconTheme: {
+          primary: 'green',
+          secondary: 'white',
+        },
+      });
       handleSuccess();
     } catch (error) {
       console.log(error);
@@ -82,17 +76,17 @@ const AddDepartmentModel = ({
 
   const handleSuccess = () => {
     setFormData({
-      name: "",
+      name: '',
     });
-    setError("");
+    setError('');
     onSuccess();
   };
 
   const handleClose = () => {
     setFormData({
-      name: "",
+      name: '',
     });
-    setError("");
+    setError('');
     setOpenModal(false);
   };
 
@@ -115,9 +109,7 @@ const AddDepartmentModel = ({
               placeholder="Enter department name here"
               className="border border-[#C0C0C0] w-full py-2 px-3 text-[#1B1B1B] text-[13px] focus:outline-none"
               value={formData.name}
-              onChange={(e) =>
-                setFormData({ ...formData, name: e.target.value })
-              }
+              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
             />
           </div>
         </div>
@@ -138,11 +130,7 @@ const AddDepartmentModel = ({
             onClick={handleSubmit}
             disabled={loading || editLoading}
           >
-            {loading || editLoading
-              ? "Submitting..."
-              : isEditMode
-                ? "Update"
-                : "Save"}
+            {loading || editLoading ? 'Submitting...' : isEditMode ? 'Update' : 'Save'}
           </button>
           <button
             className="border border-[#C72030] text-[#1B1B1B] text-[13px] px-8 py-2"

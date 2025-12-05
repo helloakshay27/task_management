@@ -1,10 +1,9 @@
-/* eslint-disable react/prop-types */
-import CloseIcon from "@mui/icons-material/Close";
-import { useEffect, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
-import { updateShift, createShift } from "../../../redux/slices/shiftSlice";
-import toast from "react-hot-toast";
-import SelectBox from "../../SelectBox";
+import CloseIcon from '@mui/icons-material/Close';
+import { useEffect, useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { updateShift, createShift } from '../../../redux/slices/shiftSlice';
+import toast from 'react-hot-toast';
+import SelectBox from '../../SelectBox';
 
 const AddShiftModel = ({
   setOpenModal,
@@ -13,59 +12,59 @@ const AddShiftModel = ({
   initialData = null,
   onSuccess,
 }) => {
-  const token = localStorage.getItem("token");
+  const token = localStorage.getItem('token');
   const dispatch = useDispatch();
 
   const { loading } = useSelector((state) => state.createShift);
   const { loading: editLoading } = useSelector((state) => state.updateShift);
 
-  const [error, setError] = useState("");
+  const [error, setError] = useState('');
   const [fieldErrors, setFieldErrors] = useState({
-    fromTime: "",
-    toTime: "",
-    breakFromTime: "",
-    breakToTime: "",
+    fromTime: '',
+    toTime: '',
+    breakFromTime: '',
+    breakToTime: '',
   });
   const [formData, setFormData] = useState({
-    fromHour: "",
-    fromMinute: "",
-    fromPeriod: "AM",
-    toHour: "",
-    toMinute: "",
-    toPeriod: "PM",
-    breakFromHour: "",
-    breakFromMinute: "",
-    breakFromPeriod: "AM",
-    breakToHour: "",
-    breakToMinute: "",
-    breakToPeriod: "PM",
+    fromHour: '',
+    fromMinute: '',
+    fromPeriod: 'AM',
+    toHour: '',
+    toMinute: '',
+    toPeriod: 'PM',
+    breakFromHour: '',
+    breakFromMinute: '',
+    breakFromPeriod: 'AM',
+    breakToHour: '',
+    breakToMinute: '',
+    breakToPeriod: 'PM',
     checkInMargin: false,
-    marginHours: "0",
-    marginMinutes: "00",
+    marginHours: '0',
+    marginMinutes: '00',
   });
 
   // Generate hours 01-12
   const hours = Array.from({ length: 12 }, (_, i) => ({
     value: String(i + 1).padStart(2, '0'),
-    label: String(i + 1).padStart(2, '0')
+    label: String(i + 1).padStart(2, '0'),
   }));
 
   // Generate minutes 00-59
   const minutes = Array.from({ length: 60 }, (_, i) => ({
     value: String(i).padStart(2, '0'),
-    label: String(i).padStart(2, '0')
+    label: String(i).padStart(2, '0'),
   }));
 
   // Period options
   const periods = [
     { value: 'AM', label: 'AM' },
-    { value: 'PM', label: 'PM' }
+    { value: 'PM', label: 'PM' },
   ];
 
   // Hours for margin (0-23)
   const marginHoursOptions = Array.from({ length: 24 }, (_, i) => ({
     value: String(i),
-    label: String(i)
+    label: String(i),
   }));
 
   // Convert 24-hour format to 12-hour format
@@ -92,14 +91,15 @@ const AddShiftModel = ({
       const marginMinutes = String(initialData.min_margin || 0).padStart(2, '0');
 
       // Check if break time data exists
-      const hasBreakData = initialData.break_start_hour != null && initialData.break_start_min != null;
+      const hasBreakData =
+        initialData.break_start_hour != null && initialData.break_start_min != null;
 
-      let breakFromHour = "";
-      let breakFromMinute = "";
-      let breakFromPeriod = "AM";
-      let breakToHour = "";
-      let breakToMinute = "";
-      let breakToPeriod = "PM";
+      let breakFromHour = '';
+      let breakFromMinute = '';
+      let breakFromPeriod = 'AM';
+      let breakToHour = '';
+      let breakToMinute = '';
+      let breakToPeriod = 'PM';
 
       if (hasBreakData) {
         const breakStartHour24 = initialData.break_start_hour || 0;
@@ -117,7 +117,8 @@ const AddShiftModel = ({
       }
 
       // Check if check_in_margin exists and has a value
-      const hasCheckInMargin = initialData.check_in_margin &&
+      const hasCheckInMargin =
+        initialData.check_in_margin &&
         initialData.check_in_margin.trim() !== '' &&
         initialData.check_in_margin !== '0h:0m';
 
@@ -139,8 +140,8 @@ const AddShiftModel = ({
         marginMinutes: marginMinutes,
       });
     }
-    setError("");
-    setFieldErrors({ fromTime: "", toTime: "", breakFromTime: "", breakToTime: "" });
+    setError('');
+    setFieldErrors({ fromTime: '', toTime: '', breakFromTime: '', breakToTime: '' });
   }, [isEditMode, initialData]);
 
   const calculateTotalHours = () => {
@@ -153,7 +154,8 @@ const AddShiftModel = ({
     if (formData.toPeriod === 'PM' && toHour !== 12) toHour += 12;
     if (formData.toPeriod === 'AM' && toHour === 12) toHour = 0;
 
-    let totalMinutes = (toHour * 60 + parseInt(formData.toMinute)) - (fromHour * 60 + parseInt(formData.fromMinute));
+    let totalMinutes =
+      toHour * 60 + parseInt(formData.toMinute) - (fromHour * 60 + parseInt(formData.fromMinute));
     if (totalMinutes < 0) totalMinutes += 24 * 60; // Handle overnight shifts
 
     const hours = Math.floor(totalMinutes / 60);
@@ -174,35 +176,38 @@ const AddShiftModel = ({
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError("");
-    setFieldErrors({ fromTime: "", toTime: "", breakFromTime: "", breakToTime: "" });
+    setError('');
+    setFieldErrors({ fromTime: '', toTime: '', breakFromTime: '', breakToTime: '' });
 
     // Validation
     let hasError = false;
-    const errors = { fromTime: "", toTime: "", breakFromTime: "", breakToTime: "" };
+    const errors = { fromTime: '', toTime: '', breakFromTime: '', breakToTime: '' };
 
     if (!formData.fromHour || !formData.fromMinute) {
-      errors.fromTime = "Please select Hour and Minute";
+      errors.fromTime = 'Please select Hour and Minute';
       hasError = true;
     }
 
     if (!formData.toHour || !formData.toMinute) {
-      errors.toTime = "Please select Hour and Minute";
+      errors.toTime = 'Please select Hour and Minute';
       hasError = true;
     }
 
     // Validate break times only if at least one break field is filled
-    const hasAnyBreakField = formData.breakFromHour || formData.breakFromMinute ||
-      formData.breakToHour || formData.breakToMinute;
+    const hasAnyBreakField =
+      formData.breakFromHour ||
+      formData.breakFromMinute ||
+      formData.breakToHour ||
+      formData.breakToMinute;
 
     if (hasAnyBreakField) {
       if (!formData.breakFromHour || !formData.breakFromMinute) {
-        errors.breakFromTime = "Please select Hour and Minute";
+        errors.breakFromTime = 'Please select Hour and Minute';
         hasError = true;
       }
 
       if (!formData.breakToHour || !formData.breakToMinute) {
-        errors.breakToTime = "Please select Hour and Minute";
+        errors.breakToTime = 'Please select Hour and Minute';
         hasError = true;
       }
     }
@@ -232,8 +237,12 @@ const AddShiftModel = ({
     };
 
     // Add break times to payload only if they exist
-    if (formData.breakFromHour && formData.breakFromMinute &&
-      formData.breakToHour && formData.breakToMinute) {
+    if (
+      formData.breakFromHour &&
+      formData.breakFromMinute &&
+      formData.breakToHour &&
+      formData.breakToMinute
+    ) {
       const break_start_hour_24 = convertTo24Hour(formData.breakFromHour, formData.breakFromPeriod);
       const break_end_hour_24 = convertTo24Hour(formData.breakToHour, formData.breakToPeriod);
 
@@ -246,78 +255,69 @@ const AddShiftModel = ({
     try {
       let result;
       if (isEditMode && initialData?.id) {
-        result = await dispatch(
-          updateShift({ token, id: initialData.id, payload })
-        ).unwrap();
+        result = await dispatch(updateShift({ token, id: initialData.id, payload })).unwrap();
       } else {
         result = await dispatch(createShift({ token, payload })).unwrap();
       }
 
       if (result?.errors) {
-        setError(
-          typeof result.errors === "string"
-            ? result.errors
-            : "Validation error occurred."
-        );
+        setError(typeof result.errors === 'string' ? result.errors : 'Validation error occurred.');
       } else {
-        toast.success(
-          `Shift ${isEditMode ? "updated" : "created"} successfully`,
-          {
-            iconTheme: {
-              primary: "green",
-              secondary: "white",
-            },
-          }
-        );
+        toast.success(`Shift ${isEditMode ? 'updated' : 'created'} successfully`, {
+          iconTheme: {
+            primary: 'green',
+            secondary: 'white',
+          },
+        });
         handleSuccess();
       }
     } catch (err) {
-      console.error("Shift submit error:", err);
-      setError(err?.message || "Something went wrong.");
+      console.error('Shift submit error:', err);
+      setError(err?.message || 'Something went wrong.');
     }
   };
 
   const handleSuccess = () => {
     setFormData({
-      fromHour: "",
-      fromMinute: "",
-      fromPeriod: "AM",
-      toHour: "",
-      toMinute: "",
-      toPeriod: "PM",
-      breakFromHour: "",
-      breakFromMinute: "",
-      breakFromPeriod: "AM",
-      breakToHour: "",
-      breakToMinute: "",
-      breakToPeriod: "PM",
+      fromHour: '',
+      fromMinute: '',
+      fromPeriod: 'AM',
+      toHour: '',
+      toMinute: '',
+      toPeriod: 'PM',
+      breakFromHour: '',
+      breakFromMinute: '',
+      breakFromPeriod: 'AM',
+      breakToHour: '',
+      breakToMinute: '',
+      breakToPeriod: 'PM',
       checkInMargin: true,
-      marginHours: "0",
-      marginMinutes: "00",
+      marginHours: '0',
+      marginMinutes: '00',
     });
-    setError("");
+    setError('');
     onSuccess();
   };
 
   const handleClose = () => {
     setFormData({
-      fromHour: "",
-      fromMinute: "",
-      fromPeriod: "AM",
-      toHour: "",
-      toMinute: "",
-      toPeriod: "PM",
-      breakFromHour: "",
-      breakFromMinute: "",
-      breakFromPeriod: "AM",
-      breakToHour: "",
-      breakToMinute: "",
-      breakToPeriod: "PM",
+      fromHour: '',
+      fromMinute: '',
+      fromPeriod: 'AM',
+      toHour: '',
+      toMinute: '',
+      toPeriod: 'PM',
+      breakFromHour: '',
+      breakFromMinute: '',
+      breakFromPeriod: 'AM',
+      breakToHour: '',
+      breakToMinute: '',
+      breakToPeriod: 'PM',
       checkInMargin: true,
-      marginHours: "0",
-      marginMinutes: "00",
+      marginHours: '0',
+      marginMinutes: '00',
     });
-    setError("");
+    setError('');
     setOpenModal(false);
   };
 
@@ -329,7 +329,7 @@ const AddShiftModel = ({
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b">
           <h2 className="text-[16px] font-semibold text-[#1B1B1B]">
-            {isEditMode ? "Edit Shift" : "Create Shift"}
+            {isEditMode ? 'Edit Shift' : 'Create Shift'}
           </h2>
           <CloseIcon
             className="cursor-pointer text-gray-500 hover:text-gray-700"
@@ -352,7 +352,7 @@ const AddShiftModel = ({
                   value={formData.fromHour}
                   onChange={(value) => {
                     setFormData({ ...formData, fromHour: value });
-                    setFieldErrors({ ...fieldErrors, fromTime: "" });
+                    setFieldErrors({ ...fieldErrors, fromTime: '' });
                   }}
                   placeholder="Hr"
                 />
@@ -364,7 +364,7 @@ const AddShiftModel = ({
                   value={formData.fromMinute}
                   onChange={(value) => {
                     setFormData({ ...formData, fromMinute: value });
-                    setFieldErrors({ ...fieldErrors, fromTime: "" });
+                    setFieldErrors({ ...fieldErrors, fromTime: '' });
                   }}
                   placeholder="mm"
                 />
@@ -384,9 +384,7 @@ const AddShiftModel = ({
           </div>
 
           <div>
-            <label className="block text-[12px] text-[#1B1B1B] mb-2">
-              Break Timings From
-            </label>
+            <label className="block text-[12px] text-[#1B1B1B] mb-2">Break Timings From</label>
             <div className="flex items-center gap-2">
               <div className="w-40">
                 <SelectBox
@@ -394,7 +392,7 @@ const AddShiftModel = ({
                   value={formData.breakFromHour}
                   onChange={(value) => {
                     setFormData({ ...formData, breakFromHour: value });
-                    setFieldErrors({ ...fieldErrors, breakFromTime: "" });
+                    setFieldErrors({ ...fieldErrors, breakFromTime: '' });
                   }}
                   placeholder="Hr"
                 />
@@ -406,7 +404,7 @@ const AddShiftModel = ({
                   value={formData.breakFromMinute}
                   onChange={(value) => {
                     setFormData({ ...formData, breakFromMinute: value });
-                    setFieldErrors({ ...fieldErrors, breakFromTime: "" });
+                    setFieldErrors({ ...fieldErrors, breakFromTime: '' });
                   }}
                   placeholder="mm"
                 />
@@ -421,15 +419,15 @@ const AddShiftModel = ({
               </div>
             </div>
             {fieldErrors.breakFromTime && (
-              <span className="text-red-500 text-[11px] mt-1 block">{fieldErrors.breakFromTime}</span>
+              <span className="text-red-500 text-[11px] mt-1 block">
+                {fieldErrors.breakFromTime}
+              </span>
             )}
           </div>
 
           {/* Break To */}
           <div>
-            <label className="block text-[12px] text-[#1B1B1B] mb-2">
-              Break Timings To
-            </label>
+            <label className="block text-[12px] text-[#1B1B1B] mb-2">Break Timings To</label>
             <div className="flex items-center gap-2">
               <div className="w-40">
                 <SelectBox
@@ -437,7 +435,7 @@ const AddShiftModel = ({
                   value={formData.breakToHour}
                   onChange={(value) => {
                     setFormData({ ...formData, breakToHour: value });
-                    setFieldErrors({ ...fieldErrors, breakToTime: "" });
+                    setFieldErrors({ ...fieldErrors, breakToTime: '' });
                   }}
                   placeholder="Hr"
                 />
@@ -449,7 +447,7 @@ const AddShiftModel = ({
                   value={formData.breakToMinute}
                   onChange={(value) => {
                     setFormData({ ...formData, breakToMinute: value });
-                    setFieldErrors({ ...fieldErrors, breakToTime: "" });
+                    setFieldErrors({ ...fieldErrors, breakToTime: '' });
                   }}
                   placeholder="mm"
                 />
@@ -480,7 +478,7 @@ const AddShiftModel = ({
                   value={formData.toHour}
                   onChange={(value) => {
                     setFormData({ ...formData, toHour: value });
-                    setFieldErrors({ ...fieldErrors, toTime: "" });
+                    setFieldErrors({ ...fieldErrors, toTime: '' });
                   }}
                   placeholder="Hr"
                 />
@@ -492,7 +490,7 @@ const AddShiftModel = ({
                   value={formData.toMinute}
                   onChange={(value) => {
                     setFormData({ ...formData, toMinute: value });
-                    setFieldErrors({ ...fieldErrors, toTime: "" });
+                    setFieldErrors({ ...fieldErrors, toTime: '' });
                   }}
                   placeholder="mm"
                 />
@@ -523,8 +521,8 @@ const AddShiftModel = ({
                     ...formData,
                     checkInMargin: isChecked,
                     // Reset margin values when unchecked
-                    marginHours: isChecked ? formData.marginHours : "0",
-                    marginMinutes: isChecked ? formData.marginMinutes : "00",
+                    marginHours: isChecked ? formData.marginHours : '0',
+                    marginMinutes: isChecked ? formData.marginMinutes : '00',
                   });
                 }}
                 className="w-4 h-4 accent-[#C72030] border-gray-300 rounded focus:ring-[#C72030]"
@@ -534,9 +532,7 @@ const AddShiftModel = ({
 
             {formData.checkInMargin && (
               <div>
-                <label className="block text-[11px] text-[#666] mb-2">
-                  Margin Time
-                </label>
+                <label className="block text-[11px] text-[#666] mb-2">Margin Time</label>
                 <div className="flex items-center gap-2">
                   <div className="w-20">
                     <SelectBox
@@ -562,9 +558,7 @@ const AddShiftModel = ({
           </div>
 
           {/* Error Message */}
-          {error && (
-            <div className="text-red-500 text-[11px] bg-red-50 p-2 rounded">{error}</div>
-          )}
+          {error && <div className="text-red-500 text-[11px] bg-red-50 p-2 rounded">{error}</div>}
         </div>
 
         {/* Footer */}
@@ -580,11 +574,7 @@ const AddShiftModel = ({
             disabled={loading || editLoading}
             className="px-6 py-2 text-[13px] text-white bg-[#C72030] rounded hover:bg-[#a01828] disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {loading || editLoading
-              ? "Creating..."
-              : isEditMode
-                ? "Update"
-                : "Create"}
+            {loading || editLoading ? 'Creating...' : isEditMode ? 'Update' : 'Create'}
           </button>
         </div>
       </div>

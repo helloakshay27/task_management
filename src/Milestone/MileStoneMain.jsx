@@ -5,36 +5,33 @@ import MilestoneKanban from '../components/MilestoneKanban';
 import MilestoneList from '../components/MilestoneList';
 
 const MileStoneMain = () => {
-    const [selectedType, setSelectedType] = useState(
-        "Gantt");
-    const [searchQuery, setSearchQuery] = useState("")
-    const [selectedColumns, setSelectedColumns] = useState({})
+  const [selectedType, setSelectedType] = useState('Gantt');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedColumns, setSelectedColumns] = useState({});
 
-    const handleColumnsChange = (columns) => {
-        setSelectedColumns(columns);
-    };
+  const handleColumnsChange = (columns) => {
+    setSelectedColumns(columns);
+  };
 
-    return (
-        <div>
-            <MilestoneHeader
-                selectedType={selectedType}
-                setSelectedType={setSelectedType}
-                searchQuery={searchQuery}
-                setSearchQuery={setSearchQuery}
-                onColumnsChange={handleColumnsChange}
-                selectedColumns={selectedColumns}
-            />
-            {
-                selectedType === "Gantt" ? (
-                    <MilestoneBody selectedColumns={selectedColumns} />
-                ) : selectedType === "List" ? (
-                    <MilestoneList searchQuery={searchQuery} selectedColumns={selectedColumns} />
-                ) : (
-                    <MilestoneKanban />
-                )
-            }
-        </div>
-    );
+  return (
+    <div>
+      <MilestoneHeader
+        selectedType={selectedType}
+        setSelectedType={setSelectedType}
+        searchQuery={searchQuery}
+        setSearchQuery={setSearchQuery}
+        onColumnsChange={handleColumnsChange}
+        selectedColumns={selectedColumns}
+      />
+      {selectedType === 'Gantt' ? (
+        <MilestoneBody selectedColumns={selectedColumns} />
+      ) : selectedType === 'List' ? (
+        <MilestoneList searchQuery={searchQuery} selectedColumns={selectedColumns} />
+      ) : (
+        <MilestoneKanban />
+      )}
+    </div>
+  );
 };
 
 export default MileStoneMain;

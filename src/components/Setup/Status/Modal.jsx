@@ -8,29 +8,33 @@ const Modal = ({ setOpenModal, openModal, isEdit, existingData = {} }) => {
   const token = localStorage.getItem('token');
   const dispatch = useDispatch();
   const [error, setError] = useState(null);
-  const [formData, setFormData] = useState(() => { // Using a function for initial state for safety
+  const [formData, setFormData] = useState(() => {
+    // Using a function for initial state for safety
     if (isEdit && existingData) {
       return {
         title: existingData.status || '', // Fallback to empty string
         color: existingData.color_code || '#c72030', // Fallback to default color
-        active: existingData.active !== undefined ? existingData.active : true // Safely get active, default to true
+        active: existingData.active !== undefined ? existingData.active : true, // Safely get active, default to true
       };
     } else {
       return {
         title: '',
         color: '#c72030',
-        active: true
+        active: true,
       };
     }
   });
 
   const handleSave = async () => {
     setError('');
-    if (formData.title.trim() === '') { setError('Status cannot be empty'); return; }
+    if (formData.title.trim() === '') {
+      setError('Status cannot be empty');
+      return;
+    }
     const payload = {
       status: formData.title,
       color_code: formData.color,
-      active: formData.active
+      active: formData.active,
     };
     try {
       if (isEdit) {
@@ -44,7 +48,7 @@ const Modal = ({ setOpenModal, openModal, isEdit, existingData = {} }) => {
           primary: 'green', // This might directly change the color of the success icon
           secondary: 'white',
         },
-      })
+      });
       handleSuccess();
     } catch (error) {
       console.log(error);
@@ -55,22 +59,21 @@ const Modal = ({ setOpenModal, openModal, isEdit, existingData = {} }) => {
     setFormData({
       title: '',
       color: '#c72030',
-      active: true
-    })
-    setError("");
+      active: true,
+    });
+    setError('');
     setOpenModal(false);
-
-  }
+  };
   const handleSuccess = async () => {
     setFormData({
       title: '',
       color: '#c72030',
-      active: true
-    })
-    setError("");
+      active: true,
+    });
+    setError('');
     setOpenModal(false);
     await dispatch(fetchStatus({ token })).unwrap();
-  }
+  };
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-30 z-50">
@@ -80,7 +83,9 @@ const Modal = ({ setOpenModal, openModal, isEdit, existingData = {} }) => {
             <CloseIcon className="cursor-pointer" onClick={() => handleClose()} />
           </div>
           <div className="flex flex-col gap-2">
-            <label className="text-sm">Status Name <span className="text-red-600">*</span></label>
+            <label className="text-sm">
+              Status Name <span className="text-red-600">*</span>
+            </label>
             <input
               value={formData.title}
               onChange={(e) => {
@@ -91,8 +96,7 @@ const Modal = ({ setOpenModal, openModal, isEdit, existingData = {} }) => {
             />
           </div>
 
-
-          <div className='flex flex-col gap-2'>
+          <div className="flex flex-col gap-2">
             <label className="text-sm">Pick Color</label>
             <div className="border-[1px] border-[#C0C0C0] p-2">
               <input

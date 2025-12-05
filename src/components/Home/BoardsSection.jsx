@@ -1,19 +1,19 @@
-import { useEffect, useState, useCallback } from "react";
-import Boards from "./Boards";
-import TaskCard from "./Task/TaskCard";
-import ProjectCard from "./Projects/ProjectCard";
-import Xarrow from "react-xarrows";
-import { cardsTitle } from "../../data/Data";
-import TaskSubCard from "./Task/TaskSubCard";
-import { useDispatch, useSelector, batch } from "react-redux";
-import { changeProjectStatus, fetchKanbanProjects } from "../../redux/slices/projectSlice";
-import { changeTaskStatus, fetchKanbanTasks } from "../../redux/slices/taskSlice";
-import useDeepCompareEffect from "use-deep-compare-effect";
-import { debounce } from "lodash";
-import { useParams } from "react-router-dom";
+import { useEffect, useState, useCallback } from 'react';
+import Boards from './Boards';
+import TaskCard from './Task/TaskCard';
+import ProjectCard from './Projects/ProjectCard';
+import Xarrow from 'react-xarrows';
+import { cardsTitle } from '../../data/Data';
+import TaskSubCard from './Task/TaskSubCard';
+import { useDispatch, useSelector, batch } from 'react-redux';
+import { changeProjectStatus, fetchKanbanProjects } from '../../redux/slices/projectSlice';
+import { changeTaskStatus, fetchKanbanTasks } from '../../redux/slices/taskSlice';
+import useDeepCompareEffect from 'use-deep-compare-effect';
+import { debounce } from 'lodash';
+import { useParams } from 'react-router-dom';
 
 const BoardsSection = ({ section }) => {
-  const token = localStorage.getItem("token");
+  const token = localStorage.getItem('token');
   const { mid } = useParams();
   const [subCardVisibility, setSubCardVisibility] = useState({});
   const [arrowLinks, setArrowLinks] = useState([]);
@@ -31,11 +31,11 @@ const BoardsSection = ({ section }) => {
 
   useEffect(() => {
     batch(() => {
-      if (section === "Tasks") {
+      if (section === 'Tasks') {
         if (mid) {
           dispatch(fetchKanbanTasks({ token, id: mid }));
         } else {
-          dispatch(fetchKanbanTasks({ token, id: "" }));
+          dispatch(fetchKanbanTasks({ token, id: '' }));
         }
       } else {
         dispatch(fetchKanbanProjects({ token }));
@@ -113,12 +113,12 @@ const BoardsSection = ({ section }) => {
       } catch (error) {
         console.error(`Task update failed for ${taskId}:`, error);
         setLocalError(
-          `Update failed: ${error?.response?.data?.errors || error?.message || "Server error"}`
+          `Update failed: ${error?.response?.data?.errors || error?.message || 'Server error'}`
         );
         if (mid) {
           dispatch(fetchKanbanTasks({ token, id: mid }));
         } else {
-          dispatch(fetchKanbanTasks({ token, id: "" }));
+          dispatch(fetchKanbanTasks({ token, id: '' }));
         }
       }
     }, 300),
@@ -141,8 +141,8 @@ const BoardsSection = ({ section }) => {
 
   const handleStatusChange = useCallback(
     async ({ id: rowId, payload: newValue }) => {
-      const actualProjectId = rowId.replace("P-", "");
-      const apiCompatibleValue = newValue.toLowerCase().replace(/\s+/g, "_");
+      const actualProjectId = rowId.replace('P-', '');
+      const apiCompatibleValue = newValue.toLowerCase().replace(/\s+/g, '_');
 
       try {
         await dispatch(
@@ -162,9 +162,7 @@ const BoardsSection = ({ section }) => {
 
   const handleProjectStatusChange = useCallback(
     ({ id, status }) => {
-      setProjects((prev) =>
-        prev.map((proj) => (proj.id === id ? { ...proj, status } : proj))
-      );
+      setProjects((prev) => prev.map((proj) => (proj.id === id ? { ...proj, status } : proj)));
       handleStatusChange({
         id: `P-${id}`,
         payload: status,
@@ -176,16 +174,16 @@ const BoardsSection = ({ section }) => {
   const handleDrop = useCallback(
     (item, newStatus) => {
       // Prevent dropping on the "Overdue" board
-      if (newStatus.toLowerCase() === "overdue") {
-        console.log("Dropping on Overdue board is disabled");
+      if (newStatus.toLowerCase() === 'overdue') {
+        console.log('Dropping on Overdue board is disabled');
         return;
       }
 
       const { type, id, fromTaskId } = item;
-      if (type === "TASK" || type === "SUBTASK") {
-        handleUpdateTaskFieldCell(id, "status", newStatus);
-      } else if (type === "PROJECT") {
-        handleProjectStatusChange({ id, status: newStatus === "open" ? "active" : newStatus });
+      if (type === 'TASK' || type === 'SUBTASK') {
+        handleUpdateTaskFieldCell(id, 'status', newStatus);
+      } else if (type === 'PROJECT') {
+        handleProjectStatusChange({ id, status: newStatus === 'open' ? 'active' : newStatus });
       }
     },
     [handleUpdateTaskFieldCell, handleProjectStatusChange]
@@ -205,7 +203,10 @@ const BoardsSection = ({ section }) => {
         );
       } else {
         const newLinks = targetIds
-          .filter((targetId) => !prevLinks.some((link) => link.sourceId === sourceId && link.targetId === targetId))
+          .filter(
+            (targetId) =>
+              !prevLinks.some((link) => link.sourceId === sourceId && link.targetId === targetId)
+          )
           .map((targetId) => ({ sourceId, targetId }));
         return [...prevLinks, ...newLinks];
       }
@@ -216,8 +217,8 @@ const BoardsSection = ({ section }) => {
     const arrows = [];
 
     arrowLinks.forEach((link) => {
-      const sourceNum = parseInt(link.sourceId.replace("task-", ""));
-      const targetNum = parseInt(link.targetId.replace("task-", ""));
+      const sourceNum = parseInt(link.sourceId.replace('task-', ''));
+      const targetNum = parseInt(link.targetId.replace('task-', ''));
       const sourceTask = taskData.find((t) => t.id === sourceNum);
       const targetTask = taskData.find((t) => t.id === targetNum);
 
@@ -227,7 +228,7 @@ const BoardsSection = ({ section }) => {
           arrows.push({
             sourceId: `task-${sourceNum}`,
             targetId: `task-${targetNum}`,
-            type: "predecessor",
+            type: 'predecessor',
           });
         }
       }
@@ -238,7 +239,7 @@ const BoardsSection = ({ section }) => {
           arrows.push({
             sourceId: `task-${sourceNum}`,
             targetId: `task-${targetNum}`,
-            type: "successor",
+            type: 'successor',
           });
         }
       }
@@ -250,7 +251,8 @@ const BoardsSection = ({ section }) => {
   const allArrows = [
     ...arrowLinks,
     ...dependencyArrows.filter(
-      (dep) => !arrowLinks.some((link) => link.sourceId === dep.sourceId && link.targetId === dep.targetId)
+      (dep) =>
+        !arrowLinks.some((link) => link.sourceId === dep.sourceId && link.targetId === dep.targetId)
     ),
   ];
 
@@ -258,29 +260,33 @@ const BoardsSection = ({ section }) => {
     <div className="relative">
       <div
         className="h-[80%] mx-3 my-3 flex items-start gap-1 max-w-full overflow-x-auto overflow-y-auto flex-nowrap"
-        style={{ height: "75vh" }}
+        style={{ height: '75vh' }}
       >
         {cardsTitle.map((card) => {
-          const cardStatus = card.title.toLowerCase().replace(" ", "_");
+          const cardStatus = card.title.toLowerCase().replace(' ', '_');
 
           const filteredTasks = (taskData || []).filter((task) =>
-            cardStatus === "active" ? task.status === "open" : task.status === cardStatus
+            cardStatus === 'active' ? task.status === 'open' : task.status === cardStatus
           );
 
-          const filteredSubtasks = (taskData || []).flatMap((task) =>
-            (task.sub_tasks_managements || [])
-              .filter((subtask) => subtask.status !== task.status)
-              .map((subtask) => ({
-                ...subtask,
-                parentTaskId: task.id,
-              }))
-          ).filter((subtask) => subtask.status === cardStatus);
+          const filteredSubtasks = (taskData || [])
+            .flatMap((task) =>
+              (task.sub_tasks_managements || [])
+                .filter((subtask) => subtask.status !== task.status)
+                .map((subtask) => ({
+                  ...subtask,
+                  parentTaskId: task.id,
+                }))
+            )
+            .filter((subtask) => subtask.status === cardStatus);
 
-          const filteredProjects = projects && projects?.project_managements?.filter(
-            (project) => cardStatus === "open" ? project.status === "active" : project.status === cardStatus
-          );
+          const filteredProjects =
+            projects &&
+            projects?.project_managements?.filter((project) =>
+              cardStatus === 'open' ? project.status === 'active' : project.status === cardStatus
+            );
 
-          console.log(filterProjects)
+          console.log(filterProjects);
 
           return (
             <Boards
@@ -288,15 +294,15 @@ const BoardsSection = ({ section }) => {
               add={card.add}
               color={card.color}
               count={
-                section === "Tasks"
+                section === 'Tasks'
                   ? filteredTasks?.length + filteredSubtasks.length
                   : filteredProjects?.length
               }
               title={card.title}
               onDrop={handleDrop}
-              isDropDisabled={card.title.toLowerCase() === "overdue"} // Pass flag to disable drop
+              isDropDisabled={card.title.toLowerCase() === 'overdue'} // Pass flag to disable drop
             >
-              {section === "Tasks" ? (
+              {section === 'Tasks' ? (
                 filteredTasks.length + filteredSubtasks.length > 0 ? (
                   <>
                     {filteredTasks.map((task) => {
@@ -304,13 +310,21 @@ const BoardsSection = ({ section }) => {
                       let dependsOnArr = [];
 
                       if (Array.isArray(task.predecessor_task_ids)) {
-                        dependsOnArr = [...dependsOnArr, ...task.predecessor_task_ids.flat().filter(Boolean)];
+                        dependsOnArr = [
+                          ...dependsOnArr,
+                          ...task.predecessor_task_ids.flat().filter(Boolean),
+                        ];
                       }
                       if (Array.isArray(task.successor_task_ids)) {
-                        dependsOnArr = [...dependsOnArr, ...task.successor_task_ids.flat().filter(Boolean)];
+                        dependsOnArr = [
+                          ...dependsOnArr,
+                          ...task.successor_task_ids.flat().filter(Boolean),
+                        ];
                       }
 
-                      dependsOnArr = [...new Set(dependsOnArr.filter((id) => id && id !== task.id))];
+                      dependsOnArr = [
+                        ...new Set(dependsOnArr.filter((id) => id && id !== task.id)),
+                      ];
                       const formattedDependsOn = dependsOnArr.map((dep) => `task-${dep}`);
 
                       const allLinked =
@@ -323,8 +337,11 @@ const BoardsSection = ({ section }) => {
                           )
                         );
 
-                      const visibleSubtasks = (task.sub_tasks_managements || []).filter((subtask) =>
-                        cardStatus === "active" ? subtask.status === "open" : subtask.status === cardStatus
+                      const visibleSubtasks = (task.sub_tasks_managements || []).filter(
+                        (subtask) =>
+                          cardStatus === 'active'
+                            ? subtask.status === 'open'
+                            : subtask.status === cardStatus
                       );
 
                       return (
@@ -334,7 +351,7 @@ const BoardsSection = ({ section }) => {
                             toggleSubCard={() => toggleSubCard(task.id)}
                             {...(formattedDependsOn.length > 0 && {
                               handleLink: () => handleLink(taskId, formattedDependsOn),
-                              iconColor: allLinked ? "#A0A0A0" : "#DA2400",
+                              iconColor: allLinked ? '#A0A0A0' : '#DA2400',
                             })}
                             count={visibleSubtasks.length}
                           />
@@ -346,20 +363,27 @@ const BoardsSection = ({ section }) => {
                                   id={`subtask-${subtask.id}`}
                                   draggable
                                   onDragStart={(e) => {
-                                    console.log('Dragging subtask:', subtask.id, 'from task:', task.id);
-                                    e.dataTransfer.setData(
-                                      "application/reactflow",
-                                      JSON.stringify({ type: "SUBTASK", id: subtask.id, fromTaskId: task.id })
+                                    console.log(
+                                      'Dragging subtask:',
+                                      subtask.id,
+                                      'from task:',
+                                      task.id
                                     );
-                                    e.dataTransfer.effectAllowed = "move";
+                                    e.dataTransfer.setData(
+                                      'application/reactflow',
+                                      JSON.stringify({
+                                        type: 'SUBTASK',
+                                        id: subtask.id,
+                                        fromTaskId: task.id,
+                                      })
+                                    );
+                                    e.dataTransfer.effectAllowed = 'move';
                                   }}
                                   className="mb-2 cursor-move relative"
                                   style={{ pointerEvents: 'auto' }}
                                 >
                                   <TaskSubCard subtask={subtask} isVisible={true} />
-                                  <div
-                                    className="text-[8px] font-medium text-gray-500 mb-1 me-2 pt-1 text-end italic"
-                                  >
+                                  <div className="text-[8px] font-medium text-gray-500 mb-1 me-2 pt-1 text-end italic">
                                     Subcard of Task-{task.id}
                                   </div>
                                 </div>
@@ -377,22 +401,20 @@ const BoardsSection = ({ section }) => {
                           draggable
                           onDragStart={(e) => {
                             e.dataTransfer.setData(
-                              "application/reactflow",
+                              'application/reactflow',
                               JSON.stringify({
-                                type: "SUBTASK",
+                                type: 'SUBTASK',
                                 id: subtask.id,
                                 fromTaskId: subtask.parentTaskId,
                               })
                             );
-                            e.dataTransfer.effectAllowed = "move";
+                            e.dataTransfer.effectAllowed = 'move';
                           }}
                           className="mb-2 cursor-move relative"
                           style={{ pointerEvents: 'auto' }}
                         >
                           <TaskSubCard subtask={subtask} isVisible={true} />
-                          <div
-                            className="text-[8px] font-medium text-gray-500 mb-1 me-2 pt-1 text-end italic"
-                          >
+                          <div className="text-[8px] font-medium text-gray-500 mb-1 me-2 pt-1 text-end italic">
                             Subcard of Task-{subtask.parentTaskId}
                           </div>
                         </div>
@@ -419,21 +441,21 @@ const BoardsSection = ({ section }) => {
 
         let dashness = false;
         let strokeWidth = 1.5;
-        let color = "#DA2400";
+        let color = '#DA2400';
 
         if (isDependencyArrow) {
           const dependency = dependencyArrows.find(
             (dep) => dep.sourceId === link.sourceId && dep.targetId === link.targetId
           );
 
-          if (dependency?.type === "predecessor") {
+          if (dependency?.type === 'predecessor') {
             dashness = false;
             strokeWidth = 1;
-            color = "#DA2400";
-          } else if (dependency?.type === "successor") {
+            color = '#DA2400';
+          } else if (dependency?.type === 'successor') {
             dashness = { strokeLen: 8, nonStrokeLen: 6 };
             strokeWidth = 1.5;
-            color = "#DA2400";
+            color = '#DA2400';
           }
         }
 

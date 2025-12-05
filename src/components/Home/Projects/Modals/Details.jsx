@@ -1,7 +1,7 @@
-import { useEffect, useState, useCallback } from "react";
-import SelectBox from "../../../SelectBox";
-import MultiSelectBox from "../../../MultiSelectBox";
-import { useDispatch, useSelector } from "react-redux";
+import { useEffect, useState, useCallback } from 'react';
+import SelectBox from '../../../SelectBox';
+import MultiSelectBox from '../../../MultiSelectBox';
+import { useDispatch, useSelector } from 'react-redux';
 import {
   createProject,
   editProject,
@@ -14,23 +14,23 @@ import {
   removeTagFromProject,
   resetEditSuccess,
   resetProjectSuccess,
-} from "../../../../redux/slices/projectSlice";
-import { fetchUsers } from "../../../../redux/slices/userSlice";
-import { fetchActiveTags, fetchTags } from "../../../../redux/slices/tagsSlice";
-import { useParams } from "react-router-dom";
-import toast from "react-hot-toast";
+} from '../../../../redux/slices/projectSlice';
+import { fetchUsers } from '../../../../redux/slices/userSlice';
+import { fetchActiveTags, fetchTags } from '../../../../redux/slices/tagsSlice';
+import { useParams } from 'react-router-dom';
+import toast from 'react-hot-toast';
 
 const Details = ({
   setTab,
   setOpenTagModal,
   setOpenTeamModal,
-  endText = "Next",
+  endText = 'Next',
   isEdit = false,
   templateDetails,
   opportunityId,
   onSuccess,
 }) => {
-  const token = localStorage.getItem("token");
+  const token = localStorage.getItem('token');
   const { id } = useParams();
   const dispatch = useDispatch();
 
@@ -49,28 +49,25 @@ const Details = ({
     fetchProjectDetails: state.fetchProjectDetails.fetchProjectDetails,
     createProject: state.createProject,
     editProject: state.editProject,
-    fetchActiveProjectTypes:
-      state.fetchActiveProjectTypes.fetchActiveProjectTypes,
+    fetchActiveProjectTypes: state.fetchActiveProjectTypes.fetchActiveProjectTypes,
     fetchTemplates: state.fetchTemplates.fetchTemplates,
     fetchProjectTeams: state.fetchProjectTeams.fetchProjectTeams,
   }));
 
-  const { createProject: project = {} } = useSelector(
-    (state) => state.createProject
-  );
+  const { createProject: project = {} } = useSelector((state) => state.createProject);
 
   const [isEditAllowed, setIsEditAllowed] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
-    projectTitle: "",
-    description: "",
-    projectOwner: "",
-    template: "",
-    startDate: "",
-    endDate: "",
-    projectType: "",
-    projectTeam: "",
-    priority: "",
+    projectTitle: '',
+    description: '',
+    projectOwner: '',
+    template: '',
+    startDate: '',
+    endDate: '',
+    projectType: '',
+    projectTeam: '',
+    priority: '',
     tags: [],
     createChannel: false,
     createTemplate: false,
@@ -78,10 +75,7 @@ const Details = ({
 
   const [prevTags, setPrevTags] = useState([]);
 
-  const getTagName = useCallback(
-    (id) => tags.find((t) => t.id === id)?.name || "",
-    [tags]
-  );
+  const getTagName = useCallback((id) => tags.find((t) => t.id === id)?.name || '', [tags]);
 
   useEffect(() => {
     if (isEdit) {
@@ -107,16 +101,22 @@ const Details = ({
         })) || [];
 
       setFormData({
-        projectTitle: templateDetails?.title?.replace(/@\[(.*?)\]\(\d+\)/g, "@$1").replace(/#\[(.*?)\]\(\d+\)/g, "#$1") || "",
-        description: templateDetails?.description?.replace(/@\[(.*?)\]\(\d+\)/g, "@$1").replace(/#\[(.*?)\]\(\d+\)/g, "#$1") || "",
-        projectOwner: templateDetails.owner_id || "",
-        template: templateDetails.template || "",
-        startDate: templateDetails.start_date || "",
-        endDate: templateDetails.end_date || "",
-        projectType: templateDetails.project_type_id || "",
-        priority: templateDetails.priority || "",
+        projectTitle:
+          templateDetails?.title
+            ?.replace(/@\[(.*?)\]\(\d+\)/g, '@$1')
+            .replace(/#\[(.*?)\]\(\d+\)/g, '#$1') || '',
+        description:
+          templateDetails?.description
+            ?.replace(/@\[(.*?)\]\(\d+\)/g, '@$1')
+            .replace(/#\[(.*?)\]\(\d+\)/g, '#$1') || '',
+        projectOwner: templateDetails.owner_id || '',
+        template: templateDetails.template || '',
+        startDate: templateDetails.start_date || '',
+        endDate: templateDetails.end_date || '',
+        projectType: templateDetails.project_type_id || '',
+        priority: templateDetails.priority || '',
         tags: mappedTags,
-        projectTeam: templateDetails.project_team_id || "",
+        projectTeam: templateDetails.project_team_id || '',
         createChannel: templateDetails.create_channel || false,
         createTemplate: templateDetails.is_template || false,
       });
@@ -140,16 +140,16 @@ const Details = ({
         })) || [];
 
       setFormData({
-        projectTitle: editData.title || "",
-        description: editData.description || "",
-        projectOwner: editData.owner_id || "",
-        template: editData.template || "",
-        startDate: editData.start_date || "",
-        endDate: editData.end_date || "",
-        projectType: editData.project_type_id || "",
-        priority: editData.priority || "",
+        projectTitle: editData.title || '',
+        description: editData.description || '',
+        projectOwner: editData.owner_id || '',
+        template: editData.template || '',
+        startDate: editData.start_date || '',
+        endDate: editData.end_date || '',
+        projectType: editData.project_type_id || '',
+        priority: editData.priority || '',
         tags: mappedTags,
-        projectTeam: editData.project_team_id || "",
+        projectTeam: editData.project_team_id || '',
         createChannel: editData.create_channel || false,
         createTemplate: editData.is_template || false,
       });
@@ -162,7 +162,7 @@ const Details = ({
     const { name, value, type, checked } = e.target;
     setFormData((prev) => ({
       ...prev,
-      [name]: type === "checkbox" ? checked : value,
+      [name]: type === 'checkbox' ? checked : value,
     }));
   };
 
@@ -171,7 +171,7 @@ const Details = ({
   };
 
   const handleMultiSelectChange = (name, selectedOptions) => {
-    if (name === "tags") {
+    if (name === 'tags') {
       const removed = prevTags.find(
         (prev) => !selectedOptions.some((curr) => curr.value === prev.value)
       );
@@ -188,14 +188,11 @@ const Details = ({
 
   const validateForm = () => {
     const errors = {};
-    if (!formData.projectTitle)
-      errors.projectTitle = "Project title is required.";
-    else if (!formData.projectOwner)
-      errors.projectOwner = "Project owner is required.";
+    if (!formData.projectTitle) errors.projectTitle = 'Project title is required.';
+    else if (!formData.projectOwner) errors.projectOwner = 'Project owner is required.';
     // else if (!formData.startDate) errors.startDate = "Start date is required.";
-    else if (!formData.endDate) errors.endDate = "End date is required.";
-    else if (!formData.projectTeam)
-      errors.projectTeam = "Project team is required.";
+    else if (!formData.endDate) errors.endDate = 'End date is required.';
+    else if (!formData.projectTeam) errors.projectTeam = 'Project team is required.';
 
     if (Object.keys(errors).length) {
       toast.dismiss();
@@ -206,7 +203,7 @@ const Details = ({
   };
 
   const handleDuration = () => {
-    if (!formData.startDate || !formData.endDate) return "";
+    if (!formData.startDate || !formData.endDate) return '';
 
     const start = new Date(formData.startDate);
     const end = new Date(formData.endDate);
@@ -231,7 +228,7 @@ const Details = ({
         return `0d : ${hrs}h : ${mins}m`;
       } else {
         // End date is in the future
-        if (endDay < startDay) return "Invalid: End date before start date";
+        if (endDay < startDay) return 'Invalid: End date before start date';
 
         const daysDiff = Math.floor((endDay - today) / (1000 * 60 * 60 * 24));
 
@@ -248,7 +245,7 @@ const Details = ({
       }
     } else {
       // For future dates, calculate days only
-      if (endDay < startDay) return "Invalid: End date before start date";
+      if (endDay < startDay) return 'Invalid: End date before start date';
 
       const days = Math.floor((endDay - startDay) / (1000 * 60 * 60 * 24)) + 1;
       return `${days}d : 0h : 0m`;
@@ -290,12 +287,12 @@ const Details = ({
         window.location.reload();
       }
     } catch (error) {
-      console.error("Error creating project:", error);
-      toast.error("Error creating project.");
+      console.error('Error creating project:', error);
+      toast.error('Error creating project.');
     } finally {
       setIsSubmitting(false);
     }
-  }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -308,7 +305,7 @@ const Details = ({
         description: formData.description,
         start_date: formData.startDate,
         end_date: formData.endDate,
-        ...(!isEdit && { status: "active" }),
+        ...(!isEdit && { status: 'active' }),
         owner_id: formData.projectOwner,
         priority: formData.priority,
         active: true,
@@ -322,26 +319,24 @@ const Details = ({
 
     try {
       if (isEdit || isEditAllowed) {
-        await dispatch(
-          editProject({ token, id: id || project.id, payload })
-        ).unwrap();
+        await dispatch(editProject({ token, id: id || project.id, payload })).unwrap();
 
         if (isEdit) {
           window.location.reload();
         } else {
-          setTab("Milestone");
+          setTab('Milestone');
         }
       } else {
         await dispatch(createProject({ token, payload }));
-        toast.dismiss()
-        toast.success("Project created successfully");
-        setTab("Milestone");
+        toast.dismiss();
+        toast.success('Project created successfully');
+        setTab('Milestone');
         await dispatch(fetchProjects({ token })).unwrap();
       }
     } catch (error) {
-      console.error("Project submission failed:", error);
-      toast.dismiss()
-      toast.error(error.message || "Something went wrong!");
+      console.error('Project submission failed:', error);
+      toast.dismiss();
+      toast.error(error.message || 'Something went wrong!');
     } finally {
       setIsSubmitting(false);
       dispatch(resetProjectSuccess());
@@ -367,7 +362,7 @@ const Details = ({
         </div>
 
         <div className="flex justify-between my-4">
-          {["createChannel", "createTemplate"].map((name) => (
+          {['createChannel', 'createTemplate'].map((name) => (
             <div key={name}>
               <input
                 type="checkbox"
@@ -378,7 +373,7 @@ const Details = ({
                 className="mx-2 my-0.5"
               />
               <label htmlFor={name}>
-                Create a {name === "createChannel" ? "Channel" : "Template"}
+                Create a {name === 'createChannel' ? 'Channel' : 'Template'}
               </label>
             </div>
           ))}
@@ -407,18 +402,18 @@ const Details = ({
                 label: `${user.firstname} ${user.lastname}`,
               }))}
               value={formData.projectOwner}
-              onChange={(value) => handleSelectChange("projectOwner", value)}
+              onChange={(value) => handleSelectChange('projectOwner', value)}
               placeholder="Select Owner"
             />
           </div>
         </div>
 
         <div className="flex gap-2 mt-4 text-[12px]">
-          {["startDate", "endDate"].map((field) => (
+          {['startDate', 'endDate'].map((field) => (
             <div key={field} className="w-full space-y-2">
               <label className="block">
-                {field === "startDate" ? "Start Date" : "End Date"}{" "}
-                {field === "endDate" && <span className="text-red-600">*</span>}
+                {field === 'startDate' ? 'Start Date' : 'End Date'}{' '}
+                {field === 'endDate' && <span className="text-red-600">*</span>}
               </label>
 
               <input
@@ -428,12 +423,11 @@ const Details = ({
                 onChange={handleInputChange}
                 className="w-full border outline-none border-gray-300 p-2"
                 min={
-                  field === "startDate"
+                  field === 'startDate'
                     ? !isEdit
-                      ? new Date().toISOString().split("T")[0]
+                      ? new Date().toISOString().split('T')[0]
                       : undefined
-                    : formData.startDate ||
-                    new Date().toISOString().split("T")[0]
+                    : formData.startDate || new Date().toISOString().split('T')[0]
                 }
               />
             </div>
@@ -464,13 +458,9 @@ const Details = ({
               </label>
             </div>
             <SelectBox
-              options={
-                teams
-                  ? teams.map((team) => ({ value: team.id, label: team.name }))
-                  : []
-              }
+              options={teams ? teams.map((team) => ({ value: team.id, label: team.name })) : []}
               value={formData.projectTeam}
-              onChange={(value) => handleSelectChange("projectTeam", value)}
+              onChange={(value) => handleSelectChange('projectTeam', value)}
               placeholder="Select Team"
             />
           </div>
@@ -482,15 +472,13 @@ const Details = ({
                 options={
                   projectTypes
                     ? projectTypes.map((type) => ({
-                      value: type.id,
-                      label:
-                        type.name.charAt(0).toUpperCase() +
-                        type.name.slice(1),
-                    }))
+                        value: type.id,
+                        label: type.name.charAt(0).toUpperCase() + type.name.slice(1),
+                      }))
                     : []
                 }
                 value={formData.projectType}
-                onChange={(value) => handleSelectChange("projectType", value)}
+                onChange={(value) => handleSelectChange('projectType', value)}
                 placeholder="Select Type"
               />
             </div>
@@ -498,12 +486,12 @@ const Details = ({
               <label className="block mb-2">Priority</label>
               <SelectBox
                 options={[
-                  { value: "high", label: "High" },
-                  { value: "medium", label: "Medium" },
-                  { value: "low", label: "Low" },
+                  { value: 'high', label: 'High' },
+                  { value: 'medium', label: 'Medium' },
+                  { value: 'low', label: 'Low' },
                 ]}
                 value={formData.priority}
-                onChange={(value) => handleSelectChange("priority", value)}
+                onChange={(value) => handleSelectChange('priority', value)}
                 placeholder="Select Priority"
               />
             </div>
@@ -514,7 +502,7 @@ const Details = ({
             <MultiSelectBox
               options={tags.map((tag) => ({ value: tag.id, label: tag.name }))}
               value={formData.tags}
-              onChange={(values) => handleMultiSelectChange("tags", values)}
+              onChange={(values) => handleMultiSelectChange('tags', values)}
               placeholder="Select Tags"
             />
             <div
@@ -526,18 +514,16 @@ const Details = ({
           </div>
 
           <div className="flex items-center justify-center gap-3">
-            {
-              !isEdit && (
-                <button
-                  type="button"
-                  className="border-2 border-red-500 px-4 py-2 text-black w-[100px]"
-                  disabled={isSubmitting}
-                  onClick={handleSave}
-                >
-                  Save
-                </button>
-              )
-            }
+            {!isEdit && (
+              <button
+                type="button"
+                className="border-2 border-red-500 px-4 py-2 text-black w-[100px]"
+                disabled={isSubmitting}
+                onClick={handleSave}
+              >
+                Save
+              </button>
+            )}
             <button
               type="submit"
               className="border-2 border-red-500 px-4 py-2 text-black w-max"

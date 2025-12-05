@@ -18,7 +18,7 @@
 .table-wrapper {
   width: 100%;
   overflow-x: auto;
-  overflow-y: auto !important; 
+  overflow-y: auto !important;
   border: 1px solid #ddd;
   border-radius: 4px;
 }
@@ -29,7 +29,8 @@ table {
   min-width: max-content; /* Ensures table content dictates min width for scrolling */
 }
 
-th, thead{
+th,
+thead {
   z-index: 9 !important;
 }
 
@@ -177,7 +178,8 @@ tbody tr:hover {
   background-color: #c85e68;
   color: white;
 }
-.status-urgent,.status-overdue {
+.status-urgent,
+.status-overdue {
   background-color: #aa0414;
   color: white;
 }
@@ -185,11 +187,10 @@ tbody tr:hover {
   background-color: #ffa15e;
   color: white;
 }
-.status-active{
+.status-active {
   background-color: lightgreen;
   color: white;
 }
-
 
 .status-dropdown {
   position: absolute;

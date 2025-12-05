@@ -1,52 +1,33 @@
-import {
-  useState,
-  useEffect,
-  useMemo,
-  useRef,
-  Fragment,
-  useCallback,
-} from "react";
-import { useNavigate, useParams } from "react-router-dom";
-import { useDispatch, useSelector } from "react-redux";
-import {
-  useReactTable,
-  getCoreRowModel,
-  flexRender,
-} from "@tanstack/react-table";
-import StatusBadge from "../../Projects/statusBadge";
-import SearchOutlinedIcon from "@mui/icons-material/SearchOutlined";
-import {
-  Listbox,
-  ListboxButton,
-  ListboxOptions,
-  ListboxOption,
-} from "@headlessui/react";
-import {
-  ChevronDownIcon as HUIDownIcon,
-  ArrowPathIcon,
-} from "@heroicons/react/20/solid";
-import SelectBox from "../../../SelectBox";
+import { useState, useEffect, useMemo, useRef, Fragment, useCallback } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+import { useDispatch, useSelector } from 'react-redux';
+import { useReactTable, getCoreRowModel, flexRender } from '@tanstack/react-table';
+import StatusBadge from '../../Projects/statusBadge';
+import SearchOutlinedIcon from '@mui/icons-material/SearchOutlined';
+import { Listbox, ListboxButton, ListboxOptions, ListboxOption } from '@headlessui/react';
+import { ChevronDownIcon as HUIDownIcon, ArrowPathIcon } from '@heroicons/react/20/solid';
+import SelectBox from '../../../SelectBox';
 import {
   createSubTask,
   updateTask,
   changeTaskStatus,
   fetchKanbanTasks,
-} from "../../../../redux/slices/taskSlice";
-import { fetchUsers } from "../../../../redux/slices/userSlice";
-import { fetchTags } from "../../../../redux/slices/tagsSlice";
-import toast from "react-hot-toast";
+} from '../../../../redux/slices/taskSlice';
+import { fetchUsers } from '../../../../redux/slices/userSlice';
+import { fetchTags } from '../../../../redux/slices/tagsSlice';
+import toast from 'react-hot-toast';
 
 const UserCustomDropdownMultiple = ({
   options = [],
   value = [],
   onChange,
   onKeyDownHandler,
-  placeholder = "Select options...",
-  searchPlaceholder = "Search options...",
+  placeholder = 'Select options...',
+  searchPlaceholder = 'Search options...',
   validator,
 }) => {
   const [selectedOptions, setSelectedOptions] = useState(value);
-  const [searchTerm, setSearchTerm] = useState("");
+  const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
     setSelectedOptions(Array.isArray(value) ? value : []);
@@ -63,11 +44,7 @@ const UserCustomDropdownMultiple = ({
     }
   };
   return (
-    <div
-      className="relative w-full text-xs"
-      onKeyDown={onKeyDownHandler}
-      tabIndex={-1}
-    >
+    <div className="relative w-full text-xs" onKeyDown={onKeyDownHandler} tabIndex={-1}>
       <Listbox
         value={selectedOptions}
         onChange={handleListboxChange}
@@ -89,19 +66,13 @@ const UserCustomDropdownMultiple = ({
               <span className="text-gray-500">{placeholder}</span>
             )}
             <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
-              <HUIDownIcon
-                className="h-5 w-5 text-gray-400"
-                aria-hidden="true"
-              />
+              <HUIDownIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />
             </span>
           </ListboxButton>
           <ListboxOptions className="absolute mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none text-xs z-50">
             <div className="sticky top-0 bg-white px-2 py-1 border-b border-gray-200 m-1">
               <div className="flex items-center border border-gray-300 rounded-md p-1">
-                <SearchOutlinedIcon
-                  style={{ color: "red" }}
-                  className="mr-2 h-4 w-4"
-                />
+                <SearchOutlinedIcon style={{ color: 'red' }} className="mr-2 h-4 w-4" />
                 <input
                   type="text"
                   placeholder={searchPlaceholder}
@@ -116,15 +87,15 @@ const UserCustomDropdownMultiple = ({
                 <ListboxOption
                   key={option}
                   className={({ active, selected }) =>
-                    `relative cursor-default select-none py-2 pl-3 pr-4 text-xs ${active ? "bg-[#C72030] text-white" : "text-gray-900"
-                    } ${selected ? "font-semibold" : "font-normal"}`
+                    `relative cursor-default select-none py-2 pl-3 pr-4 text-xs ${
+                      active ? 'bg-[#C72030] text-white' : 'text-gray-900'
+                    } ${selected ? 'font-semibold' : 'font-normal'}`
                   }
                   value={option}
                 >
                   {({ selected: isSelected }) => (
                     <span
-                      className={`block truncate ${isSelected ? "font-semibold" : "font-normal"
-                        }`}
+                      className={`block truncate ${isSelected ? 'font-semibold' : 'font-normal'}`}
                     >
                       {option}
                     </span>
@@ -150,7 +121,7 @@ const NewSubtaskTextField = ({
   validator,
 }) => {
   const handleKeyDown = (event) => {
-    if (event.key === "Enter") {
+    if (event.key === 'Enter') {
       event.preventDefault();
       onEnterPress();
     }
@@ -160,11 +131,12 @@ const NewSubtaskTextField = ({
       ref={inputRef}
       type="text"
       placeholder={placeholder}
-      value={value || ""}
+      value={value || ''}
       onChange={onChange}
       onKeyDown={handleKeyDown}
-      className={`w-full p-1 ${validator ? "border border-red-500" : "border border-gray-300"
-        } outline-none border-none hover:bg-gray-50 focus:outline-none rounded text-sm`}
+      className={`w-full p-1 ${
+        validator ? 'border border-red-500' : 'border border-gray-300'
+      } outline-none border-none hover:bg-gray-50 focus:outline-none rounded text-sm`}
     />
   );
 };
@@ -175,20 +147,18 @@ const DateEditor = ({
   isNewRow,
   onEnterPress,
   className,
-  placeholder = "Select date",
+  placeholder = 'Select date',
   validator,
   min,
   max,
 }) => {
   const [date, setDate] = useState(
-    propValue ? new Date(propValue).toISOString().split("T")[0] : ""
+    propValue ? new Date(propValue).toISOString().split('T')[0] : ''
   );
   const inputRef = useRef(null);
 
   useEffect(() => {
-    const initialDate = propValue
-      ? new Date(propValue).toISOString().split("T")[0]
-      : "";
+    const initialDate = propValue ? new Date(propValue).toISOString().split('T')[0] : '';
     setDate(initialDate);
   }, [propValue]);
 
@@ -203,7 +173,7 @@ const DateEditor = ({
   };
 
   const handleKeyDown = (event) => {
-    if (event.key === "Enter") {
+    if (event.key === 'Enter') {
       event.preventDefault();
       performUpdate(date);
       if (onEnterPress) {
@@ -217,16 +187,16 @@ const DateEditor = ({
   };
 
   const handleInputClick = () => {
-    if (inputRef.current && typeof inputRef.current.showPicker === "function") {
+    if (inputRef.current && typeof inputRef.current.showPicker === 'function') {
       try {
         inputRef.current.showPicker();
       } catch (error) {
-        console.error("Error trying to show picker:", error);
+        console.error('Error trying to show picker:', error);
       }
     }
   };
 
-  const isInvalid = typeof validator === "function" ? !validator(date) : false;
+  const isInvalid = typeof validator === 'function' ? !validator(date) : false;
 
   return (
     <input
@@ -239,16 +209,16 @@ const DateEditor = ({
       onBlur={handleBlur}
       onKeyDown={handleKeyDown}
       onClick={handleInputClick}
-      className={`${isInvalid ? "border border-red-400" : "border-none"
-        } w-full focus:outline-none rounded text-[12px] p-1 my-custom-date-editor ${className || ""
-        }`}
+      className={`${
+        isInvalid ? 'border border-red-400' : 'border-none'
+      } w-full focus:outline-none rounded text-[12px] p-1 my-custom-date-editor ${className || ''}`}
       placeholder={placeholder}
     />
   );
 };
 
-const globalPriorityOptions = ["None", "Low", "Medium", "High", "Urgent"];
-const globalStatusOptions = ["open", "in_progress", "completed", "on_hold"];
+const globalPriorityOptions = ['None', 'Low', 'Medium', 'High', 'Urgent'];
+const globalStatusOptions = ['open', 'in_progress', 'completed', 'on_hold'];
 
 const calculateDuration = (start, end) => {
   const now = new Date();
@@ -260,7 +230,7 @@ const calculateDuration = (start, end) => {
 
   // Check if task hasn't started yet
   if (now < startDate) {
-    return { text: "Not started", isOverdue: false };
+    return { text: 'Not started', isOverdue: false };
   }
 
   // Calculate time differences (use absolute value to show overdue time)
@@ -278,7 +248,7 @@ const calculateDuration = (start, end) => {
   const remainingMinutes = minutes % 60;
   const remainingSeconds = seconds % 60;
 
-  const timeStr = `${days > 0 ? days + "d " : "0d "}${remainingHours > 0 ? remainingHours + "h " : "0h "}${remainingMinutes > 0 ? remainingMinutes + "m " : "0m"}`;
+  const timeStr = `${days > 0 ? days + 'd ' : '0d '}${remainingHours > 0 ? remainingHours + 'h ' : '0h '}${remainingMinutes > 0 ? remainingMinutes + 'm ' : '0m'}`;
 
   return {
     text: isOverdue ? `${timeStr}` : timeStr,
@@ -299,16 +269,18 @@ const CountdownTimer = ({ startDate, targetDate }) => {
   }, [targetDate]);
 
   return (
-    <div className={`text-left text-[12px] ${countdown.isOverdue ? "text-red-600 font-medium" : ""}`}>
+    <div
+      className={`text-left text-[12px] ${countdown.isOverdue ? 'text-red-600 font-medium' : ''}`}
+    >
       {countdown.text}
     </div>
   );
 };
 
 const SubtaskTable = ({ projectId }) => {
-  const token = localStorage.getItem("token");
+  const token = localStorage.getItem('token');
   const navigate = useNavigate();
-  const { id, mid = "", tid: parentId } = useParams();
+  const { id, mid = '', tid: parentId } = useParams();
   const dispatch = useDispatch();
 
   const {
@@ -321,40 +293,37 @@ const SubtaskTable = ({ projectId }) => {
     fetchUsers: users,
     loading: loadingUsers,
     error: usersFetchError,
-  } = useSelector(
-    (state) => state.fetchUsers || { users: [], loading: false, error: null }
-  );
+  } = useSelector((state) => state.fetchUsers || { users: [], loading: false, error: null });
 
-  const { fetchProjectTeamMembers: projectTeamMembers } = useSelector(state => state.fetchProjectTeamMembers)
-  console.log(projectTeamMembers)
+  const { fetchProjectTeamMembers: projectTeamMembers } = useSelector(
+    (state) => state.fetchProjectTeamMembers
+  );
+  console.log(projectTeamMembers);
 
   const {
     fetchTags: tagList,
     loading: loadingTags,
     error: tagsError,
-  } = useSelector(
-    (state) => state.fetchTags || { tagList: [], loading: false, error: null }
-  );
+  } = useSelector((state) => state.fetchTags || { tagList: [], loading: false, error: null });
 
   const [data, setData] = useState([]);
   const [parentTaskForSubtasks, setParentTaskForSubtasks] = useState(null);
-  console.log(parentTaskForSubtasks)
-  const [parentTaskLookupStatus, setParentTaskLookupStatus] = useState("idle");
+  console.log(parentTaskForSubtasks);
+  const [parentTaskLookupStatus, setParentTaskLookupStatus] = useState('idle');
 
   const [isAddingNewSubtask, setIsAddingNewSubtask] = useState(false);
-  const [newSubtaskTitle, setNewSubtaskTitle] = useState("");
-  const [newSubtaskStatus, setNewSubtaskStatus] = useState("open");
-  const [newSubtaskResponsiblePersonId, setNewSubtaskResponsiblePersonId] =
-    useState(null);
-  const [newSubtaskStartDate, setNewSubtaskStartDate] = useState("");
-  const [newSubtaskEndDate, setNewSubtaskEndDate] = useState("");
-  const [newSubtaskPriority, setNewSubtaskPriority] = useState("None");
+  const [newSubtaskTitle, setNewSubtaskTitle] = useState('');
+  const [newSubtaskStatus, setNewSubtaskStatus] = useState('open');
+  const [newSubtaskResponsiblePersonId, setNewSubtaskResponsiblePersonId] = useState(null);
+  const [newSubtaskStartDate, setNewSubtaskStartDate] = useState('');
+  const [newSubtaskEndDate, setNewSubtaskEndDate] = useState('');
+  const [newSubtaskPriority, setNewSubtaskPriority] = useState('None');
   const [newSubtaskTags, setNewSubtaskTags] = useState([]);
   const [isSavingSubtask, setIsSavingSubtask] = useState(false);
   const [isUpdatingTask, setIsUpdatingTask] = useState(false);
   const [localError, setLocalError] = useState(null);
   const [validator, setValidator] = useState(false);
-  const [members, setMembers] = useState([])
+  const [members, setMembers] = useState([]);
 
   const newSubtaskTitleInputRef = useRef(null);
   const newTaskFormRowRef = useRef(null);
@@ -364,18 +333,18 @@ const SubtaskTable = ({ projectId }) => {
 
   useEffect(() => {
     if (projectTeamMembers) {
-      const members = []
+      const members = [];
 
       projectTeamMembers?.project_team_members?.map((member) => {
-        members.push(member.user)
-      })
-      members.push(projectTeamMembers.team_lead)
+        members.push(member.user);
+      });
+      members.push(projectTeamMembers.team_lead);
 
-      setMembers(members)
+      setMembers(members);
     }
-  }, [projectTeamMembers])
+  }, [projectTeamMembers]);
 
-  console.log(members)
+  console.log(members);
 
   // useEffect(() => {
   //   const fetchMembers = async () => {
@@ -391,12 +360,11 @@ const SubtaskTable = ({ projectId }) => {
   //   }
   // }, [dispatch, token, projectId]);
 
-
   const handleOnChange = useCallback(
     async (taskId, fieldName, newValue) => {
       if (isUpdatingTask) return;
       let payload;
-      if (fieldName === "task_tag_ids") {
+      if (fieldName === 'task_tag_ids') {
         const selectedTagIds = newValue
           .map((tagName) => {
             const foundTag = Array.isArray(tagList)
@@ -412,26 +380,22 @@ const SubtaskTable = ({ projectId }) => {
       setIsUpdatingTask(true);
       setLocalError(null);
       try {
-        if (fieldName === "status") {
+        if (fieldName === 'status') {
           const response = await dispatch(
             changeTaskStatus({ token, id: taskId, payload })
           ).unwrap();
-          console.log(response)
+          console.log(response);
           if (response.error) {
-            toast.error(response.error)
+            toast.error(response.error);
           }
         } else {
           await dispatch(updateTask({ token, id: taskId, payload })).unwrap();
         }
         await dispatch(fetchKanbanTasks({ token, id: mid })).unwrap();
       } catch (error) {
-        console.error(
-          `Task field update failed for ${taskId} (${fieldName}):`,
-          error
-        );
+        console.error(`Task field update failed for ${taskId} (${fieldName}):`, error);
         setLocalError(
-          `Update failed: ${error?.response?.data?.errors || error?.message || "Server error"
-          }`
+          `Update failed: ${error?.response?.data?.errors || error?.message || 'Server error'}`
         );
         dispatch(fetchKanbanTasks({ token, id: mid }));
       } finally {
@@ -444,9 +408,7 @@ const SubtaskTable = ({ projectId }) => {
   useEffect(() => {
     if (
       !loadingAllTasks &&
-      (!allTasksFromStore ||
-        !Array.isArray(allTasksFromStore) ||
-        allTasksFromStore.length === 0) &&
+      (!allTasksFromStore || !Array.isArray(allTasksFromStore) || allTasksFromStore.length === 0) &&
       !allTasksError &&
       !allTasksFetchInitiatedRef.current
     ) {
@@ -487,12 +449,12 @@ const SubtaskTable = ({ projectId }) => {
 
   useEffect(() => {
     if (loadingAllTasks) {
-      setParentTaskLookupStatus("loading");
+      setParentTaskLookupStatus('loading');
       return;
     }
     if (allTasksError) {
-      setParentTaskLookupStatus("error");
-      setLocalError("Failed to load tasks to find the parent.");
+      setParentTaskLookupStatus('error');
+      setLocalError('Failed to load tasks to find the parent.');
       return;
     }
     if (
@@ -501,36 +463,27 @@ const SubtaskTable = ({ projectId }) => {
       allTasksFromStore.length > 0 &&
       parentId
     ) {
-      const foundTask = allTasksFromStore.find(
-        (task) => String(task.id) === String(parentId)
-      );
-      console.log(foundTask)
+      const foundTask = allTasksFromStore.find((task) => String(task.id) === String(parentId));
+      console.log(foundTask);
       if (foundTask) {
         setParentTaskForSubtasks(foundTask);
-        setParentTaskLookupStatus("found");
-        if (
-          foundTask.sub_tasks_managements &&
-          Array.isArray(foundTask.sub_tasks_managements)
-        ) {
+        setParentTaskLookupStatus('found');
+        if (foundTask.sub_tasks_managements && Array.isArray(foundTask.sub_tasks_managements)) {
           console.log(foundTask.sub_tasks_managements);
-          const processedSubtasks = foundTask.sub_tasks_managements.map(
-            (sub) => ({
-              id: sub.id,
-              taskTitle: sub.title || "Unnamed Subtask",
-              status: sub.status || "open",
-              responsiblePerson: sub?.responsible_person_name || "Unassigned",
-              responsiblePersonId: sub?.responsible_person_id || null,
-              startDate: sub.expected_start_date
-                ? new Date(sub.expected_start_date).toLocaleDateString("en-CA")
-                : null,
-              endDate: sub.target_date
-                ? new Date(sub.target_date).toLocaleDateString("en-CA")
-                : null,
-              priority: sub.priority || "None",
-              tags: (sub.task_tags || []).map((tag) => tag.company_tag.name),
-            })
-          );
-          console.log(processedSubtasks)
+          const processedSubtasks = foundTask.sub_tasks_managements.map((sub) => ({
+            id: sub.id,
+            taskTitle: sub.title || 'Unnamed Subtask',
+            status: sub.status || 'open',
+            responsiblePerson: sub?.responsible_person_name || 'Unassigned',
+            responsiblePersonId: sub?.responsible_person_id || null,
+            startDate: sub.expected_start_date
+              ? new Date(sub.expected_start_date).toLocaleDateString('en-CA')
+              : null,
+            endDate: sub.target_date ? new Date(sub.target_date).toLocaleDateString('en-CA') : null,
+            priority: sub.priority || 'None',
+            tags: (sub.task_tags || []).map((tag) => tag.company_tag.name),
+          }));
+          console.log(processedSubtasks);
           setData(processedSubtasks);
         } else {
           setData([]);
@@ -538,12 +491,12 @@ const SubtaskTable = ({ projectId }) => {
         setLocalError(null);
       } else {
         setParentTaskForSubtasks(null);
-        setParentTaskLookupStatus("not_found");
+        setParentTaskLookupStatus('not_found');
         setData([]);
         setLocalError(`Parent task with ID ${parentId} not found.`);
       }
     } else if (!loadingAllTasks && allTasksFromStore && parentId) {
-      setParentTaskLookupStatus("not_found");
+      setParentTaskLookupStatus('not_found');
       setData([]);
       setLocalError(`Parent task with ID ${parentId} not found.`);
     }
@@ -556,12 +509,12 @@ const SubtaskTable = ({ projectId }) => {
   }, [isAddingNewSubtask]);
 
   const resetNewSubtaskForm = useCallback(() => {
-    setNewSubtaskTitle("");
-    setNewSubtaskStatus("open");
+    setNewSubtaskTitle('');
+    setNewSubtaskStatus('open');
     setNewSubtaskResponsiblePersonId(null);
-    setNewSubtaskStartDate("");
-    setNewSubtaskEndDate("");
-    setNewSubtaskPriority("None");
+    setNewSubtaskStartDate('');
+    setNewSubtaskEndDate('');
+    setNewSubtaskPriority('None');
     setNewSubtaskTags([]);
     setLocalError(null);
     setValidator(false);
@@ -569,7 +522,7 @@ const SubtaskTable = ({ projectId }) => {
 
   const handleShowNewSubtaskForm = useCallback(() => {
     if (!parentTaskForSubtasks) {
-      setLocalError("Parent task not loaded. Cannot add subtask.");
+      setLocalError('Parent task not loaded. Cannot add subtask.');
       return;
     }
     resetNewSubtaskForm();
@@ -582,12 +535,8 @@ const SubtaskTable = ({ projectId }) => {
   }, [resetNewSubtaskForm]);
 
   const handleSaveNewSubtask = useCallback(async () => {
-    if (
-      !newSubtaskTitle?.trim() ||
-      !newSubtaskStartDate ||
-      !newSubtaskEndDate
-    ) {
-      setLocalError("Please fill out all required fields.");
+    if (!newSubtaskTitle?.trim() || !newSubtaskStartDate || !newSubtaskEndDate) {
+      setLocalError('Please fill out all required fields.');
       setValidator(true);
       newSubtaskTitleInputRef.current?.focus();
       return;
@@ -602,19 +551,18 @@ const SubtaskTable = ({ projectId }) => {
       ? new Date(parentTaskForSubtasks.target_date)
       : null;
 
-
     if (parentEnd && start > parentEnd) {
-      setLocalError("Subtask start date cannot be after parent task end date");
+      setLocalError('Subtask start date cannot be after parent task end date');
       setValidator(true);
       return;
     }
     if (end < start) {
-      setLocalError("Subtask end date cannot be before start date");
+      setLocalError('Subtask end date cannot be before start date');
       setValidator(true);
       return;
     }
     if (parentEnd && end > parentEnd) {
-      setLocalError("Subtask end date cannot be after parent task end date");
+      setLocalError('Subtask end date cannot be after parent task end date');
       setValidator(true);
       return;
     }
@@ -646,17 +594,14 @@ const SubtaskTable = ({ projectId }) => {
     };
 
     try {
-      await dispatch(
-        createSubTask({ token, payload: subtaskPayload })
-      ).unwrap();
+      await dispatch(createSubTask({ token, payload: subtaskPayload })).unwrap();
       await dispatch(fetchKanbanTasks({ token, id: mid })).unwrap();
       setIsAddingNewSubtask(false);
       resetNewSubtaskForm();
     } catch (error) {
-      console.error("Failed to create subtask:", error);
+      console.error('Failed to create subtask:', error);
       const errorMessage =
-        error?.message ||
-        (typeof error === "string" ? error : "Failed to save subtask.");
+        error?.message || (typeof error === 'string' ? error : 'Failed to save subtask.');
       setLocalError(errorMessage);
     } finally {
       setIsSavingSubtask(false);
@@ -679,9 +624,7 @@ const SubtaskTable = ({ projectId }) => {
   ]);
 
   const handleDeleteExistingSubtask = useCallback((subtaskId) => {
-    alert(
-      `API for deleting existing subtask ${subtaskId} needs to be implemented.`
-    );
+    alert(`API for deleting existing subtask ${subtaskId} needs to be implemented.`);
   }, []);
 
   useEffect(() => {
@@ -698,14 +641,11 @@ const SubtaskTable = ({ projectId }) => {
     };
 
     if (isAddingNewSubtask) {
-      document.addEventListener("mousedown", handleClickOutsideNewSubtaskRow);
+      document.addEventListener('mousedown', handleClickOutsideNewSubtaskRow);
     }
 
     return () => {
-      document.removeEventListener(
-        "mousedown",
-        handleClickOutsideNewSubtaskRow
-      );
+      document.removeEventListener('mousedown', handleClickOutsideNewSubtaskRow);
     };
   }, [
     isAddingNewSubtask,
@@ -718,16 +658,16 @@ const SubtaskTable = ({ projectId }) => {
   useEffect(() => {
     const handleEscape = (event) => {
       if (!isAddingNewSubtask) return;
-      if (event.key === "Escape") {
-        console.log("Escape key pressed!");
+      if (event.key === 'Escape') {
+        console.log('Escape key pressed!');
         handleCancelNewSubtask();
       }
     };
 
-    window.addEventListener("keydown", handleEscape);
+    window.addEventListener('keydown', handleEscape);
 
     return () => {
-      window.removeEventListener("keydown", handleEscape);
+      window.removeEventListener('keydown', handleEscape);
     };
   }, [isAddingNewSubtask, handleCancelNewSubtask]);
 
@@ -735,19 +675,19 @@ const SubtaskTable = ({ projectId }) => {
     () =>
       Array.isArray(members) && members.length > 0
         ? members.map((u) => ({
-          value: u?.id,
-          label: u?.name,
-        }))
+            value: u?.id,
+            label: u?.name,
+          }))
         : Array.isArray(users)
           ? users.map((u) => ({
-            value: u.id,
-            label: `${u.firstname} ${u.lastname}`,
-          }))
+              value: u.id,
+              label: `${u.firstname} ${u.lastname}`,
+            }))
           : [],
     [projectTeamMembers, users, members]
   );
 
-  console.log(userOptionsForSelectBox)
+  console.log(userOptionsForSelectBox);
 
   const tagNamesForDropdown = useMemo(() => {
     return Array.isArray(tagList) ? tagList.map((tag) => tag.name) : [];
@@ -756,18 +696,21 @@ const SubtaskTable = ({ projectId }) => {
   const columns = useMemo(
     () => [
       {
-        accessorKey: "id",
-        header: "ID",
+        accessorKey: 'id',
+        header: 'ID',
         size: 80,
         cell: ({ getValue }) => (
-          <span className="text-xs text-gray-500 px-1 cursor-pointer hover:underline" onClick={() => navigate(`/tasks/${getValue()}`)}>
+          <span
+            className="text-xs text-gray-500 px-1 cursor-pointer hover:underline"
+            onClick={() => navigate(`/tasks/${getValue()}`)}
+          >
             S-{getValue().toString().slice(-5)}
           </span>
         ),
       },
       {
-        accessorKey: "taskTitle",
-        header: "Subtask Title",
+        accessorKey: 'taskTitle',
+        header: 'Subtask Title',
         size: 250,
         cell: ({ getValue, row }) => {
           const [editTitle, setEditTitle] = useState(getValue());
@@ -775,29 +718,25 @@ const SubtaskTable = ({ projectId }) => {
             <NewSubtaskTextField
               value={editTitle}
               onChange={(e) => setEditTitle(e.target.value)}
-              onEnterPress={() =>
-                handleOnChange(row.original.id, "title", editTitle)
-              }
+              onEnterPress={() => handleOnChange(row.original.id, 'title', editTitle)}
             />
           );
         },
       },
       {
-        accessorKey: "status",
-        header: "Status",
+        accessorKey: 'status',
+        header: 'Status',
         size: 150,
         cell: ({ getValue, row }) => {
           const statusOptions = globalStatusOptions.map((status) => ({
             value: status,
-            label: status.charAt(0).toUpperCase() + status.slice(1).replace("_", " "),
+            label: status.charAt(0).toUpperCase() + status.slice(1).replace('_', ' '),
           }));
           return (
             <SelectBox
               options={statusOptions}
               value={getValue()}
-              onChange={(newStatus) =>
-                handleOnChange(row.original.id, "status", newStatus)
-              }
+              onChange={(newStatus) => handleOnChange(row.original.id, 'status', newStatus)}
               placeholder="Select Status..."
               table={true}
               className="w-full"
@@ -806,15 +745,15 @@ const SubtaskTable = ({ projectId }) => {
         },
       },
       {
-        accessorKey: "responsiblePersonId",
-        header: "Responsible Person",
+        accessorKey: 'responsiblePersonId',
+        header: 'Responsible Person',
         size: 180,
         cell: ({ getValue, row }) => (
           <SelectBox
             options={userOptionsForSelectBox}
             value={getValue()}
             onChange={(newValue) =>
-              handleOnChange(row.original.id, "responsible_person_id", newValue)
+              handleOnChange(row.original.id, 'responsible_person_id', newValue)
             }
             placeholder="Select Person..."
             table={true}
@@ -823,68 +762,61 @@ const SubtaskTable = ({ projectId }) => {
         ),
       },
       {
-        accessorKey: "startDate",
-        header: "Start Date",
+        accessorKey: 'startDate',
+        header: 'Start Date',
         size: 160,
         cell: ({ getValue, row }) => (
           <DateEditor
             value={getValue()}
-            onUpdate={(date) =>
-              handleOnChange(row.original.id, "expected_start_date", date)
-            }
+            onUpdate={(date) => handleOnChange(row.original.id, 'expected_start_date', date)}
             min={
               parentTaskForSubtasks?.expected_start_date
-                ? new Date(parentTaskForSubtasks.expected_start_date)
-                  .toISOString()
-                  .split("T")[0]
-                : new Date().toISOString().split("T")[0]
+                ? new Date(parentTaskForSubtasks.expected_start_date).toISOString().split('T')[0]
+                : new Date().toISOString().split('T')[0]
             }
             max={
               parentTaskForSubtasks?.target_date
-                ? new Date(parentTaskForSubtasks.target_date)
-                  .toISOString()
-                  .split("T")[0]
+                ? new Date(parentTaskForSubtasks.target_date).toISOString().split('T')[0]
                 : undefined
             }
           />
         ),
       },
       {
-        accessorKey: "endDate",
-        header: "End Date",
+        accessorKey: 'endDate',
+        header: 'End Date',
         size: 160,
         cell: ({ getValue, row }) => (
           <DateEditor
             value={getValue()}
-            onUpdate={(date) =>
-              handleOnChange(row.original.id, "target_date", date)
-            }
+            onUpdate={(date) => handleOnChange(row.original.id, 'target_date', date)}
             min={row.original.startDate}
             max={
               parentTaskForSubtasks?.target_date
-                ? new Date(parentTaskForSubtasks.target_date)
-                  .toISOString()
-                  .split("T")[0]
+                ? new Date(parentTaskForSubtasks.target_date).toISOString().split('T')[0]
                 : undefined
             }
           />
         ),
       },
       {
-        accessorKey: "duration",
-        header: "Time Left",
+        accessorKey: 'duration',
+        header: 'Time Left',
         size: 100,
         cell: (info) => {
           return info.row.original.startDate && info.row.original.endDate ? (
-            <CountdownTimer startDate={info.row.original.startDate} targetDate={info.row.original.endDate} />
+            <CountdownTimer
+              startDate={info.row.original.startDate}
+              targetDate={info.row.original.endDate}
+            />
           ) : (
             <span className="text-xs text-gray-400">-</span>
           );
-        }
+        },
       },
       {
-        accessorKey: "priority",
-        header: "Priority",
+        accessorKey: 'priority',
+        header: 'Priority',
         size: 150,
         cell: ({ getValue, row }) => {
           const priorityOptions = globalPriorityOptions.map((priority) => ({
@@ -895,9 +827,7 @@ const SubtaskTable = ({ projectId }) => {
             <SelectBox
               options={priorityOptions}
               value={getValue()}
-              onChange={(newStatus) =>
-                handleOnChange(row.original.id, "priority", newStatus)
-              }
+              onChange={(newStatus) => handleOnChange(row.original.id, 'priority', newStatus)}
               placeholder="Select Priority..."
               table={true}
               className="w-full"
@@ -906,28 +836,21 @@ const SubtaskTable = ({ projectId }) => {
         },
       },
       {
-        accessorKey: "tags",
-        header: "Tags",
+        accessorKey: 'tags',
+        header: 'Tags',
         size: 200,
         cell: ({ getValue, row }) => (
           <UserCustomDropdownMultiple
             value={getValue()}
             options={tagNamesForDropdown}
-            onChange={(newTags) =>
-              handleOnChange(row.original.id, "task_tag_ids", newTags)
-            }
+            onChange={(newTags) => handleOnChange(row.original.id, 'task_tag_ids', newTags)}
             placeholder="Select Tags"
             searchPlaceholder="Search tags..."
           />
         ),
       },
     ],
-    [
-      handleOnChange,
-      parentTaskForSubtasks,
-      userOptionsForSelectBox,
-      tagNamesForDropdown,
-    ]
+    [handleOnChange, parentTaskForSubtasks, userOptionsForSelectBox, tagNamesForDropdown]
   );
 
   const table = useReactTable({
@@ -945,50 +868,41 @@ const SubtaskTable = ({ projectId }) => {
   if (isUpdatingTask) {
     pageContent = (
       <div className="p-4 flex justify-center items-center min-h-[200px]">
-        <ArrowPathIcon className="h-8 w-8 animate-spin text-gray-500 mr-2" />{" "}
-        Updating data...
+        <ArrowPathIcon className="h-8 w-8 animate-spin text-gray-500 mr-2" /> Updating data...
       </div>
     );
   } else if (
-    parentTaskLookupStatus === "loading" ||
+    parentTaskLookupStatus === 'loading' ||
     (loadingAllTasks && !allTasksFetchInitiatedRef.current) ||
     (loadingUsers && !userFetchInitiatedRef.current) ||
     (loadingTags && !tagsFetchInitiatedRef.current)
   ) {
     pageContent = (
       <div className="p-4 flex justify-center items-center min-h-[200px]">
-        <ArrowPathIcon className="h-8 w-8 animate-spin text-gray-500 mr-2" />{" "}
-        Loading data...
+        <ArrowPathIcon className="h-8 w-8 animate-spin text-gray-500 mr-2" /> Loading data...
       </div>
     );
-  } else if (
-    parentTaskLookupStatus === "error" ||
-    allTasksError ||
-    usersFetchError ||
-    tagsError
-  ) {
+  } else if (parentTaskLookupStatus === 'error' || allTasksError || usersFetchError || tagsError) {
     pageContent = (
       <div className="p-4 text-red-600 rounded">
-        Error:{" "}
+        Error:{' '}
         {localError ||
           String(
             allTasksError?.message ||
-            allTasksError ||
-            usersFetchError?.message ||
-            usersFetchError ||
-            tagsError?.message ||
-            tagsError ||
-            "Could not load required data."
+              allTasksError ||
+              usersFetchError?.message ||
+              usersFetchError ||
+              tagsError?.message ||
+              tagsError ||
+              'Could not load required data.'
           )}
       </div>
     );
-  } else if (parentTaskLookupStatus === "not_found") {
+  } else if (parentTaskLookupStatus === 'not_found') {
     pageContent = (
-      <div className="p-4 text-center text-gray-600">
-        Parent task (ID: {parentId}) not found.
-      </div>
+      <div className="p-4 text-center text-gray-600">Parent task (ID: {parentId}) not found.</div>
     );
-  } else if (parentTaskLookupStatus === "found") {
+  } else if (parentTaskLookupStatus === 'found') {
     pageContent = (
       <>
         {localError && !isAddingNewSubtask && (
@@ -1006,16 +920,11 @@ const SubtaskTable = ({ projectId }) => {
                     <th
                       key={header.id}
                       style={{
-                        width: header.getSize()
-                          ? `${header.getSize()}px`
-                          : undefined,
+                        width: header.getSize() ? `${header.getSize()}px` : undefined,
                       }}
                       className="border p-2 text-center text-gray-700 font-semibold"
                     >
-                      {flexRender(
-                        header.column.columnDef.header,
-                        header.getContext()
-                      )}
+                      {flexRender(header.column.columnDef.header, header.getContext())}
                     </th>
                   ))}
                 </tr>
@@ -1045,7 +954,10 @@ const SubtaskTable = ({ projectId }) => {
 
               {table.getRowModel().rows.length === 0 ? (
                 <tr>
-                  <td colSpan={table.getAllColumns().length} className="text-center py-4 text-gray-500">
+                  <td
+                    colSpan={table.getAllColumns().length}
+                    className="text-center py-4 text-gray-500"
+                  >
                     No Subtask
                   </td>
                 </tr>
@@ -1055,8 +967,9 @@ const SubtaskTable = ({ projectId }) => {
                     {row.getVisibleCells().map((cell) => (
                       <td
                         key={cell.id}
-                        className={`border p-0 align-middle ${cell.column.id === "actions" ? "text-center" : "text-left"
-                          }`}
+                        className={`border p-0 align-middle ${
+                          cell.column.id === 'actions' ? 'text-center' : 'text-left'
+                        }`}
                       >
                         <div className="p-1 h-full flex items-center">
                           {flexRender(cell.column.columnDef.cell, cell.getContext())}
@@ -1069,9 +982,7 @@ const SubtaskTable = ({ projectId }) => {
 
               {isAddingNewSubtask && (
                 <tr ref={newTaskFormRowRef}>
-                  <td className="border p-1 text-xs text-gray-400 align-middle">
-                    NEW
-                  </td>
+                  <td className="border p-1 text-xs text-gray-400 align-middle">NEW</td>
                   <td className="border p-1 align-middle">
                     <NewSubtaskTextField
                       inputRef={newSubtaskTitleInputRef}
@@ -1089,7 +1000,7 @@ const SubtaskTable = ({ projectId }) => {
                     <SelectBox
                       options={globalStatusOptions.map((status) => ({
                         value: status,
-                        label: status.charAt(0).toUpperCase() + status.slice(1).replace("_", " "),
+                        label: status.charAt(0).toUpperCase() + status.slice(1).replace('_', ' '),
                       }))}
                       value={newSubtaskStatus}
                       onChange={setNewSubtaskStatus}
@@ -1123,22 +1034,19 @@ const SubtaskTable = ({ projectId }) => {
                         return (
                           start >= parentStart &&
                           (!parentEnd || start <= parentEnd) &&
-                          (!newSubtaskEndDate ||
-                            start <= new Date(newSubtaskEndDate))
+                          (!newSubtaskEndDate || start <= new Date(newSubtaskEndDate))
                         );
                       }}
                       min={
                         parentTaskForSubtasks?.expected_start_date
                           ? new Date(parentTaskForSubtasks.expected_start_date)
-                            .toISOString()
-                            .split("T")[0]
-                          : new Date().toISOString().split("T")[0]
+                              .toISOString()
+                              .split('T')[0]
+                          : new Date().toISOString().split('T')[0]
                       }
                       max={
                         parentTaskForSubtasks?.target_date
-                          ? new Date(parentTaskForSubtasks.target_date)
-                            .toISOString()
-                            .split("T")[0]
+                          ? new Date(parentTaskForSubtasks.target_date).toISOString().split('T')[0]
                           : undefined
                       }
                     />
@@ -1151,29 +1059,22 @@ const SubtaskTable = ({ projectId }) => {
                       validator={(date) => {
                         if (!date) return false;
                         const end = new Date(date);
-                        const start = newSubtaskStartDate
-                          ? new Date(newSubtaskStartDate)
-                          : null;
+                        const start = newSubtaskStartDate ? new Date(newSubtaskStartDate) : null;
                         const parentEnd = parentTaskForSubtasks?.target_date
                           ? new Date(parentTaskForSubtasks.target_date)
                           : null;
-                        return (
-                          (!start || end >= start) &&
-                          (!parentEnd || end <= parentEnd)
-                        );
+                        return (!start || end >= start) && (!parentEnd || end <= parentEnd);
                       }}
                       min={newSubtaskStartDate || parentTaskForSubtasks.expected_start_date}
                       max={
                         parentTaskForSubtasks?.target_date
-                          ? new Date(parentTaskForSubtasks.target_date)
-                            .toISOString()
-                            .split("T")[0]
+                          ? new Date(parentTaskForSubtasks.target_date).toISOString().split('T')[0]
                           : undefined
                       }
                     />
                   </td>
                   <td className="border p-1 text-xs align-middle">
-                    {newSubtaskDuration?.text || "-"}
+                    {newSubtaskDuration?.text || '-'}
                   </td>
                   <td className="border p-1 align-middle">
                     <SelectBox
@@ -1198,12 +1099,9 @@ const SubtaskTable = ({ projectId }) => {
                   </td>
                 </tr>
               )}
-              {!isAddingNewSubtask && parentTaskLookupStatus === "found" && (
+              {!isAddingNewSubtask && parentTaskLookupStatus === 'found' && (
                 <tr>
-                  <td
-                    colSpan={columns.length}
-                    className="border p-2 text-left text-[12px]"
-                  >
+                  <td colSpan={columns.length} className="border p-2 text-left text-[12px]">
                     <button
                       onClick={handleShowNewSubtaskForm}
                       className="text-red-500 hover:underline text-sm py-1"

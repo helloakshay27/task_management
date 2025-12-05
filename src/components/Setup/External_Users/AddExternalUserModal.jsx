@@ -1,18 +1,14 @@
-/* eslint-disable react/prop-types */
-import CloseIcon from "@mui/icons-material/Close";
-import SelectBox from "../../SelectBox";
-import { useEffect, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
-import { fetchActiveRoles } from "../../../redux/slices/roleSlice";
-import { fetchOrganizations } from "../../../redux/slices/organizationSlice";
-import {
-  createExternalUser,
-  fetchUpdateUser,
-} from "../../../redux/slices/userSlice";
-import toast from "react-hot-toast";
-import { Eye, EyeOff } from "lucide-react";
-import { fetchCompany } from "../../../redux/slices/companySlice";
-import { fetchDepartment } from "@/redux/slices/departmentSlice";
+import CloseIcon from '@mui/icons-material/Close';
+import SelectBox from '../../SelectBox';
+import { useEffect, useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchActiveRoles } from '../../../redux/slices/roleSlice';
+import { fetchOrganizations } from '../../../redux/slices/organizationSlice';
+import { createExternalUser, fetchUpdateUser } from '../../../redux/slices/userSlice';
+import toast from 'react-hot-toast';
+import { Eye, EyeOff } from 'lucide-react';
+import { fetchCompany } from '../../../redux/slices/companySlice';
+import { fetchDepartment } from '@/redux/slices/departmentSlice';
 
 const AddExternalUserModal = ({
   open,
@@ -21,38 +17,30 @@ const AddExternalUserModal = ({
   initialData = null,
   onSuccess,
 }) => {
-  const token = localStorage.getItem("token");
+  const token = localStorage.getItem('token');
   const dispatch = useDispatch();
 
-  const { fetchActiveRoles: roles = [] } = useSelector(
-    (state) => state.fetchActiveRoles || {}
-  );
+  const { fetchActiveRoles: roles = [] } = useSelector((state) => state.fetchActiveRoles || {});
   const { fetchOrganizations: organizations = [] } = useSelector(
     (state) => state.fetchOrganizations || {}
   );
-  const { fetchCompany: companies = [] } = useSelector(
-    (state) => state.fetchCompany || {}
-  );
+  const { fetchCompany: companies = [] } = useSelector((state) => state.fetchCompany || {});
   const { loading } = useSelector((state) => state.createExternalUser || {});
-  const { loading: editLoading } = useSelector(
-    (state) => state.fetchUpdateUser || {}
-  );
-  const { fetchDepartment: departments = [] } = useSelector(
-    (state) => state.fetchDepartment
-  );
+  const { loading: editLoading } = useSelector((state) => state.fetchUpdateUser || {});
+  const { fetchDepartment: departments = [] } = useSelector((state) => state.fetchDepartment);
 
-  const [error, setError] = useState("");
+  const [error, setError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
 
   const [formData, setFormData] = useState({
-    username: "",
+    username: '',
     organisation: null,
-    email: "",
-    mobile: "",
-    password: "",
+    email: '',
+    mobile: '',
+    password: '',
     role: null,
     company: null,
-    department: "",
+    department: '',
   });
 
   useEffect(() => {
@@ -65,7 +53,7 @@ const AddExternalUserModal = ({
           await dispatch(fetchDepartment({ token })).unwrap();
         }
       } catch (error) {
-        toast.error("Failed to load dropdown data");
+        toast.error('Failed to load dropdown data');
       }
     };
 
@@ -75,41 +63,40 @@ const AddExternalUserModal = ({
   useEffect(() => {
     if (isEditMode && initialData) {
       setFormData({
-        username: `${initialData?.firstname || ""} ${initialData?.lastname || ""
-          }`.trim(),
+        username: `${initialData?.firstname || ''} ${initialData?.lastname || ''}`.trim(),
         organisation: initialData?.organization_id || null,
-        email: initialData?.email || "",
-        mobile: initialData?.mobile || "",
+        email: initialData?.email || '',
+        mobile: initialData?.mobile || '',
         role: initialData?.role_id || null,
-        password: "",
+        password: '',
         company: initialData?.company_id || null,
       });
     } else {
       setFormData({
-        username: "",
+        username: '',
         organisation: null,
-        email: "",
-        mobile: "",
-        password: "",
+        email: '',
+        mobile: '',
+        password: '',
         role: null,
         company: null,
-        department: "",
+        department: '',
       });
     }
   }, [isEditMode, initialData, open]);
 
   const resetForm = () => {
     setFormData({
-      username: "",
+      username: '',
       organisation: null,
-      email: "",
-      mobile: "",
-      password: "",
+      email: '',
+      mobile: '',
+      password: '',
       role: null,
       company: null,
-      department: "",
+      department: '',
     });
-    setError("");
+    setError('');
   };
 
   const handleSuccess = () => {
@@ -125,34 +112,34 @@ const AddExternalUserModal = ({
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!formData.username.trim()) {
-      setError("Please enter name");
+      setError('Please enter name');
       return;
     }
     if (!formData.mobile.trim()) {
-      setError("Please enter mobile number");
+      setError('Please enter mobile number');
       return;
     }
     if (!formData.email.trim()) {
-      setError("Please enter email");
+      setError('Please enter email');
       return;
     }
 
-    const nameParts = formData.username.trim().split(" ");
-    const firstname = nameParts[0] || "";
-    const lastname = nameParts.slice(1).join(" ") || "";
+    const nameParts = formData.username.trim().split(' ');
+    const firstname = nameParts[0] || '';
+    const lastname = nameParts.slice(1).join(' ') || '';
 
     const payload = {
       user: {
-        registration_source: "Web",
+        registration_source: 'Web',
         lock_user_permissions_attributes: [
           {
             account_id: formData.company,
             department_id: formData.department,
-            user_type: "pms_admin",
+            user_type: 'pms_admin',
             lock_role_id: formData.role,
-            access_level: "Site",
-            access_to: []
-          }
+            access_level: 'Site',
+            access_to: [],
+          },
         ],
         firstname,
         lastname,
@@ -161,7 +148,7 @@ const AddExternalUserModal = ({
         email: formData.email,
         password: formData.password,
         role_id: formData.role,
-        employee_type: "external",
+        employee_type: 'external',
         company_id: formData.company,
       },
     };
@@ -187,17 +174,14 @@ const AddExternalUserModal = ({
       } else if (res?.user_exists) {
         setError(res.message);
       } else {
-        toast.success(
-          `User ${isEditMode ? "updated" : "created"} successfully`,
-          {
-            iconTheme: { primary: "green", secondary: "white" },
-          }
-        );
+        toast.success(`User ${isEditMode ? 'updated' : 'created'} successfully`, {
+          iconTheme: { primary: 'green', secondary: 'white' },
+        });
         handleSuccess();
       }
     } catch (err) {
       console.error(err);
-      setError(err?.message || "Something went wrong");
+      setError(err?.message || 'Something went wrong');
     }
   };
 
@@ -220,9 +204,7 @@ const AddExternalUserModal = ({
               placeholder="Enter username here"
               className="border border-[#C0C0C0] w-full py-2 px-3 text-[#1B1B1B] text-[13px] focus:outline-none"
               value={formData.username}
-              onChange={(e) =>
-                setFormData({ ...formData, username: e.target.value })
-              }
+              onChange={(e) => setFormData({ ...formData, username: e.target.value })}
               autoComplete="new-username"
               name="internal_user_name"
             />
@@ -237,9 +219,7 @@ const AddExternalUserModal = ({
               placeholder="Enter email id here"
               className="border border-[#C0C0C0] w-full py-2 px-3 text-[#1B1B1B] text-[13px] focus:outline-none"
               value={formData.email}
-              onChange={(e) =>
-                setFormData({ ...formData, email: e.target.value })
-              }
+              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
               autoComplete="new-email"
               name="external_user_email"
             />
@@ -268,13 +248,11 @@ const AddExternalUserModal = ({
               Password<span className="text-red-500 ml-1">*</span>
             </label>
             <input
-              type={showPassword ? "text" : "password"}
+              type={showPassword ? 'text' : 'password'}
               className="border border-[#C0C0C0] w-full py-2 px-3 text-[#1B1B1B] text-[13px] focus:outline-none"
               placeholder="Enter Password"
               value={formData.password}
-              onChange={(e) =>
-                setFormData({ ...formData, password: e.target.value })
-              }
+              onChange={(e) => setFormData({ ...formData, password: e.target.value })}
               autoComplete="new-password"
               name="external_user_password"
             />
@@ -304,9 +282,7 @@ const AddExternalUserModal = ({
               }))}
               className="w-full"
               value={formData.organisation}
-              onChange={(value) =>
-                setFormData({ ...formData, organisation: value })
-              }
+              onChange={(value) => setFormData({ ...formData, organisation: value })}
             />
           </div>
 
@@ -331,10 +307,12 @@ const AddExternalUserModal = ({
             </label>
             <SelectBox
               options={
-                departments ? departments.map((department) => ({
-                  value: department.id,
-                  label: department.name,
-                })) : []
+                departments
+                  ? departments.map((department) => ({
+                      value: department.id,
+                      label: department.name,
+                    }))
+                  : []
               }
               value={formData.department}
               onChange={(val) => setFormData({ ...formData, department: val })}
@@ -372,11 +350,7 @@ const AddExternalUserModal = ({
             onClick={handleSubmit}
             disabled={loading || editLoading}
           >
-            {loading || editLoading
-              ? "Submitting..."
-              : isEditMode
-                ? "Update"
-                : "Save"}
+            {loading || editLoading ? 'Submitting...' : isEditMode ? 'Update' : 'Save'}
           </button>
           <button
             className="border border-[#C72030] text-[#1B1B1B] text-[13px] px-8 py-2"

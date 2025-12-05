@@ -1,4 +1,3 @@
-/* eslint-disable react/prop-types */
 import CloseIcon from '@mui/icons-material/Close';
 import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
@@ -18,8 +17,7 @@ const RoleModal = ({ open, onClose, onSuccess, role, mode }) => {
   useEffect(() => {
     if (role?.display_name) {
       const formattedValue = role.display_name.replace(/_/g, ' ');
-      const capitalized =
-        formattedValue.charAt(0).toUpperCase() + formattedValue.slice(1);
+      const capitalized = formattedValue.charAt(0).toUpperCase() + formattedValue.slice(1);
       setRoleInput(capitalized);
     } else {
       setRoleInput('');
@@ -95,7 +93,6 @@ const RoleModal = ({ open, onClose, onSuccess, role, mode }) => {
   return (
     <div className="fixed inset-0 bg-black bg-opacity-30 z-50">
       <div className="w-[560px] h-[280px] bg-white absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 border border-[#C0C0C0]">
-
         {/* Close Icon */}
         <div className="flex justify-end p-4">
           <CloseIcon className="cursor-pointer" onClick={handleClose} />
