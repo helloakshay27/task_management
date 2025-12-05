@@ -139,10 +139,29 @@ const calculateDuration = (start, end) => {
 };
 
 // Active Timer Component - shows when task is started
-const ActiveTimer = ({ activeTimeTillNow }) => {
-    const [time, setTime] = useState(activeTimeTillNow || { hours: 0, minutes: 0, seconds: 0 });
+const ActiveTimer = ({ activeTimeTillNow, isStarted }) => {
+    const [time, setTime] = useState({
+        hours: 0,
+        minutes: 0,
+        seconds: 0
+    });
 
     useEffect(() => {
+        if (activeTimeTillNow) {
+            setTime({
+                hours: activeTimeTillNow.hours,
+                minutes: activeTimeTillNow.minutes,
+                seconds: activeTimeTillNow.seconds
+            });
+        }
+    }, [activeTimeTillNow]);
+
+    useEffect(() => {
+        // Only run timer if task is started
+        if (!isStarted) {
+            return;
+        }
+
         const interval = setInterval(() => {
             setTime((prevTime) => {
                 let { hours, minutes, seconds } = prevTime;
@@ -162,7 +181,7 @@ const ActiveTimer = ({ activeTimeTillNow }) => {
         }, 1000);
 
         return () => clearInterval(interval);
-    }, []);
+    }, [isStarted]);
 
     return (
         <div className="text-left text-[12px] text-green-600 font-medium">
@@ -1125,7 +1144,7 @@ const TaskDetails = () => {
                             <span
                                 className="cursor-pointer flex items-center gap-1"
                             >
-                                <ActiveTimer activeTimeTillNow={task.active_time_till_now} />
+                                <ActiveTimer activeTimeTillNow={task.active_time_till_now} isStarted={task.is_started} />
                             </span>
                             <span className="h-6 w-[1px] border border-gray-300"></span>
                             <span

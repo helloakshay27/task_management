@@ -197,7 +197,7 @@ const ProgressBar = ({ progressString, total = 0, completed = 0 }) => {
     const isValidPercentage =
         !isNaN(numericValue) && numericValue >= 0 && numericValue <= 100;
     return (
-        <div className="progress-bar-container gap-1">
+        <div className="progress-bar-container gap-1 ">
             {completed}
             <div className="progress-bar">
                 <div

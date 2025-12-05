@@ -20,8 +20,8 @@ import AddProjectModal from "../../components/Home/Projects/AddProjectModal";
 import { attachFiles } from "../../redux/slices/projectSlice";
 import toast from "react-hot-toast";
 
-const Issues = () => {
-    return <IssuesTable />;
+const Issues = ({ projectId }) => {
+    return <IssuesTable projectId={projectId} />;
 };
 
 const Members = ({ allNames, projectOwner }) => {
@@ -647,7 +647,7 @@ const ProjectDetails = () => {
                             <Attachments attachments={project.attachments} id={project.id} />
                         )}
                         {tab == "Status" && <Status project={project} />}
-                        {tab == "Issues" && <Issues />}
+                        {tab == "Issues" && <Issues projectId={project.id} />}
                     </div>
                 </div>
             </div>

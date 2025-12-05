@@ -25,7 +25,7 @@ import {
   fetchIssueType,
   filterIssue,
 } from "../../../redux/slices/IssueSlice";
-import { fetchProjects } from "../../../redux/slices/projectSlice";
+import { fetchKanbanProjects } from "../../../redux/slices/projectSlice";
 import { fetchMilestone } from "../../../redux/slices/milestoneSlice";
 import {
   editTaskComment,
@@ -272,7 +272,7 @@ const DraggableColumnHeader = ({ header, onReorderColumns, columnOrder }) => {
   );
 };
 
-const IssuesTable = ({ selectedColumns }) => {
+const IssuesTable = ({ selectedColumns, projectId }) => {
   const { id: parentId } = useParams();
   const dispatch = useDispatch();
   const token = localStorage.getItem("token");
@@ -312,12 +312,12 @@ const IssuesTable = ({ selectedColumns }) => {
   );
 
   const {
-    fetchProjects: projects,
+    fetchKanbanProjects: projects,
     loading: loadingProjects,
     error: projectsFetchError,
   } = useSelector(
     (state) =>
-      state.fetchProjects || { fetchProjects: [], loading: false, error: null }
+      state.fetchKanbanProjects || { fetchKanbanProjects: [], loading: false, error: null }
   );
 
   const {
@@ -446,13 +446,29 @@ const IssuesTable = ({ selectedColumns }) => {
       !allIssuesError &&
       !allIssuesFetchInitiatedRef.current
     ) {
-      dispatch(
-        fetchIssue({
-          token,
+      // If projectId is provided, use filter to get issues for that project
+      if (projectId) {
+        const filter = {
+          "q[project_management_id_eq]": projectId,
           page: pagination.pageIndex + 1,
           per_page: pagination.pageSize,
-        })
-      );
+        };
+        const queryString = qs.stringify(filter);
+        dispatch(
+          filterIssue({
+            token,
+            filter: queryString,
+          })
+        );
+      } else {
+        dispatch(
+          fetchIssue({
+            token,
+            page: pagination.pageIndex + 1,
+            per_page: pagination.pageSize,
+          })
+        );
+      }
       allIssuesFetchInitiatedRef.current = true;
     }
   }, [
@@ -463,6 +479,7 @@ const IssuesTable = ({ selectedColumns }) => {
     token,
     pagination.pageIndex,
     pagination.pageSize,
+    projectId,
   ]);
 
   useEffect(() => {
@@ -595,7 +612,7 @@ const IssuesTable = ({ selectedColumns }) => {
           !projectsFetchInitiatedRef.current
         ) {
           projectsFetchInitiatedRef.current = true;
-          await dispatch(fetchProjects({ token }));
+          await dispatch(fetchKanbanProjects({ token }));
         }
       } catch (error) {
         console.error("Error fetching projects:", error);
@@ -615,9 +632,9 @@ const IssuesTable = ({ selectedColumns }) => {
       return;
     }
 
-    if (projects && Array.isArray(projects) && projects.length > 0) {
+    if (projects && Array.isArray(projects.project_managements) && projects.project_managements.length > 0) {
       try {
-        const options = projects.map((project) => {
+        const options = projects.project_managements.map((project) => {
           if (!project?.id || !project?.title) {
             throw new Error("Invalid project data structure.");
           }
@@ -640,7 +657,11 @@ const IssuesTable = ({ selectedColumns }) => {
   // Process issues data
   useEffect(() => {
     let allIssues;
-    if (parentId !== null && parentId !== undefined) {
+    
+    // If projectId prop is provided, use filtered issues
+    if (projectId) {
+      allIssues = filterSuccess && filteredIssues && Array.isArray(filteredIssues) ? filteredIssues : [];
+    } else if (parentId !== null && parentId !== undefined) {
       allIssues = allIssuesFromStore.filter(
         (issue) => issue.project_management_id == parentId
       );
@@ -694,6 +715,7 @@ const IssuesTable = ({ selectedColumns }) => {
     parentId,
     filteredIssues,
     filterSuccess,
+    projectId,
   ]);
 
   // Focus new issue title input
@@ -1597,8 +1619,8 @@ const IssuesTable = ({ selectedColumns }) => {
                       <td
                         key={cell.id}
                         className={`border p-1 align-middle ${cell.column.id === "actions"
-                            ? "text-center"
-                            : "text-left"
+                          ? "text-center"
+                          : "text-left"
                           }`}
                       >
                         <div className="p-1 h-full flex items-center">

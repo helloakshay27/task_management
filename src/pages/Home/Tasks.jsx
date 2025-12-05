@@ -18,6 +18,7 @@ const TASK_TABLE_COLUMNS = [
     { id: "endDate", label: "End Date", key: "endDate" },
     { id: "duration", label: "Duration", key: "duration" },
     { id: "total_allocated_hours", label: "Effort Duration", key: "total_allocated_hours" },
+    { id: "subTasks", label: "Subtasks", key: "subTasks" },
     { id: "priority", label: "Priority", key: "priority" },
     { id: "predecessor", label: "Predecessor", key: "predecessor" },
     { id: "successor", label: "Successor", key: "successor" },

@@ -17,8 +17,8 @@ import {
 } from "../../../../redux/slices/taskSlice";
 import { useParams, useNavigate } from "react-router-dom";
 import {
+  fetchKanbanProjects,
   fetchProjectDetails,
-  fetchProjects,
   removeTagFromProject,
 } from "../../../../redux/slices/projectSlice";
 import { fetchMilestone, fetchMilestoneById } from "../../../../redux/slices/milestoneSlice";
@@ -129,7 +129,7 @@ const TaskForm = ({
   useEffect(() => {
     const getProjects = async () => {
       try {
-        const response = await dispatch(fetchProjects({ token })).unwrap();
+        const response = await dispatch(fetchKanbanProjects({ token })).unwrap();
         setProjects(response.project_managements);
       } catch (error) {
         console.log(error);
@@ -985,7 +985,7 @@ const Tasks = ({ isEdit, onCloseModal, prefillData, onSuccess }) => {
             }
           }
         } else {
-          window.location.reload();
+          // window.location.reload();
         }
       } else {
         toast.error(isEdit ? "Task update failed." : "Task creation failed.");

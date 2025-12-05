@@ -6,7 +6,7 @@ import Xarrow from "react-xarrows";
 import { cardsTitle } from "../../data/Data";
 import TaskSubCard from "./Task/TaskSubCard";
 import { useDispatch, useSelector, batch } from "react-redux";
-import { changeProjectStatus, fetchProjects } from "../../redux/slices/projectSlice";
+import { changeProjectStatus, fetchKanbanProjects } from "../../redux/slices/projectSlice";
 import { changeTaskStatus, fetchKanbanTasks } from "../../redux/slices/taskSlice";
 import useDeepCompareEffect from "use-deep-compare-effect";
 import { debounce } from "lodash";
@@ -24,7 +24,7 @@ const BoardsSection = ({ section }) => {
 
   const [isUpdatingTask, setIsUpdatingTask] = useState(false);
   const [localError, setLocalError] = useState(null);
-  const projectState = useSelector((state) => state.fetchProjects.fetchProjects);
+  const projectState = useSelector((state) => state.fetchKanbanProjects.fetchKanbanProjects);
   const taskState = useSelector((state) => state.fetchKanbanTasks.fetchKanbanTasks);
   const { filterProjects, success } = useSelector((state) => state.filterProjects);
   const { filterTask, success: taskSuccess } = useSelector((state) => state.filterTask);
@@ -38,7 +38,7 @@ const BoardsSection = ({ section }) => {
           dispatch(fetchKanbanTasks({ token, id: "" }));
         }
       } else {
-        dispatch(fetchProjects({ token }));
+        dispatch(fetchKanbanProjects({ token }));
       }
     });
   }, [dispatch, section]);
@@ -152,7 +152,7 @@ const BoardsSection = ({ section }) => {
             payload: { status: apiCompatibleValue },
           })
         ).unwrap();
-        dispatch(fetchProjects({ token }));
+        dispatch(fetchKanbanProjects({ token }));
       } catch (err) {
         console.error(`Failed to update project status for ID ${actualProjectId}:`, err);
       }

@@ -27,6 +27,7 @@ import {
   updateTask,
   filterTask,
   fetchMyTasks,
+  createTaskComment,
 } from "../../../redux/slices/taskSlice";
 import { fetchUsers } from "../../../redux/slices/userSlice";
 import SelectBox from "../../SelectBox";
@@ -197,6 +198,63 @@ const CountdownTimer = ({ startDate, targetDate }) => {
   );
 };
 
+// Pause Reason Modal Component
+const PauseReasonModal = ({ isOpen, onClose, onSubmit, isLoading, taskId }) => {
+  const [reason, setReason] = useState("");
+
+  useEffect(() => {
+    if (!isOpen) {
+      setReason("");
+    }
+  }, [isOpen]);
+
+  const handleSubmit = () => {
+    if (!reason.trim()) {
+      toast.error("Please enter a reason for pausing the task");
+      return;
+    }
+    onSubmit(reason, taskId);
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white rounded-lg shadow-lg p-6 w-[30rem]">
+        <h2 className="text-lg font-semibold mb-4 text-gray-800">Reason for Pause</h2>
+
+        <div className="mb-6">
+          <textarea
+            value={reason}
+            onChange={(e) => setReason(e.target.value)}
+            placeholder="Enter reason for pausing this task..."
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 resize-none"
+            rows="4"
+            disabled={isLoading}
+          />
+        </div>
+
+        <div className="flex gap-3 justify-end">
+          <button
+            onClick={onClose}
+            disabled={isLoading}
+            className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={handleSubmit}
+            disabled={isLoading}
+            className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 disabled:opacity-50"
+          >
+            {isLoading ? "Submitting..." : "Pause Task"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 // Draggable Column Header Component
 const DraggableColumnHeader = ({ header, onReorderColumns, columnOrder }) => {
   const [{ isDragging }, dragRef] = useDrag(
@@ -314,10 +372,42 @@ const processTaskData = (task) => {
     successor: task.successor_task.length || 0,
     is_started: task.is_started || false,
     is_Subtask: task.parent_id ? true : false,
+    total_sub_task_count: Number(task.total_sub_tasks || 0),
+    completed_sub_task_count: Number(
+      task.completed_sub_tasks || 0
+    ),
+    subTasks: (() => {
+      const totalCount = Number(task.total_sub_tasks);
+      const completedCount = Number(task.completed_sub_tasks);
+      if (!totalCount || totalCount === 0) return 0;
+      const percentage = Math.round((completedCount / totalCount) * 100);
+      return percentage;
+    })(),
     hasSubtasks,
     subRows,
     subRowsLoaded: true,
   };
+};
+
+const ProgressBar = ({ progressString, total = 0, completed = 0 }) => {
+  const numericValue = parseInt(progressString, 10);
+  const isValidPercentage =
+    !isNaN(numericValue) && numericValue >= 0 && numericValue <= 100;
+  return (
+    <div className="progress-bar-container gap-1">
+      {completed}
+      <div className="progress-bar">
+        <div
+          className="progress-bar-fill"
+          style={{ width: `${isValidPercentage ? numericValue : 0}%` }}
+        ></div>
+        <div className="progress-bar-label">
+          {isValidPercentage ? `${numericValue}%` : "Invalid Percentage"}
+        </div>
+      </div>
+      {total}
+    </div>
+  );
 };
 
 const TaskTable = ({ isModalOpen, searchQuery, selectedColumns }) => {
@@ -373,12 +463,15 @@ const TaskTable = ({ isModalOpen, searchQuery, selectedColumns }) => {
   const [isCreatingTask, setIsCreatingTask] = useState(false);
   const [isUpdatingTask, setIsUpdatingTask] = useState(false);
   const [members, setMembers] = useState([])
+  const [isPauseModalOpen, setIsPauseModalOpen] = useState(false);
+  const [pauseTaskId, setPauseTaskId] = useState(null);
+  const [isPauseLoading, setIsPauseLoading] = useState(false);
   const [columnOrder, setColumnOrder] = useState(() => {
     // Load column order from local storage or use default
     const savedOrder = localStorage.getItem("taskTableColumnOrder");
     return savedOrder
       ? JSON.parse(savedOrder)
-      : ["expander", "id", "taskTitle", "status", "responsiblePersonId", "startDate", "endDate", "duration", "total_allocated_hours", "priority", "predecessor", "successor"];
+      : ["expander", "id", "taskTitle", "status", "responsiblePersonId", "startDate", "endDate", "duration", "total_allocated_hours", "subTasks", "priority", "predecessor", "successor"];
   });
   const [pagination, setPagination] = useState({
     pageIndex: 0,
@@ -538,6 +631,47 @@ const TaskTable = ({ isModalOpen, searchQuery, selectedColumns }) => {
       }
     },
     [dispatch, isUpdatingTask, token, handleFetchTasks]
+  );
+
+  const handlePauseTaskSubmit = useCallback(
+    async (reason, tid) => {
+      if (!tid) return;
+
+      setIsPauseLoading(true);
+      try {
+        // Step 1: Update task status to "on_hold" (paused)
+        const statusPayload = {
+          status: "stopped",
+        };
+        await dispatch(changeTaskStatus({ token, id: tid, payload: statusPayload })).unwrap();
+
+        // Step 2: Create a comment with the pause reason for record keeping
+        const commentPayload = {
+          comment: {
+            body: `Paused with reason: ${reason}`,
+            commentable_id: tid,
+            commentable_type: "TaskManagement",
+            commentor_id: JSON.parse(localStorage.getItem("user"))?.id,
+            active: true,
+          },
+        };
+        dispatch(createTaskComment({ token, payload: commentPayload }));
+
+        toast.success("Task paused successfully with reason");
+        setIsPauseModalOpen(false);
+        setPauseTaskId(null);
+
+        // Refresh task list
+        lastFetchedPageRef.current = null;
+        await handleFetchTasks();
+      } catch (error) {
+        console.error("Failed to pause task:", error);
+        toast.error(`Failed to pause task: ${error?.response?.data?.errors || error?.message || "Server error"}`);
+      } finally {
+        setIsPauseLoading(false);
+      }
+    },
+    [token, dispatch, handleFetchTasks]
   );
 
   // Add this new hook near the top of the TaskTable component
@@ -961,17 +1095,23 @@ const TaskTable = ({ isModalOpen, searchQuery, selectedColumns }) => {
       cell: ({ getValue, row }) => {
         const [editTitle, setEditTitle] = useState(getValue());
         const [isPlayPauseLoading, setIsPlayPauseLoading] = useState(false);
+        const isCompleted = row.original.status === "completed";
 
         const handlePlayPauseClick = async (action) => {
-          setIsPlayPauseLoading(true);
-          try {
-            const newStatus = action === "play" ? "started" : "stopped";
-            await handleUpdateTaskFieldCell(row.original.id, "status", newStatus, row);
-          } catch (error) {
-            console.error(`Failed to ${action} task:`, error);
-            toast.error(`Failed to ${action} task`);
-          } finally {
-            setIsPlayPauseLoading(false);
+          if (action === "pause") {
+            setPauseTaskId(row.original.id);
+            setIsPauseModalOpen(true);
+          } else {
+            setIsPlayPauseLoading(true);
+            try {
+              const newStatus = action === "play" ? "started" : "stopped";
+              await handleUpdateTaskFieldCell(row.original.id, "status", newStatus, row);
+            } catch (error) {
+              console.error(`Failed to ${action} task:`, error);
+              toast.error(`Failed to ${action} task`);
+            } finally {
+              setIsPlayPauseLoading(false);
+            }
           }
         };
 
@@ -989,7 +1129,7 @@ const TaskTable = ({ isModalOpen, searchQuery, selectedColumns }) => {
             {isTaskStarted ? (
               <button
                 onClick={() => handlePlayPauseClick("pause")}
-                disabled={isPlayPauseLoading}
+                disabled={isPlayPauseLoading || isCompleted}
                 className="p-1 hover:bg-gray-200 rounded transition disabled:opacity-50"
                 title="Pause task"
               >
@@ -998,7 +1138,7 @@ const TaskTable = ({ isModalOpen, searchQuery, selectedColumns }) => {
             ) : (
               <button
                 onClick={() => handlePlayPauseClick("play")}
-                disabled={isPlayPauseLoading}
+                disabled={isPlayPauseLoading || isCompleted}
                 className="p-1 hover:bg-gray-200 rounded transition disabled:opacity-50"
                 title="Play task"
               >
@@ -1071,7 +1211,6 @@ const TaskTable = ({ isModalOpen, searchQuery, selectedColumns }) => {
       header: "Efforts Duration",
       size: 120,
       cell: ({ row }) => {
-        console.log(row)
         return row.original.total_allocated_hours
       },
     },
@@ -1080,6 +1219,18 @@ const TaskTable = ({ isModalOpen, searchQuery, selectedColumns }) => {
       header: "Time Left",
       size: 120,
       cell: ({ row }) => <CountdownTimer startDate={row.original.startDate} targetDate={row.original.endDate} />,
+    },
+    {
+      accessorKey: "subTasks",
+      header: "Subtasks",
+      size: 140,
+      cell: (info) => (
+        <ProgressBar
+          progressString={info.getValue()}
+          total={info.row.original.total_sub_task_count}
+          completed={info.row.original.completed_sub_task_count}
+        />
+      ),
     },
     {
       accessorKey: "priority",
@@ -1397,7 +1548,7 @@ const TaskTable = ({ isModalOpen, searchQuery, selectedColumns }) => {
                         style={{ width: `${cell.column.getSize()}px` }}
                         className="border-r-2 text-left pl-2 align-middle p-0"
                       >
-                        <div className="h-full w-full flex items-center">
+                        <div className="h-full w-full flex items-center justify-center">
                           {flexRender(cell.column.columnDef.cell, cell.getContext())}
                         </div>
                       </td>
@@ -1483,6 +1634,16 @@ const TaskTable = ({ isModalOpen, searchQuery, selectedColumns }) => {
           </div>
         )}
       </div>
+      <PauseReasonModal
+        isOpen={isPauseModalOpen}
+        onClose={() => {
+          setIsPauseModalOpen(false);
+          setPauseTaskId(null);
+        }}
+        onSubmit={handlePauseTaskSubmit}
+        isLoading={isPauseLoading}
+        taskId={pauseTaskId}
+      />
     </DndProvider>
   );
 };

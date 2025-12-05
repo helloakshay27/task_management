@@ -220,7 +220,7 @@ tbody tr:hover {
 }
 .progress-bar-container {
   display: flex;
-  justify-content: center;
+  justify-content: space-between;
   align-items: center;
 }
 .progress-bar {

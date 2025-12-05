@@ -189,7 +189,7 @@ const GanttChart = ({ selectedColumns = {} }) => {
             if (entityType === "task") {
                 const taskItself = tasksData.find((t) => t.id === entityId);
                 if (taskItself && taskItself.status?.toLowerCase() === "completed") {
-                    return { total: 1, completed: 1, percentage: 100 };
+                    return { total: 0, completed: 0, percentage: 0 };
                 }
                 return { total: 0, completed: 0, percentage: 0 };
             }

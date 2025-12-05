@@ -112,6 +112,32 @@ export const fetchProjects = createAsyncThunk(
   }
 );
 
+export const fetchKanbanProjects = createAsyncThunk(
+  "fetchKanbanProjects",
+  async ({ token }) => {
+    try {
+      let params = new URLSearchParams();
+      params.append(
+        "q[project_team_project_team_members_user_id_or_owner_id_or_created_by_id_eq]",
+        JSON.parse(localStorage.getItem("user")).id
+      );
+      const response = await axios.get(
+        `${baseURL}/project_managements/project_kanban.json?${params.toString()}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      return response.data;
+    } catch (error) {
+      console.log(error);
+      return error.response.data;
+    }
+  }
+);
+
 export const fetchProjectDetails = createAsyncThunk(
   "fetchProjectDetails",
   async ({ token, id }) => {
@@ -648,6 +674,10 @@ export const fetchProjectsSlice = createApiSlice(
   "fetchProjects",
   fetchProjects
 );
+export const fetchKanbanProjectsSlice = createApiSlice(
+  "fetchKanbanProjects",
+  fetchKanbanProjects
+);
 export const fetchProjectDetailsSlice = createApiSlice(
   "fetchProjectDetails",
   fetchProjectDetails
@@ -748,6 +778,7 @@ export const fetchProjectTeamMembersSlice = createApiSlice(
 
 export const createProjectReducer = createProjectSlice.reducer;
 export const fetchProjectsReducer = fetchProjectsSlice.reducer;
+export const fetchKanbanProjectsReducer = fetchKanbanProjectsSlice.reducer;
 export const fetchProjectDetailsReducer = fetchProjectDetailsSlice.reducer;
 export const changeProjectStatusReducer = changeProjectStatusSlice.reducer;
 export const editProjectReducer = editProjectSlice.reducer;

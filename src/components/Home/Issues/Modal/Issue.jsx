@@ -8,7 +8,7 @@ import {
   fetchIssueType,
 } from "../../../../redux/slices/IssueSlice";
 import { fetchMilestone } from "../../../../redux/slices/milestoneSlice";
-import { fetchProjects } from "../../../../redux/slices/projectSlice";
+import { fetchKanbanProjects } from "../../../../redux/slices/projectSlice";
 import { fetchTargetDateTasks } from "../../../../redux/slices/taskSlice";
 import toast from "react-hot-toast";
 import { fetchKanbanTasks } from "../../../../redux/slices/taskSlice";
@@ -185,12 +185,12 @@ const Issues = ({ closeModal }) => {
   );
 
   const {
-    fetchProjects: projects,
+    fetchKanbanProjects: projects,
     loading: loadingProjects,
     error: projectsFetchError,
   } = useSelector(
     (state) =>
-      state.fetchProjects || { projects: [], loading: false, error: null }
+      state.fetchKanbanProjects || { projects: [], loading: false, error: null }
   );
 
   const {
@@ -443,7 +443,7 @@ const Issues = ({ closeModal }) => {
       !loadingProjects &&
       (!Array.isArray(projectOptions) || projectOptions?.length === 0)
     ) {
-      dispatch(fetchProjects({ token })).unwrap();
+      dispatch(fetchKanbanProjects({ token })).unwrap();
       setProjectOptions(
         projects
           ? projects.project_managements.map((project) => ({

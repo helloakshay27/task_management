@@ -65,14 +65,14 @@ const ProjectCard = ({ project }) => {
 
     const memberColors = useMemo(() => {
         const colors = {};
-        project.project_members.forEach((member) => {
+        project?.project_members?.forEach((member) => {
             if (member.user) {
                 const id = member.user.id || member.user.firstname; // Use unique ID if available
                 colors[id] = getRandomColor();
             }
         });
         return colors;
-    }, [project.project_members]);
+    }, [project?.project_members]);
 
     return (
         <div
@@ -97,7 +97,7 @@ const ProjectCard = ({ project }) => {
                 </div>
                 <div className="flex items-start gap-2">
                     <User2 className="text-[#C72030] flex-shrink-0" size={14} />
-                    <span className="text-[10px] truncate">{project.project_owner_name}</span>
+                    <span className="text-[10px] truncate">{project.owner_name}</span>
                 </div>
                 <div className="flex items-start justify-between gap-2">
                     <div className="flex items-center gap-2">
@@ -193,7 +193,7 @@ const ProjectCard = ({ project }) => {
             <div className="flex items-center justify-between">
                 <div className="text-gray-600 text-xs">Members</div>
                 <div className="flex items-center">
-                    {project.project_members.map((member, index) => {
+                    {project?.project_members?.map((member, index) => {
                         if (!member.user) return null;
                         const id = member.user.id || member.user.firstname;
                         return (
