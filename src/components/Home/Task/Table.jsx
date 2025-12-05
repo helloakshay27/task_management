@@ -1116,6 +1116,7 @@ const TaskTable = ({ isModalOpen, searchQuery, selectedColumns }) => {
         };
 
         const isTaskStarted = row.original.is_started;
+        const hasSubtasks = row.original.hasSubtasks;
 
         return (
           <div className="flex items-center gap-2 w-full">
@@ -1126,7 +1127,7 @@ const TaskTable = ({ isModalOpen, searchQuery, selectedColumns }) => {
               data-task-id={row.original.id}
               data-field-name="title"
             />
-            {isTaskStarted ? (
+            {!hasSubtasks && (isTaskStarted ? (
               <button
                 onClick={() => handlePlayPauseClick("pause")}
                 disabled={isPlayPauseLoading || isCompleted}
@@ -1144,7 +1145,7 @@ const TaskTable = ({ isModalOpen, searchQuery, selectedColumns }) => {
               >
                 <Play size={13} className="text-green-500" />
               </button>
-            )}
+            ))}
           </div>
         );
       },
