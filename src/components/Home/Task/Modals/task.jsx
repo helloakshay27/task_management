@@ -293,11 +293,11 @@ const TaskForm = ({
         />
       )}
       {project &&
-      milestone &&
-      !Array.isArray(project) &&
-      !Array.isArray(milestone) &&
-      project.title &&
-      milestone.title ? (
+        milestone &&
+        !Array.isArray(project) &&
+        !Array.isArray(milestone) &&
+        project.title &&
+        milestone.title ? (
         <div className="flex items-center justify-between gap-3">
           <div className="mt-4 space-y-2 w-full">
             <label className="block ms-2">
@@ -548,7 +548,7 @@ const TaskForm = ({
         ) : (
           <TasksOfDate
             selectedDate={startDate}
-            onClose={() => {}}
+            onClose={() => { }}
             tasks={startDateTasks}
             selectedUser={formData.responsiblePerson}
             userAvailability={userAvailability}
@@ -585,7 +585,7 @@ const TaskForm = ({
         ) : (
           <TasksOfDate
             selectedDate={endDate}
-            onClose={() => {}}
+            onClose={() => { }}
             tasks={targetDateTasks}
             selectedUser={formData.responsiblePerson}
             userAvailability={userAvailability}
@@ -966,7 +966,7 @@ const Tasks = ({ isEdit, onCloseModal, prefillData, onSuccess }) => {
             }
           }
         } else {
-          // window.location.reload();
+          window.location.reload();
         }
       } else {
         toast.error(isEdit ? 'Task update failed.' : 'Task creation failed.');
@@ -989,7 +989,7 @@ const Tasks = ({ isEdit, onCloseModal, prefillData, onSuccess }) => {
           <TaskForm
             key={task.id}
             formData={task.formData}
-            setFormData={() => {}}
+            setFormData={() => { }}
             isReadOnly={true}
             project={project}
             milestone={milestone}

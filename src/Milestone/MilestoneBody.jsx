@@ -1,5 +1,5 @@
 /* eslint-disable no-undef */
-import { useEffect, useRef } from 'react';
+import React, { useEffect, useRef } from 'react';
 import axios from 'axios';
 import 'dhtmlx-gantt';
 import 'dhtmlx-gantt/codebase/dhtmlxgantt.css';
