@@ -5,7 +5,7 @@ import { useRef, useState, useEffect } from 'react';
 import SelectBox from './SelectBox';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchKanbanTasks } from '@/redux/slices/taskSlice';
-import { fetchProjects } from '@/redux/slices/projectSlice';
+import { fetchKanbanProjects } from '@/redux/slices/projectSlice';
 import { fetchMilestone } from '@/redux/slices/milestoneSlice';
 import axios from 'axios';
 import { baseURL } from '../../apiDomain';
@@ -102,10 +102,10 @@ const AddOpportunityModal = ({ isModalOpen, setIsModalOpen }) => {
     const token = localStorage.getItem('token');
 
     const {
-        fetchProjects: projects,
+        fetchKanbanProjects: projects,
         loading: loadingProjects,
         error: projectsFetchError,
-    } = useSelector((state) => state.fetchProjects || { projects: [], loading: false, error: null });
+    } = useSelector((state) => state.fetchKanbanProjects || { projects: [], loading: false, error: null });
 
     const {
         fetchMilestone: milestone,
@@ -242,10 +242,10 @@ const AddOpportunityModal = ({ isModalOpen, setIsModalOpen }) => {
 
     useEffect(() => {
         if (!loadingProjects && (!Array.isArray(projectOptions) || projectOptions?.length === 0)) {
-            dispatch(fetchProjects({ token })).unwrap();
+            dispatch(fetchKanbanProjects({ token })).unwrap();
             setProjectOptions(
                 projects
-                    ? projects.map((project) => ({
+                    ? projects?.project_managements?.map((project) => ({
                         value: project.id,
                         label: project.title,
                     }))
