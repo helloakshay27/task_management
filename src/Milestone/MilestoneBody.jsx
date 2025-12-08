@@ -1177,6 +1177,11 @@ const GanttChart = ({ selectedColumns = {} }) => {
                     },
                 };
 
+                // Preserve responsible person if it exists
+                if (task.owner) {
+                    payload.task_management.responsible_person_id = task.owner;
+                }
+
                 axios
                     .put(`${baseURL}/task_managements/${entityId}.json`, payload, {
                         headers: {
