@@ -291,9 +291,8 @@ const DraggableColumnHeader = ({ header, onReorderColumns, columnOrder }) => {
         transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
         transform: isOver ? 'scale(1.02)' : 'scale(1)',
       }}
-      className={`border-r-2 p-2 text-center text-gray-600 bg-gray-300 font-semibold break-words cursor-move select-none ${
-        isDragging ? 'shadow-lg' : ''
-      } ${isOver ? 'bg-gray-300' : ''}`}
+      className={`border-r-2 p-2 text-center text-gray-600 bg-gray-300 font-semibold break-words cursor-move select-none ${isDragging ? 'shadow-lg' : ''
+        } ${isOver ? 'bg-gray-300' : ''}`}
     >
       {header.isPlaceholder
         ? null
@@ -364,6 +363,7 @@ const processTaskData = (task) => {
     priority: task.priority,
     duration: calculateDuration(task.expected_start_date, task.target_date),
     total_allocated_hours: `${task.total_allocated_hours} hours` || 0,
+    estimated_hours: `${task.estimated_hour} hours` || 0,
     predecessor: task.predecessor_task.length || 0,
     successor: task.successor_task.length || 0,
     is_started: task.is_started || false,
@@ -467,20 +467,20 @@ const TaskTable = ({ isModalOpen, searchQuery, selectedColumns }) => {
     return savedOrder
       ? JSON.parse(savedOrder)
       : [
-          'expander',
-          'id',
-          'taskTitle',
-          'status',
-          'responsiblePersonId',
-          'startDate',
-          'endDate',
-          'duration',
-          'total_allocated_hours',
-          'subTasks',
-          'priority',
-          'predecessor',
-          'successor',
-        ];
+        'expander',
+        'id',
+        'taskTitle',
+        'status',
+        'responsiblePersonId',
+        'startDate',
+        'endDate',
+        'duration',
+        'estimated_hour',
+        'subTasks',
+        'priority',
+        'predecessor',
+        'successor',
+      ];
   });
   const [pagination, setPagination] = useState({
     pageIndex: 0,
@@ -1261,11 +1261,12 @@ const TaskTable = ({ isModalOpen, searchQuery, selectedColumns }) => {
       ),
     },
     {
-      accessorKey: 'total_allocated_hours',
+      accessorKey: 'estimated_hour',
       header: 'Efforts Duration',
       size: 120,
       cell: ({ row }) => {
-        return row.original.total_allocated_hours;
+        console.log(row)
+        return row.original.estimated_hours;
       },
     },
     {

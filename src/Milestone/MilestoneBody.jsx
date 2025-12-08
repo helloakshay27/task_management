@@ -180,6 +180,7 @@ const GanttChart = ({ selectedColumns = {} }) => {
 
     // Helper function to calculate progress for milestones or tasks
     const calculateProgress = (entityId, tasksData, entityType) => {
+        console.log(tasksData)
         const childType = entityType === 'milestone' ? 'task' : 'sub_task';
         const children = tasksData.filter(
             (task) => task.parent === entityId && task.type === childType
@@ -487,7 +488,8 @@ const GanttChart = ({ selectedColumns = {} }) => {
                 width: 180,
                 template: function (task) {
                     if (task.type === 'milestone' || task.type === 'task') {
-                        const progressPercentage = Math.round(task.progress * 100);
+                        console.log(task)
+                        const progressPercentage = Math.round((task.completedTasks / task.totalTasks) * 100);
                         const isValidPercentage =
                             !isNaN(progressPercentage) && progressPercentage >= 0 && progressPercentage <= 100;
                         return `
@@ -737,6 +739,7 @@ const GanttChart = ({ selectedColumns = {} }) => {
                     const formattedEnd = item.end_date
                         ? formatEndDateDMYFromISO(item.end_date)
                         : formatEndDateDMYFromISO(new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString());
+                    console.log(item)
                     tasksData.push({
                         navigationid: item.id,
                         id: milestoneId,
@@ -746,8 +749,8 @@ const GanttChart = ({ selectedColumns = {} }) => {
                         duration:
                             formattedStart && formattedEnd ? calculateDuration(formattedStart, formattedEnd) : 1,
                         progress: 0.0,
-                        totalTasks: 0,
-                        completedTasks: 0,
+                        totalTasks: item.total_tasks,
+                        completedTasks: item.completed_tasks,
                         status: item.status,
                         depends: item.depends_on_id ? `milestone-${item.depends_on_id}` : null,
                         type: 'milestone',
@@ -797,6 +800,7 @@ const GanttChart = ({ selectedColumns = {} }) => {
                                         ? task.estimated_hour + (task.estimated_min ? task.estimated_min / 60 : 0)
                                         : 1;
 
+                            console.log(task)
                             tasksData.push({
                                 navigationid: task.id,
                                 id: uniqueTaskId,
@@ -805,8 +809,8 @@ const GanttChart = ({ selectedColumns = {} }) => {
                                 end_date: formattedEndTask,
                                 duration: taskDuration,
                                 progress: 0.0,
-                                totalTasks: 0,
-                                completedTasks: 0,
+                                totalTasks: task.total_sub_tasks,
+                                completedTasks: task.completed_sub_tasks,
                                 status: task.status || 'Open',
                                 owner: task.responsible_person ? task.responsible_person.name : '',
                                 parent: milestoneId,
@@ -931,38 +935,39 @@ const GanttChart = ({ selectedColumns = {} }) => {
 
                 const milestonesToUpdate = [];
 
-                tasksData.forEach((task) => {
-                    if (task.type === 'milestone') {
-                        const progressData = calculateProgress(task.id, tasksData, 'milestone');
-                        task.progress = progressData.percentage / 100;
-                        task.totalTasks = progressData.total;
-                        task.completedTasks = progressData.completed;
+                // tasksData.forEach((task) => {
+                //     console.log(task)
+                //     if (task.type === 'milestone') {
+                //         const progressData = calculateProgress(task.id, tasksData, 'milestone');
+                //         task.progress = progressData.percentage / 100;
+                //         task.totalTasks = progressData.total;
+                //         task.completedTasks = progressData.completed;
 
-                        const calculatedStatus = calculateMilestoneStatus(task.id, tasksData);
-                        const originalStatus = task.status;
-                        task.status = calculatedStatus;
+                //         const calculatedStatus = calculateMilestoneStatus(task.id, tasksData);
+                //         const originalStatus = task.status;
+                //         task.status = calculatedStatus;
 
-                        if (originalStatus !== calculatedStatus) {
-                            milestonesToUpdate.push({
-                                id: task.navigationid,
-                                oldStatus: originalStatus,
-                                newStatus: calculatedStatus,
-                            });
-                        }
+                //         if (originalStatus !== calculatedStatus) {
+                //             milestonesToUpdate.push({
+                //                 id: task.navigationid,
+                //                 oldStatus: originalStatus,
+                //                 newStatus: calculatedStatus,
+                //             });
+                //         }
 
-                        console.log(
-                            `Milestone ${task.text}: ${progressData.completed}/${progressData.total} = ${progressData.percentage}%, Status: ${calculatedStatus}`
-                        );
-                    } else if (task.type === 'task') {
-                        const progressData = calculateProgress(task.id, tasksData, 'task');
-                        task.progress = progressData.percentage / 100;
-                        task.totalTasks = progressData.total;
-                        task.completedTasks = progressData.completed;
-                        console.log(
-                            `Task ${task.text}: ${progressData.completed}/${progressData.total} = ${progressData.percentage}%`
-                        );
-                    }
-                });
+                //         console.log(
+                //             `Milestone ${task.text}: ${progressData.completed}/${progressData.total} = ${progressData.percentage}%, Status: ${calculatedStatus}`
+                //         );
+                //     } else if (task.type === 'task') {
+                //         const progressData = calculateProgress(task.id, tasksData, 'task');
+                //         task.progress = progressData.percentage / 100;
+                //         task.totalTasks = progressData.total;
+                //         task.completedTasks = progressData.completed;
+                //         console.log(
+                //             `Task ${task.text}: ${progressData.completed}/${progressData.total} = ${progressData.percentage}%`
+                //         );
+                //     }
+                // });
 
                 milestonesToUpdate.forEach((milestone) => {
                     const payload = {

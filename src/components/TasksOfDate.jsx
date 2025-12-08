@@ -34,8 +34,6 @@ const CountdownTimer = ({ targetDate }) => {
 };
 
 const TaskCard = ({ task, selectedDate }) => {
-  console.log(task);
-
   // Convert selected date to YYYY-MM-DD
   const date = `${selectedDate.year}-${String(selectedDate.month + 1).padStart(2, '0')}-${String(
     selectedDate.date
@@ -85,13 +83,12 @@ const TaskCard = ({ task, selectedDate }) => {
   return (
     <div
       ref={drag}
-      className={`p-3 mb-2 border-l-4 ${
-        task.priority === 'High'
+      className={`p-3 mb-2 border-l-4 ${task.priority === 'High'
           ? 'border-[#C72030]'
           : task.priority === 'Medium'
             ? 'border-[#ED9017]'
             : 'border-[#1FCFB3]'
-      } bg-[#D5DBDB] ${isDragging ? 'opacity-50' : ''}`}
+        } bg-[#D5DBDB] ${isDragging ? 'opacity-50' : ''}`}
     >
       <div className="mb-2">
         <a
@@ -203,20 +200,18 @@ const DroppableDay = ({ dateInfo, onDrop, assignedTasks, onDateClick, shift }) =
     <div
       ref={drop}
       onClick={handleClick}
-      className={`relative grid grid-cols-3 border-t border-b border-r border-dashed border-gray-400 items-center px-3 py-[19px] ${bgClass} ${
-        isOver ? 'bg-gray-200' : ''
-      } cursor-pointer`}
+      className={`relative grid grid-cols-3 border-t border-b border-r border-dashed border-gray-400 items-center px-3 py-[19px] ${bgClass} ${isOver ? 'bg-gray-200' : ''
+        } cursor-pointer`}
     >
       <span
-        className={`absolute left-0 top-0 h-full w-[4px] ${
-          isWeekOff
+        className={`absolute left-0 top-0 h-full w-[4px] ${isWeekOff
             ? 'bg-red-500'
             : durationPercentage <= 33
               ? 'bg-[#1FCFB3]'
               : durationPercentage <= 66
                 ? 'bg-[#ED9017]'
                 : 'bg-[#C72030]'
-        }`}
+          }`}
       />
       <div className="font-medium text-xs text-left">{dateInfo.day}</div>
       <div className="text-xs text-gray-600 text-left">{dateInfo.date}</div>

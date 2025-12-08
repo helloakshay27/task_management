@@ -14,6 +14,7 @@ import {
   editTask,
   fetchTargetDateTasks,
   fetchTasks,
+  taskDetails,
 } from '../../../../redux/slices/taskSlice';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
@@ -71,7 +72,6 @@ const TaskForm = ({
 
   const startDateRef = useRef(null);
   const endDateRef = useRef(null);
-  console.log(users);
 
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showStartDatePicker, setShowStartDatePicker] = useState(false);
@@ -766,6 +766,7 @@ const Tasks = ({ isEdit, onCloseModal, prefillData, onSuccess }) => {
         taskTitle: task.title || '',
         description: task.description || '',
         responsiblePerson: task.responsible_person_id || '',
+        responsiblePersonName: task.responsible_person.name || '',
         department: '',
         priority: task.priority || '',
         observer: mappedObservers,
@@ -781,6 +782,7 @@ const Tasks = ({ isEdit, onCloseModal, prefillData, onSuccess }) => {
         month: new Date(task.target_date).getMonth(),
         year: new Date(task.target_date).getFullYear(),
       });
+      setTotalWorkingHours(task.estimated_hour);
 
       setPrevTags(mappedTags);
       setPrevObservers(mappedObservers);
@@ -919,12 +921,14 @@ const Tasks = ({ isEdit, onCloseModal, prefillData, onSuccess }) => {
 
     try {
       const resultAction = isEdit
-        ? await dispatch(editTask({ token, id: editId, payload }))
-        : await dispatch(createTask({ token, payload }));
+        ? await dispatch(editTask({ token, id: editId, payload })).unwrap()
+        : await dispatch(createTask({ token, payload })).unwrap();
+
+      console.log(resultAction)
 
       if (
-        (isEdit && editTask.fulfilled.match(resultAction)) ||
-        (!isEdit && createTask.fulfilled.match(resultAction))
+        (isEdit && resultAction.code !== "ERR_BAD_REQUEST") ||
+        (!isEdit && resultAction.code !== "ERR_BAD_REQUEST")
       ) {
         toast.dismiss();
         toast.success(isEdit ? 'Task updated successfully.' : 'Task created successfully.');
@@ -966,14 +970,20 @@ const Tasks = ({ isEdit, onCloseModal, prefillData, onSuccess }) => {
             }
           }
         } else {
-          window.location.reload();
+          onCloseModal();
+          dispatch(taskDetails({ token, id: tid }));
         }
       } else {
-        toast.error(isEdit ? 'Task update failed.' : 'Task creation failed.');
+        // toast.error(isEdit ? 'Task update failed.' : 'Task creation failed.');
+        console.log(isEdit ? 'Task update failed.' : 'Task creation failed.');
       }
     } catch (error) {
       console.error(`Error ${isEdit ? 'updating' : 'creating'} task:`, error);
-      toast.error(`Error ${isEdit ? 'updating' : 'creating'} task.`);
+      const errors = error.response.data;
+
+      Object.keys(errors).forEach((key) => {
+        toast.error(`${key} ${errors[key][0]}`);
+      });
     } finally {
       setIsSubmitting(false);
     }

@@ -87,8 +87,7 @@ const UserCustomDropdownMultiple = ({
                 <ListboxOption
                   key={option}
                   className={({ active, selected }) =>
-                    `relative cursor-default select-none py-2 pl-3 pr-4 text-xs ${
-                      active ? 'bg-[#C72030] text-white' : 'text-gray-900'
+                    `relative cursor-default select-none py-2 pl-3 pr-4 text-xs ${active ? 'bg-[#C72030] text-white' : 'text-gray-900'
                     } ${selected ? 'font-semibold' : 'font-normal'}`
                   }
                   value={option}
@@ -134,9 +133,8 @@ const NewSubtaskTextField = ({
       value={value || ''}
       onChange={onChange}
       onKeyDown={handleKeyDown}
-      className={`w-full p-1 ${
-        validator ? 'border border-red-500' : 'border border-gray-300'
-      } outline-none border-none hover:bg-gray-50 focus:outline-none rounded text-sm`}
+      className={`w-full p-1 ${validator ? 'border border-red-500' : 'border border-gray-300'
+        } outline-none border-none hover:bg-gray-50 focus:outline-none rounded text-sm`}
     />
   );
 };
@@ -209,9 +207,8 @@ const DateEditor = ({
       onBlur={handleBlur}
       onKeyDown={handleKeyDown}
       onClick={handleInputClick}
-      className={`${
-        isInvalid ? 'border border-red-400' : 'border-none'
-      } w-full focus:outline-none rounded text-[12px] p-1 my-custom-date-editor ${className || ''}`}
+      className={`${isInvalid ? 'border border-red-400' : 'border-none'
+        } w-full focus:outline-none rounded text-[12px] p-1 my-custom-date-editor ${className || ''}`}
       placeholder={placeholder}
     />
   );
@@ -298,7 +295,6 @@ const SubtaskTable = ({ projectId }) => {
   const { fetchProjectTeamMembers: projectTeamMembers } = useSelector(
     (state) => state.fetchProjectTeamMembers
   );
-  console.log(projectTeamMembers);
 
   const {
     fetchTags: tagList,
@@ -308,7 +304,6 @@ const SubtaskTable = ({ projectId }) => {
 
   const [data, setData] = useState([]);
   const [parentTaskForSubtasks, setParentTaskForSubtasks] = useState(null);
-  console.log(parentTaskForSubtasks);
   const [parentTaskLookupStatus, setParentTaskLookupStatus] = useState('idle');
 
   const [isAddingNewSubtask, setIsAddingNewSubtask] = useState(false);
@@ -343,8 +338,6 @@ const SubtaskTable = ({ projectId }) => {
       setMembers(members);
     }
   }, [projectTeamMembers]);
-
-  console.log(members);
 
   // useEffect(() => {
   //   const fetchMembers = async () => {
@@ -464,12 +457,10 @@ const SubtaskTable = ({ projectId }) => {
       parentId
     ) {
       const foundTask = allTasksFromStore.find((task) => String(task.id) === String(parentId));
-      console.log(foundTask);
       if (foundTask) {
         setParentTaskForSubtasks(foundTask);
         setParentTaskLookupStatus('found');
         if (foundTask.sub_tasks_managements && Array.isArray(foundTask.sub_tasks_managements)) {
-          console.log(foundTask.sub_tasks_managements);
           const processedSubtasks = foundTask.sub_tasks_managements.map((sub) => ({
             id: sub.id,
             taskTitle: sub.title || 'Unnamed Subtask',
@@ -675,19 +666,17 @@ const SubtaskTable = ({ projectId }) => {
     () =>
       Array.isArray(members) && members.length > 0
         ? members.map((u) => ({
-            value: u?.id,
-            label: u?.name,
-          }))
+          value: u?.id,
+          label: u?.name,
+        }))
         : Array.isArray(users)
           ? users.map((u) => ({
-              value: u.id,
-              label: `${u.firstname} ${u.lastname}`,
-            }))
+            value: u.id,
+            label: `${u.firstname} ${u.lastname}`,
+          }))
           : [],
     [projectTeamMembers, users, members]
   );
-
-  console.log(userOptionsForSelectBox);
 
   const tagNamesForDropdown = useMemo(() => {
     return Array.isArray(tagList) ? tagList.map((tag) => tag.name) : [];
@@ -889,12 +878,12 @@ const SubtaskTable = ({ projectId }) => {
         {localError ||
           String(
             allTasksError?.message ||
-              allTasksError ||
-              usersFetchError?.message ||
-              usersFetchError ||
-              tagsError?.message ||
-              tagsError ||
-              'Could not load required data.'
+            allTasksError ||
+            usersFetchError?.message ||
+            usersFetchError ||
+            tagsError?.message ||
+            tagsError ||
+            'Could not load required data.'
           )}
       </div>
     );
@@ -967,9 +956,8 @@ const SubtaskTable = ({ projectId }) => {
                     {row.getVisibleCells().map((cell) => (
                       <td
                         key={cell.id}
-                        className={`border p-0 align-middle ${
-                          cell.column.id === 'actions' ? 'text-center' : 'text-left'
-                        }`}
+                        className={`border p-0 align-middle ${cell.column.id === 'actions' ? 'text-center' : 'text-left'
+                          }`}
                       >
                         <div className="p-1 h-full flex items-center">
                           {flexRender(cell.column.columnDef.cell, cell.getContext())}
@@ -1040,8 +1028,8 @@ const SubtaskTable = ({ projectId }) => {
                       min={
                         parentTaskForSubtasks?.expected_start_date
                           ? new Date(parentTaskForSubtasks.expected_start_date)
-                              .toISOString()
-                              .split('T')[0]
+                            .toISOString()
+                            .split('T')[0]
                           : new Date().toISOString().split('T')[0]
                       }
                       max={

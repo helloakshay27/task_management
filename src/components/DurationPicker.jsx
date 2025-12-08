@@ -24,7 +24,6 @@ export const DurationPicker = ({
     setTotalWorkingHours,
     shift = {},
 }) => {
-    console.log(resposiblePerson);
     const [isOpen, setIsOpen] = useState(false);
     const [taskType, setTaskType] = useState('standard');
     const [dailyHours, setDailyHours] = useState([]);
@@ -199,9 +198,9 @@ export const DurationPicker = ({
                 const workingDays = allDays.filter((d) => d.isWorking);
                 const hrs = workingDays.length * hoursPerDay;
 
-                console.log(hrs);
+                console.log(totalWorkingHours)
 
-                setTotalWorkingHours(hrs);
+                setTotalWorkingHours(totalWorkingHours ? totalWorkingHours : hrs);
                 if (onChange) onChange(hrs);
 
                 // ✅ Send hoursPerDay per working day (as decimal hours)

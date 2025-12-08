@@ -407,16 +407,16 @@ const Comments = ({ comments }) => {
 
   const mentionData = name
     ? name.map((user) => ({
-        id: user.id.toString(),
-        display: `${user.firstname} ${user.lastname}` || 'Unknown User',
-      }))
+      id: user.id.toString(),
+      display: `${user.firstname} ${user.lastname}` || 'Unknown User',
+    }))
     : [];
 
   const tagData = tags
     ? tags.map((tag) => ({
-        id: tag.id.toString(),
-        display: tag.name,
-      }))
+      id: tag.id.toString(),
+      display: tag.name,
+    }))
     : [];
 
   const handleAddComment = (e) => {
@@ -1088,9 +1088,8 @@ const TaskDetails = () => {
                     />
                   </div>
                   <ul
-                    className={`dropdown-menu absolute right-0 mt-2 bg-white border border-gray-200 rounded-md shadow-lg overflow-hidden ${
-                      openDropdown ? 'block' : 'hidden'
-                    }`}
+                    className={`dropdown-menu absolute right-0 mt-2 bg-white border border-gray-200 rounded-md shadow-lg overflow-hidden ${openDropdown ? 'block' : 'hidden'
+                      }`}
                     role="menu"
                     style={{
                       minWidth: '150px',
@@ -1102,9 +1101,8 @@ const TaskDetails = () => {
                     {dropdownOptions.map((option, idx) => (
                       <li key={idx} role="menuitem">
                         <button
-                          className={`dropdown-item w-full text-left px-4 py-2 text-[13px] text-gray-700 hover:bg-gray-100 ${
-                            selectedOption === option ? 'bg-gray-100 font-semibold' : ''
-                          }`}
+                          className={`dropdown-item w-full text-left px-4 py-2 text-[13px] text-gray-700 hover:bg-gray-100 ${selectedOption === option ? 'bg-gray-100 font-semibold' : ''
+                            }`}
                           onClick={() => handleOptionSelect(option)}
                         >
                           {option}
@@ -1159,9 +1157,8 @@ const TaskDetails = () => {
               <ChevronDownCircle
                 color="#E95420"
                 size={30}
-                className={`${
-                  isFirstCollapsed ? 'rotate-180' : 'rotate-0'
-                } transition-transform cursor-pointer`}
+                className={`${isFirstCollapsed ? 'rotate-180' : 'rotate-0'
+                  } transition-transform cursor-pointer`}
                 onClick={toggleFirstCollapse}
               />{' '}
               Description
@@ -1176,9 +1173,8 @@ const TaskDetails = () => {
                 <ChevronDownCircle
                   color="#E95420"
                   size={30}
-                  className={`${
-                    isSecondCollapsed ? 'rotate-180' : 'rotate-0'
-                  } transition-transform cursor-pointer`}
+                  className={`${isSecondCollapsed ? 'rotate-180' : 'rotate-0'
+                    } transition-transform cursor-pointer`}
                   onClick={toggleSecondCollapse}
                 />{' '}
                 Details
@@ -1339,15 +1335,13 @@ const TaskDetails = () => {
                           <span className="text-[13px]">{selectedWorkflowOption}</span>
                           <ChevronDown
                             size={15}
-                            className={`${
-                              openWorkflowDropdown ? 'rotate-180' : ''
-                            } transition-transform`}
+                            className={`${openWorkflowDropdown ? 'rotate-180' : ''
+                              } transition-transform`}
                           />
                         </div>
                         <ul
-                          className={`dropdown-menu absolute right-0 mt-2 bg-white border border-gray-200 rounded-md shadow-lg overflow-hidden no-scrollbar z-10 ${
-                            openWorkflowDropdown ? 'block' : 'hidden'
-                          }`}
+                          className={`dropdown-menu absolute right-0 mt-2 bg-white border border-gray-200 rounded-md shadow-lg overflow-hidden no-scrollbar z-10 ${openWorkflowDropdown ? 'block' : 'hidden'
+                            }`}
                           role="menu"
                           style={{
                             minWidth: '150px',
@@ -1359,9 +1353,8 @@ const TaskDetails = () => {
                           {statuses.map((option, idx) => (
                             <li key={option.id} role="menuitem">
                               <button
-                                className={`dropdown-item w-full text-left px-4 py-2 text-[13px] text-gray-700 hover:bg-gray-100 ${
-                                  selectedOption === option ? 'bg-gray-100 font-semibold' : ''
-                                }`}
+                                className={`dropdown-item w-full text-left px-4 py-2 text-[13px] text-gray-700 hover:bg-gray-100 ${selectedOption === option ? 'bg-gray-100 font-semibold' : ''
+                                  }`}
                                 onClick={() => handleWorkflowOptionSelect(option)}
                               >
                                 {option.status}
@@ -1393,9 +1386,8 @@ const TaskDetails = () => {
                     <div
                       key={index}
                       id={index + 1}
-                      className={`text-[14px] font-[400] ${
-                        tab === tabName ? 'selected' : 'cursor-pointer'
-                      }`}
+                      className={`text-[14px] font-[400] ${tab === tabName ? 'selected' : 'cursor-pointer'
+                        }`}
                       onClick={() => setTab(tabName)}
                     >
                       {tabName}

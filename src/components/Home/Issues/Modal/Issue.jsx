@@ -417,9 +417,9 @@ const Issues = ({ closeModal }) => {
       setProjectOptions(
         projects
           ? projects.project_managements.map((project) => ({
-              value: project.id,
-              label: project.title,
-            }))
+            value: project.id,
+            label: project.title,
+          }))
           : []
       );
     }
@@ -446,11 +446,7 @@ const Issues = ({ closeModal }) => {
       event.preventDefault();
       toast.dismiss();
       if (isSubmittingRef.current) return;
-      console.log(newIssuesProjectId);
-      if (!newIssuesTaskId) {
-        toast.error('Task is required');
-        return;
-      }
+
       if (!title.trim()) {
         toast.error('Title is required');
         return;
@@ -482,8 +478,8 @@ const Issues = ({ closeModal }) => {
 
       const formattedStartDate = startDate
         ? `${startDate.year}-${String(startDate.month + 1).padStart(2, '0')}-${String(
-            startDate.date
-          ).padStart(2, '0')}`
+          startDate.date
+        ).padStart(2, '0')}`
         : '';
 
       const formattedEndDate = `${endDate.year}-${String(endDate.month + 1).padStart(
@@ -590,7 +586,7 @@ const Issues = ({ closeModal }) => {
         <div className="flex items-center justify-between gap-2 mt-4">
           <div className="w-1/2 flex flex-col justify-between">
             <label className="block mb-2">
-              Task <span className="text-red-600">*</span>
+              Task
             </label>
             <SelectBox
               options={taskOptions}
@@ -628,9 +624,9 @@ const Issues = ({ closeModal }) => {
             options={
               users
                 ? users.map((user) => ({
-                    value: user.id,
-                    label: `${user.firstname || ''} ${user.lastname || ''}`.trim(),
-                  }))
+                  value: user.id,
+                  label: `${user.firstname || ''} ${user.lastname || ''}`.trim(),
+                }))
                 : []
             }
             value={responsiblePerson}
@@ -644,35 +640,6 @@ const Issues = ({ closeModal }) => {
           />
         </div>
         <div className="flex items-start gap-2 mt-4 text-[12px]">
-          <div className="w-1/2 space-y-2">
-            <label className="block">Start Date</label>
-            <button
-              type="button"
-              className="w-full border outline-none border-gray-300 px-2 py-[7px] text-[13px] flex items-center gap-3 text-gray-400"
-              onClick={() => {
-                if (showDatePicker) {
-                  setShowDatePicker(false);
-                }
-                setShowStartDatePicker(!showStartDatePicker);
-              }}
-              ref={startDateRef}
-            >
-              {startDate ? (
-                <div className="text-black flex items-center justify-between w-full">
-                  <CalendarIcon className="w-4 h-4" />
-                  <div>
-                    Start Date : {startDate?.date?.toString().padStart(2, '0')}{' '}
-                    {monthNames[startDate.month]}
-                  </div>
-                  <X className="w-4 h-4 cursor-pointer" onClick={() => setStartDate(null)} />
-                </div>
-              ) : (
-                <>
-                  <CalendarIcon className="w-4 h-4" /> Select Start Date
-                </>
-              )}
-            </button>
-          </div>
           <div className="w-1/2 space-y-2">
             <label className="block">
               End Date <span className="text-red-600">*</span>
@@ -700,6 +667,36 @@ const Issues = ({ closeModal }) => {
               ) : (
                 <>
                   <CalendarIcon className="w-4 h-4" /> Select End Date
+                </>
+              )}
+            </button>
+          </div>
+
+          <div className="w-1/2 space-y-2">
+            <label className="block">Start Date</label>
+            <button
+              type="button"
+              className="w-full border outline-none border-gray-300 px-2 py-[7px] text-[13px] flex items-center gap-3 text-gray-400"
+              onClick={() => {
+                if (showDatePicker) {
+                  setShowDatePicker(false);
+                }
+                setShowStartDatePicker(!showStartDatePicker);
+              }}
+              ref={startDateRef}
+            >
+              {startDate ? (
+                <div className="text-black flex items-center justify-between w-full">
+                  <CalendarIcon className="w-4 h-4" />
+                  <div>
+                    Start Date : {startDate?.date?.toString().padStart(2, '0')}{' '}
+                    {monthNames[startDate.month]}
+                  </div>
+                  <X className="w-4 h-4 cursor-pointer" onClick={() => setStartDate(null)} />
+                </div>
+              ) : (
+                <>
+                  <CalendarIcon className="w-4 h-4" /> Select Start Date
                 </>
               )}
             </button>
@@ -751,7 +748,7 @@ const Issues = ({ closeModal }) => {
           ) : (
             <TasksOfDate
               selectedDate={startDate}
-              onClose={() => {}}
+              onClose={() => { }}
               tasks={startDateTasks}
               selectedUser={responsiblePerson}
               userAvailability={userAvailability}
@@ -785,7 +782,7 @@ const Issues = ({ closeModal }) => {
           ) : (
             <TasksOfDate
               selectedDate={endDate}
-              onClose={() => {}}
+              onClose={() => { }}
               tasks={targetDateTasks}
               selectedUser={responsiblePerson}
               userAvailability={userAvailability}

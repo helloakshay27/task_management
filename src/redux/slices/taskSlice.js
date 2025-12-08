@@ -39,25 +39,28 @@ const createApiSlice = (name, fetchThunk) =>
     },
   });
 
-export const createTask = createAsyncThunk('createTask', async ({ token, payload }) => {
-  try {
-    const response = await axios.post(
-      `${baseURL}/task_managements.json`,
-      { task_management: payload },
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-      }
-    );
+export const createTask = createAsyncThunk(
+  'createTask',
+  async ({ token, payload }, { rejectWithValue }) => {
+    try {
+      const response = await axios.post(
+        `${baseURL}/task_managements.json`,
+        { task_management: payload },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
 
-    return response.data;
-  } catch (error) {
-    console.log(error);
-    return error.response.data;
+      return response.data;
+    } catch (error) {
+      console.log(error);
+      return rejectWithValue(error);
+    }
   }
-});
+);
 
 export const createSubTask = createAsyncThunk('createSubTask', async ({ token, payload }) => {
   try {
@@ -210,25 +213,28 @@ export const fetchTargetDateTasks = createAsyncThunk(
   }
 );
 
-export const editTask = createAsyncThunk('editTask', async ({ token, id, payload }) => {
-  try {
-    const response = await axios.put(
-      `${baseURL}/task_managements/${id}.json`,
-      { task_management: payload },
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-      }
-    );
+export const editTask = createAsyncThunk(
+  'editTask',
+  async ({ token, id, payload }, { rejectWithValue }) => {
+    try {
+      const response = await axios.put(
+        `${baseURL}/task_managements/${id}.json`,
+        { task_management: payload },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
 
-    return response.data;
-  } catch (error) {
-    console.log(error);
-    return error.response.data;
+      return response.data;
+    } catch (error) {
+      console.log(error);
+      return rejectWithValue(error);
+    }
   }
-});
+);
 
 export const deleteTask = createAsyncThunk('deleteTask', async ({ token, id }) => {
   try {
