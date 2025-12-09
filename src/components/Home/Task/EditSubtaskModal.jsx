@@ -279,6 +279,7 @@ const EditSubtaskModal = ({ isModalOpen, setIsModalOpen, title }) => {
           year: new Date(response.target_date).getFullYear(),
         });
         setTotalWorkingHours(response.estimated_hour);
+        setDateWiseHours(response.task_allocation_times)
         setPrevTags(mappedTags);
       } catch (error) {
         console.log(error);
@@ -577,6 +578,7 @@ const EditSubtaskModal = ({ isModalOpen, setIsModalOpen, title }) => {
                     value={taskDuration}
                     onChange={setTaskDuration}
                     onDateWiseHoursChange={setDateWiseHours}
+                    dateWiseHours={dateWiseHours}
                     startDate={startDate}
                     endDate={endDate}
                     resposiblePerson={formData.responsiblePersonName}
