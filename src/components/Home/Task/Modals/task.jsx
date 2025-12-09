@@ -64,6 +64,7 @@ const TaskForm = ({
   setEndDate,
   mid,
   setSelectedProjects,
+  dateWiseHours
 }) => {
   const { fetchUserAvailability: userAvailability } = useSelector(
     (state) => state.fetchUserAvailability
@@ -510,6 +511,7 @@ const TaskForm = ({
             value={taskDuration}
             onChange={setTaskDuration}
             onDateWiseHoursChange={setDateWiseHours}
+            dateWiseHours={dateWiseHours}
             startDate={startDate}
             endDate={endDate}
             resposiblePerson={formData.responsiblePersonName}
@@ -783,15 +785,29 @@ const Tasks = ({ isEdit, onCloseModal, prefillData, onSuccess }) => {
         year: new Date(task.target_date).getFullYear(),
       });
       setTotalWorkingHours(task.estimated_hour);
+      setDateWiseHours(task.task_allocation_times);
 
       setPrevTags(mappedTags);
       setPrevObservers(mappedObservers);
     }
   }, [isEdit, task, id, mid, getTagName]);
 
+  console.log(dateWiseHours)
+
   const createTaskPayload = (data) => {
     const formatedEndDate = `${endDate.year}-${endDate.month + 1}-${endDate.date}`;
     const formatedStartDate = `${startDate?.year}-${startDate?.month + 1}-${startDate?.date}`;
+
+    // Ensure dateWiseHours has id and _destroy properly set for edit mode
+    let taskAllocationTimesAttributes = dateWiseHours;
+    if (isEdit && Array.isArray(dateWiseHours)) {
+      taskAllocationTimesAttributes = dateWiseHours.map((allocation) => ({
+        ...allocation,
+        id: allocation.id || null,
+        _destroy: allocation._destroy || false,
+      }));
+    }
+
     const payload = {
       title: data.taskTitle,
       description: data.description,
@@ -806,7 +822,7 @@ const Tasks = ({ isEdit, onCloseModal, prefillData, onSuccess }) => {
       milestone_id: mid || formData.milestone,
       active: true,
       estimated_hour: totalWorkingHours,
-      task_allocation_times_attributes: dateWiseHours,
+      task_allocation_times_attributes: taskAllocationTimesAttributes,
     };
 
     if (data.opportunityId) {
@@ -932,6 +948,7 @@ const Tasks = ({ isEdit, onCloseModal, prefillData, onSuccess }) => {
       ) {
         toast.dismiss();
         toast.success(isEdit ? 'Task updated successfully.' : 'Task created successfully.');
+        dispatch(fetchTasks({ token, id: mid ? mid : '' }));
 
         // If task was created from opportunity, use callback or redirect
         if (!isEdit && formData.opportunityId) {
@@ -1026,6 +1043,7 @@ const Tasks = ({ isEdit, onCloseModal, prefillData, onSuccess }) => {
             setEndDate={setEndDate}
             mid={mid}
             setSelectedProjects={setSelectedProject}
+            dateWiseHours={dateWiseHours}
           />
         ))}
 
@@ -1059,6 +1077,7 @@ const Tasks = ({ isEdit, onCloseModal, prefillData, onSuccess }) => {
             setEndDate={setEndDate}
             mid={mid}
             setSelectedProjects={setSelectedProject}
+            dateWiseHours={dateWiseHours}
           />
         )}
 

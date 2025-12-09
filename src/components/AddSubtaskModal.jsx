@@ -2,7 +2,7 @@ import MultiSelectBox from '@/components/MultiSelectBox';
 import SelectBox from '@/components/SelectBox';
 import { removeTagFromProject } from '@/redux/slices/projectSlice';
 import { fetchTags } from '@/redux/slices/tagsSlice';
-import { createSubTask, fetchKanbanTasks, fetchTargetDateTasks } from '@/redux/slices/taskSlice';
+import { createSubTask, fetchKanbanTasks, fetchTargetDateTasks, taskDetails } from '@/redux/slices/taskSlice';
 import { fetchUserAvailability, fetchUsers, fetchUserShift } from '@/redux/slices/userSlice';
 import { useGSAP } from '@gsap/react';
 import gsap from 'gsap';
@@ -56,6 +56,7 @@ const AddSubtaskModal = ({
     const { fetchProjectTeamMembers: projectTeamMembers } = useSelector(
         (state) => state.fetchProjectTeamMembers
     );
+    const { taskDetails: parentTask } = useSelector((state) => state.taskDetails);
 
     const [totalWorkingHours, setTotalWorkingHours] = useState('');
     const [dateWiseHours, setDateWiseHours] = useState('');
@@ -103,13 +104,17 @@ const AddSubtaskModal = ({
             try {
                 await dispatch(fetchUsers({ token })).unwrap();
                 await dispatch(fetchTags({ token })).unwrap();
+                // Fetch parent task details to check subtask duration limit
+                if (tid) {
+                    await dispatch(taskDetails({ token, id: tid })).unwrap();
+                }
             } catch (error) {
                 console.log(error);
             }
         };
 
         getUsers();
-    }, []);
+    }, [tid, dispatch, token]);
 
     useEffect(() => {
         const el = collapsibleRef.current;
@@ -275,11 +280,46 @@ const AddSubtaskModal = ({
         return true;
     };
 
+    // Validate subtask duration against parent task duration
+    const validateSubtaskDuration = () => {
+        if (!parentTask) {
+            return true; // If parent task data not loaded, skip validation
+        }
+
+        const parentEstimatedHours = parentTask.estimated_hour || 0;
+
+        // Calculate total estimated hours of existing subtasks
+        const existingSubtasksHours = (parentTask.sub_tasks_managements || []).reduce(
+            (sum, subtask) => sum + (subtask.estimated_hour || 0),
+            0
+        );
+
+        // New subtask hours
+        const newSubtaskHours = totalWorkingHours || 0;
+
+        // Total hours if new subtask is created
+        const totalSubtasksHours = existingSubtasksHours + newSubtaskHours;
+
+        // Check if total exceeds parent task duration
+        if (totalSubtasksHours > parentEstimatedHours) {
+            const remainingHours = parentEstimatedHours - existingSubtasksHours;
+            toast.error(
+                `Your subtask duration exceeds task duration limit. Parent task duration: ${parentEstimatedHours}h, Existing subtasks: ${existingSubtasksHours}h, Remaining: ${Math.max(0, remainingHours)}h`
+            );
+            return false;
+        }
+
+        return true;
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         console.log(formData);
 
         if (!validateForm()) return;
+
+        // Validate subtask duration against parent task
+        if (!validateSubtaskDuration()) return;
 
         setIsSubmitting(true);
         console.log(startDate);

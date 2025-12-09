@@ -1180,7 +1180,7 @@ const TaskDetails = () => {
                 Details
               </div>
               {isSecondCollapsed && (
-                <div className="flex items-center gap-4">
+                <div className="flex items-center gap-6">
                   <div className="flex items-center justify-start gap-3">
                     <div className="text-right text-[12px] font-[500]">Responsible Person:</div>
                     <div className="text-left text-[12px]">{task.responsible_person?.name}</div>
@@ -1194,12 +1194,12 @@ const TaskDetails = () => {
                     </div>
                   </div>
 
-                  <div className="flex items-center justify-start gap-3">
+                  {/* <div className="flex items-center justify-start gap-3">
                     <div className="text-right text-[12px] font-[500]">Start Date:</div>
                     <div className="text-left text-[12px]">
                       {task?.expected_start_date?.split('T')[0]}
                     </div>
-                  </div>
+                  </div> */}
 
                   <div className="flex items-center justify-start gap-3">
                     <div className="text-right text-[12px] font-[500]">End Date:</div>
@@ -1209,8 +1209,60 @@ const TaskDetails = () => {
                   <div className="flex items-center justify-start gap-3">
                     <div className="text-right text-[12px] font-[500]">Efforts Duration:</div>
                     <div className="text-left text-[12px]">
-                      {task.estimated_hour && task.estimated_hour + 'hours'}
+                      {task.estimated_hour && task.estimated_hour + ' hours'}
                     </div>
+                  </div>
+
+                  <div className="flex items-center justify-start gap-3">
+                    <div className="text-right text-[12px] font-[500]">Workflow Status:</div>
+                    <span
+                      className={`flex relative items-center gap-2 cursor-pointer px-2 py-1 w-[150px] rounded-md text-sm text-white`}
+                      style={{ backgroundColor: bgBTN || '#c72030' }}
+                    >
+                      <div className="relative w-full" ref={workflowDropdownRef}>
+                        <div
+                          className="flex items-center justify-between gap-1 cursor-pointer px-2 py-1"
+                          onClick={() => setOpenWorkflowDropdown(!openWorkflowDropdown)}
+                          role="button"
+                          aria-haspopup="true"
+                          aria-expanded={openWorkflowDropdown}
+                          tabIndex={0}
+                          onKeyDown={(e) =>
+                            e.key === 'Enter' && setOpenWorkflowDropdown(!openWorkflowDropdown)
+                          }
+                        >
+                          <span className="text-[13px]">{selectedWorkflowOption}</span>
+                          <ChevronDown
+                            size={15}
+                            className={`${openWorkflowDropdown ? 'rotate-180' : ''
+                              } transition-transform`}
+                          />
+                        </div>
+                        <ul
+                          className={`dropdown-menu absolute right-0 mt-2 bg-white border border-gray-200 rounded-md shadow-lg overflow-hidden no-scrollbar z-10 ${openWorkflowDropdown ? 'block' : 'hidden'
+                            }`}
+                          role="menu"
+                          style={{
+                            minWidth: '150px',
+                            maxHeight: '200px',
+                            overflowY: 'auto',
+                            zIndex: 1000,
+                          }}
+                        >
+                          {statuses.map((option, idx) => (
+                            <li key={option.id} role="menuitem">
+                              <button
+                                className={`dropdown-item w-full text-left px-4 py-2 text-[13px] text-gray-700 hover:bg-gray-100 ${selectedOption === option ? 'bg-gray-100 font-semibold' : ''
+                                  }`}
+                                onClick={() => handleWorkflowOptionSelect(option)}
+                              >
+                                {option.status}
+                              </button>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    </span>
                   </div>
                 </div>
               )}
@@ -1275,7 +1327,7 @@ const TaskDetails = () => {
                   <div className="w-1/2 flex items-center justify-start gap-3">
                     <div className="text-right text-[12px] font-[500]">Efforts Duration:</div>
                     <div className="text-left text-[12px]">
-                      {task.estimated_hour && task.estimated_hour + 'hours'}
+                      {task.estimated_hour && task.estimated_hour + ' hours'}
                     </div>
                   </div>
                   <div className="w-1/2 flex items-center justify-start gap-3">

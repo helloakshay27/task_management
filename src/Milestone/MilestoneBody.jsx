@@ -1133,8 +1133,8 @@ const GanttChart = ({ selectedColumns = {} }) => {
                     },
                 };
 
-                if (task.owner) {
-                    payload.milestone.owner_id = task.owner;
+                if (task.owner_id) {
+                    payload.milestone.owner_id = task.owner_id;
                 }
 
                 if (task.depends && task.depends.startsWith('milestone-')) {

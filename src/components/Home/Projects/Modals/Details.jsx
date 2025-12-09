@@ -260,7 +260,7 @@ const Details = ({
       project_management: {
         title: formData.projectTitle,
         description: formData.description,
-        start_date: formData.startDate,
+        start_date: formData.startDate || new Date(),
         end_date: formData.endDate,
         owner_id: formData.projectOwner,
         priority: formData.priority,
@@ -303,7 +303,7 @@ const Details = ({
       project_management: {
         title: formData.projectTitle,
         description: formData.description,
-        start_date: formData.startDate,
+        start_date: formData.startDate || new Date(),
         end_date: formData.endDate,
         ...(!isEdit && { status: 'active' }),
         owner_id: formData.projectOwner,
@@ -472,9 +472,9 @@ const Details = ({
                 options={
                   projectTypes
                     ? projectTypes.map((type) => ({
-                        value: type.id,
-                        label: type.name.charAt(0).toUpperCase() + type.name.slice(1),
-                      }))
+                      value: type.id,
+                      label: type.name.charAt(0).toUpperCase() + type.name.slice(1),
+                    }))
                     : []
                 }
                 value={formData.projectType}

@@ -460,6 +460,7 @@ const SubtaskTable = ({ projectId }) => {
       if (foundTask) {
         setParentTaskForSubtasks(foundTask);
         setParentTaskLookupStatus('found');
+        console.log(foundTask)
         if (foundTask.sub_tasks_managements && Array.isArray(foundTask.sub_tasks_managements)) {
           const processedSubtasks = foundTask.sub_tasks_managements.map((sub) => ({
             id: sub.id,
@@ -471,6 +472,7 @@ const SubtaskTable = ({ projectId }) => {
               ? new Date(sub.expected_start_date).toLocaleDateString('en-CA')
               : null,
             endDate: sub.target_date ? new Date(sub.target_date).toLocaleDateString('en-CA') : null,
+            effortDuration: sub.estimated_hour + ' hours',
             priority: sub.priority || 'None',
             tags: (sub.task_tags || []).map((tag) => tag.company_tag.name),
           }));
@@ -492,6 +494,8 @@ const SubtaskTable = ({ projectId }) => {
       setLocalError(`Parent task with ID ${parentId} not found.`);
     }
   }, [allTasksFromStore, parentId, loadingAllTasks, allTasksError]);
+
+  console.log(data)
 
   useEffect(() => {
     if (isAddingNewSubtask && newSubtaskTitleInputRef.current) {
@@ -802,6 +806,12 @@ const SubtaskTable = ({ projectId }) => {
             <span className="text-xs text-gray-400">-</span>
           );
         },
+      },
+      {
+        accessorKey: 'effortDuration',
+        header: 'Effort Duration',
+        size: 100,
+        cell: (info) => info.getValue(),
       },
       {
         accessorKey: 'priority',

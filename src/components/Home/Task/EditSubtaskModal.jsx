@@ -263,6 +263,7 @@ const EditSubtaskModal = ({ isModalOpen, setIsModalOpen, title }) => {
           title: response.title,
           description: response.description,
           responsiblePerson: response.responsible_person_id,
+          responsiblePersonName: response.responsible_person?.name,
           duration: response.duration,
           priority: response.priority,
           tags: mappedTags,
@@ -277,6 +278,7 @@ const EditSubtaskModal = ({ isModalOpen, setIsModalOpen, title }) => {
           month: new Date(response.target_date).getMonth(),
           year: new Date(response.target_date).getFullYear(),
         });
+        setTotalWorkingHours(response.estimated_hour);
         setPrevTags(mappedTags);
       } catch (error) {
         console.log(error);
@@ -376,7 +378,7 @@ const EditSubtaskModal = ({ isModalOpen, setIsModalOpen, title }) => {
       responsible_person_id: formData.responsiblePerson,
       expected_start_date: formData.start_date,
       target_date: formData.end_date,
-      estimated_hour: formData.duration,
+      estimated_hour: totalWorkingHours,
       priority: formData.priority,
       task_tag_ids: formData.tags.map((tag) => tag.value),
       task_allocation_times_attributes: dateWiseHours,
@@ -611,7 +613,7 @@ const EditSubtaskModal = ({ isModalOpen, setIsModalOpen, title }) => {
                 ) : (
                   <TasksOfDate
                     selectedDate={startDate}
-                    onClose={() => {}}
+                    onClose={() => { }}
                     tasks={startDateTasks}
                     userAvailability={userAvailability}
                   />
@@ -644,7 +646,7 @@ const EditSubtaskModal = ({ isModalOpen, setIsModalOpen, title }) => {
                 ) : (
                   <TasksOfDate
                     selectedDate={endDate}
-                    onClose={() => {}}
+                    onClose={() => { }}
                     tasks={targetDateTasks}
                     userAvailability={userAvailability}
                   />

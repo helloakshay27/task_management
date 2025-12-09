@@ -206,9 +206,9 @@ const AddMilestoneModal = ({
               { label: 'Select Dependency', value: '' },
               ...(Array.isArray(milestoneOptions)
                 ? milestoneOptions.map((m) => ({
-                    label: m.title,
-                    value: m.id,
-                  }))
+                  label: m.title,
+                  value: m.id,
+                }))
                 : []),
             ]}
             style={{ border: '1px solid #b3b2b2' }}
@@ -386,7 +386,7 @@ const Milestones = ({ closeModal, opportunityId, prefillData, onSuccess }) => {
       toast.success('Milestone created successfully.');
       await dispatch(fetchMilestone({ token, id })).unwrap();
       dispatch(clearSavedMilestones());
-      window.location.reload();
+      // window.location.reload();
     } catch {
       toast.error('Error creating milestone.');
     } finally {
@@ -408,7 +408,7 @@ const Milestones = ({ closeModal, opportunityId, prefillData, onSuccess }) => {
             key={m.id}
             users={users}
             formData={m.formData}
-            setFormData={() => {}}
+            setFormData={() => { }}
             isReadOnly={true}
             milestoneOptions={milestone}
             hasSavedMilestones={savedMilestones.length > 0}

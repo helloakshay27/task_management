@@ -21,6 +21,7 @@ export const DurationPicker = ({
     placeholder = 'Select duration',
     resposiblePerson = 'Unassigned',
     totalWorkingHours,
+    dateWiseHours,
     setTotalWorkingHours,
     shift = {},
 }) => {
@@ -142,6 +143,13 @@ export const DurationPicker = ({
         ).padStart(2, '0')}`;
     };
 
+    /** ✅ Helper to get id from existing dateWiseHours by date match */
+    const getIdFromExistingHours = (formattedDate) => {
+        if (!Array.isArray(dateWiseHours)) return null;
+        const existing = dateWiseHours.find((h) => h.date === formattedDate);
+        return existing?.id || null;
+    };
+
     let hoursPerDay = 8;
     if (!Array.isArray(shift) && shift?.shift) {
         const [startTime, endTime] = shift.shift.split(' to ');
@@ -206,12 +214,17 @@ export const DurationPicker = ({
                 // ✅ Send hoursPerDay per working day (as decimal hours)
                 if (onDateWiseHoursChange) {
                     const perDayDecimal = parseHours(formatTotalHours(hoursPerDay));
-                    const dateWise = workingDays.map((d) => ({
-                        hours: perDayDecimal,
-                        minutes: 0,
-                        date: formatLocalDate(d.date),
-                    }));
-                    onDateWiseHoursChange(dateWise);
+                    const dateWise = workingDays.map((d) => {
+                        const formattedDate = formatLocalDate(d.date);
+                        return {
+                            id: getIdFromExistingHours(formattedDate),
+                            hours: perDayDecimal,
+                            minutes: 0,
+                            date: formattedDate,
+                            _destroy: false
+                        };
+                    });
+                    onDateWiseHoursChange(dateWiseHours && dateWiseHours.length > 0 ? dateWiseHours : dateWise);
                 }
 
                 setDaysList(allDays);
@@ -243,11 +256,15 @@ export const DurationPicker = ({
                 if (onChange) onChange(total);
 
                 if (onDateWiseHoursChange) {
-                    const dateWise = allDays.map((d, idx) => ({
-                        hours: parseHours(defaultHours[idx]),
-                        minutes: 0,
-                        date: formatLocalDate(d.date),
-                    }));
+                    const dateWise = allDays.map((d, idx) => {
+                        const formattedDate = formatLocalDate(d.date);
+                        return {
+                            id: getIdFromExistingHours(formattedDate),
+                            hours: parseHours(defaultHours[idx]),
+                            minutes: 0,
+                            date: formattedDate,
+                        };
+                    });
                     onDateWiseHoursChange(dateWise);
                 }
             } else {
@@ -260,6 +277,8 @@ export const DurationPicker = ({
         }
     }, [startDate, endDate, taskType, shift]);
 
+    console.log(dateWiseHours)
+
     /** ✅ Update total & date-wise data when flexible hours change */
     useEffect(() => {
         if (taskType === 'flexible') {
@@ -268,12 +287,16 @@ export const DurationPicker = ({
             if (onChange) onChange(total);
 
             if (onDateWiseHoursChange && daysList.length > 0) {
-                const dateWise = daysList.map((d, idx) => ({
-                    hours: parseHours(dailyHours[idx]),
-                    minutes: 0,
-                    date: formatLocalDate(d.date),
-                }));
-                onDateWiseHoursChange(dateWise);
+                const dateWise = daysList.map((d, idx) => {
+                    const formattedDate = formatLocalDate(d.date);
+                    return {
+                        id: getIdFromExistingHours(formattedDate),
+                        hours: parseHours(dailyHours[idx]),
+                        minutes: 0,
+                        date: formattedDate,
+                    };
+                });
+                onDateWiseHoursChange(dateWiseHours && dateWiseHours.length > 0 ? dateWiseHours : dateWise);
             }
         }
     }, [dailyHours, taskType]);
@@ -504,11 +527,15 @@ export const DurationPicker = ({
                                         if (onChange) onChange(parsedHours);
 
                                         if (onDateWiseHoursChange && daysList.length > 0) {
-                                            const dateWise = daysList.map((d) => ({
-                                                hours: parsedHours,
-                                                minutes: 0,
-                                                date: formatLocalDate(d.date),
-                                            }));
+                                            const dateWise = daysList.map((d) => {
+                                                const formattedDate = formatLocalDate(d.date);
+                                                return {
+                                                    id: getIdFromExistingHours(formattedDate),
+                                                    hours: parsedHours,
+                                                    minutes: 0,
+                                                    date: formattedDate,
+                                                };
+                                            });
                                             onDateWiseHoursChange(dateWise);
                                         }
                                     } else if (startDate && endDate) {
@@ -523,11 +550,15 @@ export const DurationPicker = ({
                                         if (onChange) onChange(total);
 
                                         if (onDateWiseHoursChange) {
-                                            const dateWise = workingDays.map((d) => ({
-                                                hours: parsedHoursPerDay,
-                                                minutes: 0,
-                                                date: formatLocalDate(d.date),
-                                            }));
+                                            const dateWise = workingDays.map((d) => {
+                                                const formattedDate = formatLocalDate(d.date);
+                                                return {
+                                                    id: getIdFromExistingHours(formattedDate),
+                                                    hours: parsedHoursPerDay,
+                                                    minutes: 0,
+                                                    date: formattedDate,
+                                                };
+                                            });
                                             onDateWiseHoursChange(dateWise);
                                         }
                                     }
