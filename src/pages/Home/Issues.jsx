@@ -23,6 +23,7 @@ const ISSUES_TABLE_COLUMNS = [
 const Issues = ({ setIsSidebarOpen }) => {
   const [selectedType, setSelectedType] = useState('List');
   const [selectedColumns, setSelectedColumns] = useState({});
+  const [searchQuery, setSearchQuery] = useState('');
 
   const handleColumnsChange = (columns) => {
     setSelectedColumns(columns);
@@ -38,8 +39,10 @@ const Issues = ({ setIsSidebarOpen }) => {
         context="Issues"
         onColumnsChange={handleColumnsChange}
         availableColumns={ISSUES_TABLE_COLUMNS}
+        searchQuery={searchQuery}
+        setSearchQuery={setSearchQuery}
       />
-      <IssuesTable selectedColumns={selectedColumns} />
+      <IssuesTable selectedColumns={selectedColumns} searchQuery={searchQuery} />
     </>
   );
 };

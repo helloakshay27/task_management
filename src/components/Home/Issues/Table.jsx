@@ -53,9 +53,8 @@ const NewIssuesTextField = ({
       value={value || ''}
       onChange={onChange}
       onKeyDown={handleKeyDown}
-      className={`${
-        validator ? 'border border-red-500' : 'border-none'
-      } w-full p-1 focus:outline-none rounded text-[12px]`}
+      className={`${validator ? 'border border-red-500' : 'border-none'
+        } w-full p-1 focus:outline-none rounded text-[12px]`}
       style={{ background: 'none' }}
     />
   );
@@ -76,9 +75,8 @@ const NewIssuesDateEditor = ({ value, onChange, onEnterPress, placeholder, valid
       value={value || ''}
       onChange={onChange}
       onKeyDown={handleKeyDown}
-      className={`${
-        validator ? 'border border-red-500' : 'border-none'
-      } my-custom-date-editor w-full p-1 focus:outline-none rounded text-[13px]`}
+      className={`${validator ? 'border border-red-500' : 'border-none'
+        } my-custom-date-editor w-full p-1 focus:outline-none rounded text-[13px]`}
     />
   );
 };
@@ -238,16 +236,15 @@ const DraggableColumnHeader = ({ header, onReorderColumns, columnOrder }) => {
         transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
         transform: isOver ? 'scale(1.02)' : 'scale(1)',
       }}
-      className={`border p-2 bg-gray-300 text-center text-gray-700 font-semibold sticky top-0 cursor-move select-none ${
-        isDragging ? 'shadow-lg' : ''
-      } ${isOver ? 'bg-gray-300' : ''}`}
+      className={`border p-2 bg-gray-300 text-center text-gray-700 font-semibold sticky top-0 cursor-move select-none ${isDragging ? 'shadow-lg' : ''
+        } ${isOver ? 'bg-gray-300' : ''}`}
     >
       {flexRender(header.column.columnDef.header, header.getContext())}
     </th>
   );
 };
 
-const IssuesTable = ({ selectedColumns, projectId }) => {
+const IssuesTable = ({ selectedColumns, projectId, searchQuery = '' }) => {
   const { id: parentId } = useParams();
   const dispatch = useDispatch();
   const token = localStorage.getItem('token');
@@ -335,21 +332,21 @@ const IssuesTable = ({ selectedColumns, projectId }) => {
     return savedOrder
       ? JSON.parse(savedOrder)
       : [
-          'id',
-          'projectName',
-          'milestoneName',
-          'taskName',
-          'subtaskName',
-          'issueTitle',
-          'attachments',
-          'status',
-          'responsiblePerson',
-          'issueType',
-          'startDate',
-          'endDate',
-          'priority',
-          'comments',
-        ];
+        'id',
+        'projectName',
+        'milestoneName',
+        'taskName',
+        'subtaskName',
+        'issueTitle',
+        'attachments',
+        'status',
+        'responsiblePerson',
+        'issueType',
+        'startDate',
+        'endDate',
+        'priority',
+        'comments',
+      ];
   });
   const [isAddingNewIssues, setIsAddingNewIssues] = useState(false);
   const [newIssuesTitle, setNewIssuesTitle] = useState('');
@@ -406,7 +403,37 @@ const IssuesTable = ({ selectedColumns, projectId }) => {
 
   console.log(issueType);
 
-  // Fetch issues
+  // Handle search with pagination
+  useEffect(() => {
+    if (searchQuery.trim()) {
+      // Reset to first page when search query changes
+      setPagination((prev) => ({
+        ...prev,
+        pageIndex: 0,
+      }));
+
+      const page = 1;
+      const filter = {
+        'q[title_or_project_management_title_cont]': searchQuery,
+        page,
+        per_page: 10,
+        ...(projectId && { 'q[project_management_id_eq]': projectId }),
+      };
+
+      const queryString = qs.stringify(filter);
+      dispatch(
+        filterIssue({
+          token,
+          filter: queryString,
+        })
+      );
+    } else {
+      // If search is cleared, reset to initial fetch
+      allIssuesFetchInitiatedRef.current = false;
+    }
+  }, [searchQuery, dispatch, token, projectId]);
+
+  // Fetch issues - only for initial load if no search
   useEffect(() => {
     if (
       !loadingAllIssues &&
@@ -414,7 +441,8 @@ const IssuesTable = ({ selectedColumns, projectId }) => {
         !Array.isArray(allIssuesFromStore) ||
         allIssuesFromStore.length === 0) &&
       !allIssuesError &&
-      !allIssuesFetchInitiatedRef.current
+      !allIssuesFetchInitiatedRef.current &&
+      !searchQuery.trim()
     ) {
       // If projectId is provided, use filter to get issues for that project
       if (projectId) {
@@ -450,6 +478,7 @@ const IssuesTable = ({ selectedColumns, projectId }) => {
     pagination.pageIndex,
     pagination.pageSize,
     projectId,
+    searchQuery,
   ]);
 
   useEffect(() => {
@@ -458,6 +487,27 @@ const IssuesTable = ({ selectedColumns, projectId }) => {
       pageIndex: current_page - 1,
     }));
   }, [current_page]);
+
+  // Handle pagination for search results
+  useEffect(() => {
+    if (searchQuery.trim() && pagination.pageIndex > 0) {
+      const page = pagination.pageIndex + 1;
+      const filter = {
+        'q[title_or_project_management_title_cont]': searchQuery,
+        page,
+        per_page: 10,
+        ...(projectId && { 'q[project_management_id_eq]': projectId }),
+      };
+
+      const queryString = qs.stringify(filter);
+      dispatch(
+        filterIssue({
+          token,
+          filter: queryString,
+        })
+      );
+    }
+  }, [pagination.pageIndex, searchQuery, dispatch, token, projectId]);
 
   useEffect(() => {
     const loadTasks = async () => {
@@ -624,8 +674,13 @@ const IssuesTable = ({ selectedColumns, projectId }) => {
   useEffect(() => {
     let allIssues;
 
+    // If search is active, use filtered issues
+    if (searchQuery.trim()) {
+      allIssues =
+        filterSuccess && filteredIssues && Array.isArray(filteredIssues) ? filteredIssues : [];
+    }
     // If projectId prop is provided, use filtered issues
-    if (projectId) {
+    else if (projectId) {
       allIssues =
         filterSuccess && filteredIssues && Array.isArray(filteredIssues) ? filteredIssues : [];
     } else if (parentId !== null && parentId !== undefined) {
@@ -665,7 +720,7 @@ const IssuesTable = ({ selectedColumns, projectId }) => {
       setLocalError('Failed to load issues.');
       setData([]);
     }
-  }, [allIssuesFromStore, allIssuesError, parentId, filteredIssues, filterSuccess, projectId]);
+  }, [allIssuesFromStore, allIssuesError, parentId, filteredIssues, filterSuccess, projectId, searchQuery]);
 
   // Focus new issue title input
   useEffect(() => {
@@ -1007,9 +1062,9 @@ const IssuesTable = ({ selectedColumns, projectId }) => {
       { value: null, label: 'Unassigned' },
       ...(Array.isArray(users)
         ? users.map((u) => ({
-            value: u.id,
-            label: `${u.firstname || ''} ${u.lastname || ''}`.trim(),
-          }))
+          value: u.id,
+          label: `${u.firstname || ''} ${u.lastname || ''}`.trim(),
+        }))
         : []),
     ],
     [users]
@@ -1426,10 +1481,10 @@ const IssuesTable = ({ selectedColumns, projectId }) => {
         {localError ||
           String(
             allIssuesError?.message ||
-              allIssuesError ||
-              usersFetchError?.message ||
-              usersFetchError ||
-              'Could not load required data.'
+            allIssuesError ||
+            usersFetchError?.message ||
+            usersFetchError ||
+            'Could not load required data.'
           )}
       </div>
     );
@@ -1471,9 +1526,8 @@ const IssuesTable = ({ selectedColumns, projectId }) => {
                     {row.getVisibleCells().map((cell) => (
                       <td
                         key={cell.id}
-                        className={`border p-1 align-middle ${
-                          cell.column.id === 'actions' ? 'text-center' : 'text-left'
-                        }`}
+                        className={`border p-1 align-middle ${cell.column.id === 'actions' ? 'text-center' : 'text-left'
+                          }`}
                       >
                         <div className="p-1 h-full flex items-center">
                           {flexRender(cell.column.columnDef.cell, cell.getContext())}

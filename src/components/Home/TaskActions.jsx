@@ -412,7 +412,7 @@ const TaskActions = ({
     <>
       <div className="flex items-center justify-between mx-6 mt-4 mb-3 text-sm">
         <div className="relative">
-          {(addType === 'Project' || addType === 'Milestone' || addType === 'Task') &&
+          {(addType === 'Project' || addType === 'Milestone' || addType === 'Task' || addType === 'Issues') &&
             selectedType === 'List' && (
               <>
                 <input
