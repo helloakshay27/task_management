@@ -1,4 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300..800;1,300..800&family=Poppins:wght@100;200;300;400;500;600&display=swap");
+@import url('https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300..800;1,300..800&family=Poppins:wght@100;200;300;400;500;600&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -9,7 +9,7 @@
 }
 
 * {
-  font-family: "Poppins", sans-serif;
+  font-family: 'Poppins', sans-serif;
 }
 
 .bg-red {
@@ -89,18 +89,16 @@
 
 /* Make Gantt task link lines reddish-brown */
 .gantt_line_wrapper div {
-  background-color: #C72030 !important; /* Reddish-brown color from the image */
+  background-color: #c72030 !important; /* Reddish-brown color from the image */
 }
 
 /* Corners */
 .gantt_task_link .gantt_link_corner {
-  border-color: #C72030 !important; /* Match corner color to line */
-  
+  border-color: #c72030 !important; /* Match corner color to line */
 }
 
-.gantt_task_link div.gantt_link_arrow{
-   color: #C72030 !important; /* Reddish-brown color from the image */
-
+.gantt_task_link div.gantt_link_arrow {
+  color: #c72030 !important; /* Reddish-brown color from the image */
 }
 
 /* Optional: Arrow color */
@@ -108,14 +106,10 @@
 }
 
 gantt_task_link div.gantt_link_arrow:before {
-
-   color: #C72030 !important; /* Reddish-brown color from the image */
-
-   
-
+  color: #c72030 !important; /* Reddish-brown color from the image */
 }
 
-.gantt_cal_ltitle{
+.gantt_cal_ltitle {
   border-bottom: 1px solid #c72030 !important;
 }
 
@@ -125,21 +119,19 @@ gantt_task_link div.gantt_link_arrow:before {
   border: none !important;
 }
 
-.gantt_cancel_btn_set{
-
-    border: 1px solid #c72030 !important;
-    color: #c72030 !important;
-
+.gantt_cancel_btn_set {
+  border: 1px solid #c72030 !important;
+  color: #c72030 !important;
 }
-.gantt_duration .gantt_duration_dec, .gantt_duration .gantt_duration_inc {
-    color: #c72030 !important;
+.gantt_duration .gantt_duration_dec,
+.gantt_duration .gantt_duration_inc {
+  color: #c72030 !important;
 }
 .gantt_link_arrow {
-    --dhx-gantt-base-colors-icons:#C72030 !important;
+  --dhx-gantt-base-colors-icons: #c72030 !important;
 }
 
 /* Optional: border styling for better visibility */
-
 
 .gantt_task_row.gantt_selected {
   background-color: #f5f5f5;
@@ -227,13 +219,11 @@ svg {
   stroke: red !important;
 }
 
-input[type=number]::-webkit-inner-spin-button,
-input[type=number]::-webkit-outer-spin-button {
+input[type='number']::-webkit-inner-spin-button,
+input[type='number']::-webkit-outer-spin-button {
   -webkit-appearance: none;
   margin: 0;
 }
-
-
 
 @layer base {
   :root {
@@ -290,8 +280,6 @@ input[type=number]::-webkit-outer-spin-button {
     --chart-5: 340 75% 55%;
   }
 }
-
-
 
 @layer base {
   * {

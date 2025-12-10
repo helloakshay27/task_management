@@ -1,12 +1,12 @@
-import React, { useState } from "react";
-import axios from "axios";
-import { useNavigate } from "react-router-dom";
-import toast from "react-hot-toast";
-import { Eye, EyeOff } from "lucide-react";
-import { set } from "react-hook-form";
-import { baseURL } from "../../../apiDomain";
-import { useLocation } from "react-router-dom";
-import { getCloudHomeRoute } from "../../utils/navigationUtils";
+import React, { useState } from 'react';
+import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
+import toast from 'react-hot-toast';
+import { Eye, EyeOff } from 'lucide-react';
+import { set } from 'react-hook-form';
+import { baseURL } from '../../../apiDomain';
+import { useLocation } from 'react-router-dom';
+import { getCloudHomeRoute } from '../../utils/navigationUtils';
 
 // Define login route to destination mappings
 const LOGIN_DESTINATIONS = {
@@ -26,16 +26,16 @@ const Login = () => {
   // Check if this is a cloud login
   const isCloudLogin = Object.keys(LOGIN_DESTINATIONS).includes(location.pathname);
 
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const handleLogin = async () => {
     if (!email || !password) {
       toast.dismiss();
-      toast.error("Email and password are required");
+      toast.error('Email and password are required');
       return;
     }
     setLoading(true);
@@ -47,8 +47,8 @@ const Login = () => {
         },
       });
       if (response.data.access_token) {
-        localStorage.setItem("token", response.data.access_token);
-        localStorage.setItem("user", JSON.stringify(response.data.user));
+        localStorage.setItem('token', response.data.access_token);
+        localStorage.setItem('user', JSON.stringify(response.data.user));
 
         // Store cloud preference if this is a cloud login
         if (isCloudLogin) {
@@ -56,13 +56,13 @@ const Login = () => {
         }
 
         toast.dismiss();
-        toast.success("Login successful!");
+        toast.success('Login successful!');
 
         const destination = getDestination();
         setTimeout(() => navigate(destination), 500);
       }
     } catch (error) {
-      const errMsg = error.response?.data?.error || "Login failed";
+      const errMsg = error.response?.data?.error || 'Login failed';
       setError(errMsg);
       toast.dismiss();
       toast.error(errMsg);
@@ -79,9 +79,7 @@ const Login = () => {
           <div className="flex justify-center items-center mb-8">
             <img src="LockatedLogo.png" alt="Logo" className="w-[170px]" />
           </div>
-          <div className="font-[600] text-[22px]">
-            Login to access Project Management
-          </div>
+          <div className="font-[600] text-[22px]">Login to access Project Management</div>
           <div className="flex flex-col justify-start gap-2">
             <label className="font-[600] text-[16px]">User Name</label>
             <input
@@ -95,7 +93,7 @@ const Login = () => {
           <div className="flex flex-col justify-start gap-2 relative">
             <label className="font-[600] text-[16px]">Password</label>
             <input
-              type={`${showPassword ? "" : "password"}`}
+              type={`${showPassword ? '' : 'password'}`}
               className="w-[420px] h-[48px] bg-[#D9D9D957] p-2"
               placeholder="Enter Password"
               value={password}
@@ -115,14 +113,11 @@ const Login = () => {
               />
             )}
           </div>
-          <div>
-            {error && (
-              <p className="text-red-500 align-center text-[12px]">{error}</p>
-            )}
-          </div>
+          <div>{error && <p className="text-red-500 align-center text-[12px]">{error}</p>}</div>
           <button
-            className={`w-[420px] h-[48px] bg-[#C72030] text-white text-[20px] font-[400] ${loading ? "cursor-not-allowed opacity-50" : "cursor-pointer"
-              }`}
+            className={`w-[420px] h-[48px] bg-[#C72030] text-white text-[20px] font-[400] ${
+              loading ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'
+            }`}
             onClick={handleLogin}
             disabled={loading}
           >

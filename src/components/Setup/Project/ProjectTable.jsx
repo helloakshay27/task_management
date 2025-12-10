@@ -1,4 +1,3 @@
-/* eslint-disable react/prop-types */
 import { useMemo, useState, useCallback } from 'react';
 import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
@@ -21,8 +20,7 @@ const ActionIcons = ({ row }) => (
 );
 
 const ProjectTable = () => {
-
-  const navigate = useNavigate()
+  const navigate = useNavigate();
 
   const [projectData] = useState([
     {
@@ -58,61 +56,66 @@ const ProjectTable = () => {
     navigate('/setup/project-teams/project-details', { state: rowData });
   };
 
-  const allColumns = useMemo(() => [
-    {
-      accessorKey: 'teamName',
-      header: 'Team Name',
-      size: 200,
-      cell: ({ row, getValue }) => (
-        <span onClick={() => handleRowClick(row.original)} className="cursor-pointer ">
-          {getValue()}
-        </span>
-      ),
-    },
-    {
-      accessorKey: 'teamLead',
-      header: 'Team Lead',
-      size: 200,
-      cell: ({ row, getValue }) => (
-        <span onClick={() => handleRowClick(row.original)} className="cursor-pointer ">
-          {getValue()}
-        </span>
-      ),
-    },
-    {
-      accessorKey: 'associatedProjects',
-      header: 'Associated Projects',
-      size: 250,
-      cell: ({ row, getValue }) => (
-        <span onClick={() => handleRowClick(row.original)} className="cursor-pointer ">
-          {getValue()}
-        </span>
-      ),
-    },
-    {
-      accessorKey: 'teamMembers',
-      header: () => (
-        <>
-          Team Members <em className="text-xs">(TL + Members)</em>
-        </>
-      ),
-      size: 150,
-      cell: ({ row, getValue }) => (
-        <span onClick={() => handleRowClick(row.original)} className="cursor-pointer ">
-          {getValue()}
-        </span>
-      ),
-    },
-    {
-      id: 'actions',
-      header: 'Actions',
-      size: 100,
-      cell: ({ row }) => <ActionIcons row={row} />,
-    },
-  ], []);
+  const allColumns = useMemo(
+    () => [
+      {
+        accessorKey: 'teamName',
+        header: 'Team Name',
+        size: 200,
+        cell: ({ row, getValue }) => (
+          <span onClick={() => handleRowClick(row.original)} className="cursor-pointer ">
+            {getValue()}
+          </span>
+        ),
+      },
+      {
+        accessorKey: 'teamLead',
+        header: 'Team Lead',
+        size: 200,
+        cell: ({ row, getValue }) => (
+          <span onClick={() => handleRowClick(row.original)} className="cursor-pointer ">
+            {getValue()}
+          </span>
+        ),
+      },
+      {
+        accessorKey: 'associatedProjects',
+        header: 'Associated Projects',
+        size: 250,
+        cell: ({ row, getValue }) => (
+          <span onClick={() => handleRowClick(row.original)} className="cursor-pointer ">
+            {getValue()}
+          </span>
+        ),
+      },
+      {
+        accessorKey: 'teamMembers',
+        header: () => (
+          <>
+            Team Members <em className="text-xs">(TL + Members)</em>
+          </>
+        ),
+        size: 150,
+        cell: ({ row, getValue }) => (
+          <span onClick={() => handleRowClick(row.original)} className="cursor-pointer ">
+            {getValue()}
+          </span>
+        ),
+      },
+      {
+        id: 'actions',
+        header: 'Actions',
+        size: 100,
+        cell: ({ row }) => <ActionIcons row={row} />,
+      },
+    ],
+    []
+  );
 
   const columns = columnOrder
-    .map((columnId) => allColumns.find((col) => col.accessorKey === columnId || col.id === columnId))
+    .map((columnId) =>
+      allColumns.find((col) => col.accessorKey === columnId || col.id === columnId)
+    )
     .filter(Boolean);
 
   return (

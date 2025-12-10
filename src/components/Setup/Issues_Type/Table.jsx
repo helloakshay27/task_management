@@ -1,4 +1,3 @@
-/* eslint-disable react/prop-types */
 import { useState, useMemo, useEffect } from 'react';
 import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
@@ -25,7 +24,6 @@ const TypesTable = () => {
 
   const dispatch = useDispatch();
   const { fetchIssueType: ProjectTypes } = useSelector((state) => state.fetchIssueType);
-
 
   // Initial fetch of project types
   useEffect(() => {
@@ -70,7 +68,7 @@ const TypesTable = () => {
           primary: 'red', // This might directly change the color of the error icon
           secondary: 'white', // The circle background
         },
-      })
+      });
     }
   };
 
@@ -84,10 +82,11 @@ const TypesTable = () => {
               sx={{ fontSize: '20px', cursor: 'pointer' }}
               onClick={() => handleEditClick(row)}
             />
-            <button
-              title="Delete"
-            >
-              <DeleteOutlineOutlinedIcon sx={{ fontSize: '20px' }} onClick={() => setIsDeleteModalOpen(true)} />
+            <button title="Delete">
+              <DeleteOutlineOutlinedIcon
+                sx={{ fontSize: '20px' }}
+                onClick={() => setIsDeleteModalOpen(true)}
+              />
             </button>
           </div>
         </div>
@@ -100,7 +99,7 @@ const TypesTable = () => {
           }}
         />
       </>
-    )
+    );
   };
 
   function formatToDDMMYYYY(dateString) {
@@ -121,9 +120,7 @@ const TypesTable = () => {
         size: 350,
         cell: ({ row, getValue }) => {
           const value = getValue();
-          return row.original && value
-            ? value
-            : null;
+          return row.original && value ? value : null;
         },
       },
       {
@@ -140,7 +137,7 @@ const TypesTable = () => {
         header: 'Description',
         size: 250,
         cell: ({ row, getValue }) => {
-          return row.original ? <span className='pl-2'>{getValue()}</span> : null;
+          return row.original ? <span className="pl-2">{getValue()}</span> : null;
         },
       },
       {
@@ -200,24 +197,17 @@ const TypesTable = () => {
                       className="bg-[#D5DBDB] px-3 py-3.5 text-center font-[500] border-r-2"
                     >
                       {header.isPlaceholder ? null : (
-                        <div>
-                          {flexRender(
-                            header.column.columnDef.header,
-                            header.getContext()
-                          )}
-                        </div>
+                        <div>{flexRender(header.column.columnDef.header, header.getContext())}</div>
                       )}
                     </th>
                   ))}
                 </tr>
               ))}
             </thead>
-            <tbody
-              className="divide-y"
-              style={{ height: `${fixedRowsPerPage * rowHeight}px` }}
-            >
+            <tbody className="divide-y" style={{ height: `${fixedRowsPerPage * rowHeight}px` }}>
               {pageRows.map((row) => {
-                const isDataRowConsideredEmpty = !row.original || Object.values(row.original).every((v) => v === null || v === '');
+                const isDataRowConsideredEmpty =
+                  !row.original || Object.values(row.original).every((v) => v === null || v === '');
 
                 return (
                   <tr
@@ -268,7 +258,7 @@ const TypesTable = () => {
               disabled={!table.getCanPreviousPage()}
               className="text-red-600 disabled:opacity-30"
             >
-              {"<"}
+              {'<'}
             </button>
 
             {/* Page Numbers (Sliding Window of 3) */}
@@ -294,7 +284,7 @@ const TypesTable = () => {
                   <button
                     key={page}
                     onClick={() => table.setPageIndex(page)}
-                    className={` px-3 py-1 ${isActive ? "bg-gray-200 font-bold" : ""}`}
+                    className={` px-3 py-1 ${isActive ? 'bg-gray-200 font-bold' : ''}`}
                   >
                     {page + 1}
                   </button>
@@ -308,7 +298,7 @@ const TypesTable = () => {
               disabled={!table.getCanNextPage()}
               className="text-red-600 disabled:opacity-30"
             >
-              {">"}
+              {'>'}
             </button>
           </div>
         )}

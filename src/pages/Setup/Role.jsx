@@ -1,12 +1,11 @@
-import RoleTable from "../../components/Setup/Role/RoleTable"
+import RoleTable from '../../components/Setup/Role/RoleTable';
 
 const Role = () => {
-    return (
-        <>
-            <RoleTable />
-        </>
+  return (
+    <>
+      <RoleTable />
+    </>
+  );
+};
 
-    )
-}
-
-export default Role
+export default Role;

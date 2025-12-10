@@ -1,11 +1,11 @@
 import { useGSAP } from '@gsap/react';
 import gsap from 'gsap';
 import { X } from 'lucide-react';
-import { useRef, useState, useEffect } from 'react'
+import { useRef, useState, useEffect } from 'react';
 import SelectBox from './SelectBox';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchKanbanTasks } from '@/redux/slices/taskSlice';
-import { fetchProjects } from '@/redux/slices/projectSlice';
+import { fetchKanbanProjects } from '@/redux/slices/projectSlice';
 import { fetchMilestone } from '@/redux/slices/milestoneSlice';
 import axios from 'axios';
 import { baseURL } from '../../apiDomain';
@@ -41,7 +41,7 @@ const Attachments = ({ attachments, setAttachments }) => {
         setAttachments(updatedAttachments);
     };
 
-    const isImage = (file) => file.type.startsWith("image/");
+    const isImage = (file) => file.type.startsWith('image/');
     const getFileUrl = (file) => URL.createObjectURL(file);
 
     return (
@@ -68,10 +68,7 @@ const Attachments = ({ attachments, setAttachments }) => {
             {files?.length > 0 && (
                 <div className="flex flex-wrap gap-4 mt-2">
                     {files.map((file, index) => (
-                        <div
-                            key={index}
-                            className="relative w-[80px] h-[80px] border rounded-md"
-                        >
+                        <div key={index} className="relative w-[80px] h-[80px] border rounded-md">
                             <button
                                 type="button"
                                 onClick={() => handleRemoveFile(index)}
@@ -102,24 +99,20 @@ const Attachments = ({ attachments, setAttachments }) => {
 const AddOpportunityModal = ({ isModalOpen, setIsModalOpen }) => {
     const addTaskModalRef = useRef(null);
     const dispatch = useDispatch();
-    const token = localStorage.getItem("token");
+    const token = localStorage.getItem('token');
 
     const {
-        fetchProjects: projects,
+        fetchKanbanProjects: projects,
         loading: loadingProjects,
         error: projectsFetchError,
-    } = useSelector(
-        (state) =>
-            state.fetchProjects || { projects: [], loading: false, error: null }
-    );
+    } = useSelector((state) => state.fetchKanbanProjects || { projects: [], loading: false, error: null });
 
     const {
         fetchMilestone: milestone,
         loading: loadingMilestone,
         error: milestoneFetchError,
     } = useSelector(
-        (state) =>
-            state.fetchMilestone || { milestone: [], loading: false, error: null }
+        (state) => state.fetchMilestone || { milestone: [], loading: false, error: null }
     );
 
     const {
@@ -130,32 +123,27 @@ const AddOpportunityModal = ({ isModalOpen, setIsModalOpen }) => {
         (state) => state.fetchKanbanTasks || { fetchKanbanTasks: [], loading: false, error: null }
     );
 
-    const {
-        fetchUsers: users,
-    } = useSelector(
+    const { fetchUsers: users } = useSelector(
         (state) => state.fetchUsers || { users: [], loading: false, error: null }
     );
 
-    const {
-        fetchActiveTags: tags,
-    } = useSelector(
+    const { fetchActiveTags: tags } = useSelector(
         (state) => state.fetchActiveTags || { fetchActiveTags: [], loading: false, error: null }
     );
 
-    const [title, setTitle] = useState("");
-    const [description, setDescription] = useState("")
-    const [comments, setComments] = useState("");
-    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [title, setTitle] = useState('');
+    const [description, setDescription] = useState('');
     const [attachments, setAttachments] = useState([]);
     const [projectOptions, setProjectOptions] = useState([]);
     const [milestoneOptions, setMilestoneOptions] = useState([]);
-    const [taskOptions, setTaskOptions] = useState([]);
-    const [subtaskOptions, setSubtaskOptions] = useState([]);
-    const [newIssuesProjectId, setNewIssuesProjectId] = useState("");
-    const [newIssuesMilestoneId, setNewIssuesMilestoneId] = useState("");
-    const [newIssuesTaskId, setNewIssuesTaskId] = useState("");
-    const [newIssuesSubtaskId, setNewIssuesSubtaskId] = useState("");
-    const [responsiblePersone, setResponsiblePersone] = useState("")
+    const [_taskOptions, _setTaskOptions] = useState([]);
+    const [_subtaskOptions, _setSubtaskOptions] = useState([]);
+    const [newIssuesProjectId, _setNewIssuesProjectId] = useState('');
+    const [newIssuesMilestoneId, setNewIssuesMilestoneId] = useState('');
+    const [newIssuesTaskId, setNewIssuesTaskId] = useState('');
+    const [_newIssuesSubtaskId, _setNewIssuesSubtaskId] = useState('');
+    const [isSubmitting] = useState(false);
+    const [responsiblePersone, setResponsiblePersone] = useState('');
 
     useEffect(() => {
         dispatch(fetchUsers({ token }));
@@ -166,51 +154,39 @@ const AddOpportunityModal = ({ isModalOpen, setIsModalOpen }) => {
         if (isModalOpen) {
             gsap.fromTo(
                 addTaskModalRef.current,
-                { x: "100%" },
-                { x: "0%", duration: 0.5, ease: "power3.out" }
+                { x: '100%' },
+                { x: '0%', duration: 0.5, ease: 'power3.out' }
             );
         }
     }, [isModalOpen]);
 
     const closeModal = () => {
         gsap.to(addTaskModalRef.current, {
-            x: "100%",
+            x: '100%',
             duration: 0.5,
-            ease: "power3.in",
+            ease: 'power3.in',
             onComplete: () => setIsModalOpen(false),
         });
     };
 
     useEffect(() => {
-        if (
-            !loadingMilestone &&
-            milestoneOptions?.length > 0 &&
-            !milestoneFetchError
-        ) {
-            if (newIssuesProjectId)
-                dispatch(fetchKanbanTasks({ projectId: newIssuesProjectId, token }));
-            setNewIssuesTaskId("");
-            setTaskOptions([]);
+        if (!loadingMilestone && milestoneOptions?.length > 0 && !milestoneFetchError) {
+            if (newIssuesProjectId) dispatch(fetchKanbanTasks({ projectId: newIssuesProjectId, token }));
+            setNewIssuesTaskId('');
+            _setTaskOptions([]);
             // Clear subtask options and selection when milestone changes
-            setNewIssuesSubtaskId("");
-            setSubtaskOptions([]);
+            _setNewIssuesSubtaskId('');
+            _setSubtaskOptions([]);
         }
-    }, [
-        dispatch,
-        loadingMilestone,
-        milestoneFetchError,
-        newIssuesProjectId,
-        milestoneOptions,
-    ]);
+    }, [dispatch, loadingMilestone, milestoneFetchError, newIssuesProjectId, milestoneOptions]);
 
     useEffect(() => {
-        dispatch(fetchKanbanTasks({ id: "", token }));
+        dispatch(fetchKanbanTasks({ id: '', token }));
     }, [dispatch]);
-
 
     useEffect(() => {
         if (!loadingTasks && !tasksFetchError && tasks?.length > 0) {
-            setTaskOptions(
+            _setTaskOptions(
                 tasks.map((t) => ({
                     value: t.id,
                     label: t.title,
@@ -229,20 +205,20 @@ const AddOpportunityModal = ({ isModalOpen, setIsModalOpen }) => {
                 Array.isArray(selectedTask.sub_tasks_managements) &&
                 selectedTask.sub_tasks_managements.length > 0
             ) {
-                setSubtaskOptions(
+                _setSubtaskOptions(
                     selectedTask.sub_tasks_managements.map((subtask) => ({
                         value: subtask.id,
                         label: subtask.title,
                     }))
                 );
             } else {
-                setSubtaskOptions([]);
+                _setSubtaskOptions([]);
             }
             // Reset subtask selection when task changes
-            setNewIssuesSubtaskId("");
+            _setNewIssuesSubtaskId('');
         } else {
-            setSubtaskOptions([]);
-            setNewIssuesSubtaskId("");
+            _setSubtaskOptions([]);
+            _setNewIssuesSubtaskId('');
         }
     }, [newIssuesTaskId, tasks]);
 
@@ -254,29 +230,22 @@ const AddOpportunityModal = ({ isModalOpen, setIsModalOpen }) => {
             !projectsFetchError
         ) {
             dispatch(fetchMilestone({ id: newIssuesProjectId, token })).unwrap();
-            setNewIssuesMilestoneId("");
+            setNewIssuesMilestoneId('');
             setMilestoneOptions([]);
-            setNewIssuesTaskId("");
-            setTaskOptions([]);
+            setNewIssuesTaskId('');
+            _setTaskOptions([]);
             // Clear subtask options and selection when project changes
-            setNewIssuesSubtaskId("");
-            setSubtaskOptions([]);
+            _setNewIssuesSubtaskId('');
+            _setSubtaskOptions([]);
         }
-    }, [
-        dispatch,
-        newIssuesProjectId,
-        projectOptions,
-    ]);
+    }, [dispatch, newIssuesProjectId, projectOptions]);
 
     useEffect(() => {
-        if (
-            !loadingProjects &&
-            (!Array.isArray(projectOptions) || projectOptions?.length === 0)
-        ) {
-            dispatch(fetchProjects({ token })).unwrap();
+        if (!loadingProjects && (!Array.isArray(projectOptions) || projectOptions?.length === 0)) {
+            dispatch(fetchKanbanProjects({ token })).unwrap();
             setProjectOptions(
                 projects
-                    ? projects.map((project) => ({
+                    ? projects?.project_managements?.map((project) => ({
                         value: project.id,
                         label: project.title,
                     }))
@@ -301,36 +270,35 @@ const AddOpportunityModal = ({ isModalOpen, setIsModalOpen }) => {
         }
     }, [milestone, loadingMilestone, milestoneFetchError]);
 
-
     const handleSubmit = async (e) => {
         e.preventDefault();
         if (!title) {
-            toast.error("Please enter title")
-            return
+            toast.error('Please enter title');
+            return;
         }
         try {
             const formData = new FormData();
-            formData.append("opportunity[title]", title);
-            formData.append("opportunity[description]", description);
+            formData.append('opportunity[title]', title);
+            formData.append('opportunity[description]', description);
             // formData.append("opportunity[project_management_id]", newIssuesProjectId);
             // formData.append("opportunity[task_management_id]", newIssuesTaskId);
             // formData.append("opportunity[comment]", comments);
-            formData.append("opportunity[responsible_person_id]", responsiblePersone);
+            formData.append('opportunity[responsible_person_id]', responsiblePersone);
             attachments.forEach((file) => {
                 formData.append(`opportunity[attachments][]`, file);
-            })
+            });
 
             await axios.post(`${baseURL}/opportunities.json`, formData, {
                 headers: {
                     Authorization: `Bearer ${token}`,
                 },
-            })
+            });
 
             window.location.reload();
         } catch (error) {
-            console.log(error)
+            console.log(error);
         }
-    }
+    };
 
     return (
         <div className="fixed inset-0 flex items-center justify-end bg-black bg-opacity-50 z-10">
@@ -339,10 +307,7 @@ const AddOpportunityModal = ({ isModalOpen, setIsModalOpen }) => {
                 className="bg-white py-6 rounded-lg shadow-lg w-[33%] relative h-full right-0"
             >
                 <h3 className="text-[14px] font-medium text-center">Add Opportunities</h3>
-                <X
-                    className="absolute top-[26px] right-8 cursor-pointer"
-                    onClick={closeModal}
-                />
+                <X className="absolute top-[26px] right-8 cursor-pointer" onClick={closeModal} />
 
                 <hr className="border border-[#E95420] my-4" />
 
@@ -362,40 +327,40 @@ const AddOpportunityModal = ({ isModalOpen, setIsModalOpen }) => {
                                 className="mentions w-full border outline-none border-gray-300 text-sm h-[40px]"
                                 style={{
                                     control: {
-                                        backgroundColor: "#ffffff",
+                                        backgroundColor: '#ffffff',
                                         fontSize: 14,
-                                        fontWeight: "normal",
+                                        fontWeight: 'normal',
                                     },
                                     highlighter: {
-                                        overflow: "hidden",
+                                        overflow: 'hidden',
                                     },
                                     input: {
                                         margin: 0,
-                                        padding: "8px",
-                                        outline: "none",
+                                        padding: '8px',
+                                        outline: 'none',
                                     },
                                     suggestions: {
                                         list: {
-                                            backgroundColor: "white",
-                                            border: "1px solid #ccc",
+                                            backgroundColor: 'white',
+                                            border: '1px solid #ccc',
                                             fontSize: 14,
                                             zIndex: 100,
-                                            position: "absolute",
-                                            bottom: "100%",
+                                            position: 'absolute',
+                                            bottom: '100%',
                                             left: 0,
-                                            width: "200px",
-                                            maxHeight: "150px",
-                                            overflowY: "auto",
-                                            borderRadius: "4px",
-                                            marginBottom: "4px",
+                                            width: '200px',
+                                            maxHeight: '150px',
+                                            overflowY: 'auto',
+                                            borderRadius: '4px',
+                                            marginBottom: '4px',
                                         },
                                         item: {
-                                            padding: "5px 10px",
-                                            borderBottom: "1px solid #eee",
-                                            cursor: "pointer",
+                                            padding: '5px 10px',
+                                            borderBottom: '1px solid #eee',
+                                            cursor: 'pointer',
                                         },
                                         itemFocused: {
-                                            backgroundColor: "#f5f5f5",
+                                            backgroundColor: '#f5f5f5',
                                         },
                                     },
                                 }}
@@ -406,7 +371,10 @@ const AddOpportunityModal = ({ isModalOpen, setIsModalOpen }) => {
                                         users
                                             ? users.map((user) => ({
                                                 id: user.id.toString(),
-                                                display: `${user.firstname} ${user.lastname}` || "Unknown User",
+                                                display:
+                                                    user.firstname && user.lastname
+                                                        ? `${user.firstname} ${user.lastname}`
+                                                        : 'Unknown User',
                                             }))
                                             : []
                                     }
@@ -436,7 +404,7 @@ const AddOpportunityModal = ({ isModalOpen, setIsModalOpen }) => {
                                 <SelectBox
                                     options={projectOptions}
                                     value={newIssuesProjectId}
-                                    onChange={(selectedValue) => setNewIssuesProjectId(selectedValue)}
+                                    onChange={(selectedValue) => _setNewIssuesProjectId(selectedValue)}
                                     placeholder={"Select Project"}
                                 />
                             </div>
@@ -461,41 +429,41 @@ const AddOpportunityModal = ({ isModalOpen, setIsModalOpen }) => {
                                 className="mentions w-full border outline-none border-gray-300 text-[13px] h-[80px] overflow-y-auto resize-none"
                                 style={{
                                     control: {
-                                        backgroundColor: "#ffffff",
+                                        backgroundColor: '#ffffff',
                                         fontSize: 13,
-                                        fontWeight: "normal",
+                                        fontWeight: 'normal',
                                     },
                                     highlighter: {
-                                        overflow: "hidden",
+                                        overflow: 'hidden',
                                     },
                                     input: {
                                         margin: 0,
-                                        padding: "8px",
-                                        outline: "none",
-                                        height: "100%",
+                                        padding: '8px',
+                                        outline: 'none',
+                                        height: '100%',
                                     },
                                     suggestions: {
                                         list: {
-                                            backgroundColor: "white",
-                                            border: "1px solid #ccc",
+                                            backgroundColor: 'white',
+                                            border: '1px solid #ccc',
                                             fontSize: 14,
                                             zIndex: 100,
-                                            position: "absolute",
-                                            bottom: "100%",
+                                            position: 'absolute',
+                                            bottom: '100%',
                                             left: 0,
-                                            width: "200px",
-                                            maxHeight: "150px",
-                                            overflowY: "auto",
-                                            borderRadius: "4px",
-                                            marginBottom: "4px",
+                                            width: '200px',
+                                            maxHeight: '150px',
+                                            overflowY: 'auto',
+                                            borderRadius: '4px',
+                                            marginBottom: '4px',
                                         },
                                         item: {
-                                            padding: "5px 10px",
-                                            borderBottom: "1px solid #eee",
-                                            cursor: "pointer",
+                                            padding: '5px 10px',
+                                            borderBottom: '1px solid #eee',
+                                            cursor: 'pointer',
                                         },
                                         itemFocused: {
-                                            backgroundColor: "#f5f5f5",
+                                            backgroundColor: '#f5f5f5',
                                         },
                                     },
                                 }}
@@ -506,7 +474,10 @@ const AddOpportunityModal = ({ isModalOpen, setIsModalOpen }) => {
                                         users
                                             ? users.map((user) => ({
                                                 id: user.id.toString(),
-                                                display: `${user.firstname} ${user.lastname}` || "Unknown User",
+                                                display:
+                                                    user.firstname && user.lastname
+                                                        ? `${user.firstname} ${user.lastname}`
+                                                        : 'Unknown User',
                                             }))
                                             : []
                                     }
@@ -551,7 +522,7 @@ const AddOpportunityModal = ({ isModalOpen, setIsModalOpen }) => {
                                     users
                                         ? users.map((user) => ({
                                             value: user.id,
-                                            label: `${user.firstname || ""} ${user.lastname || ""}`.trim(),
+                                            label: `${user.firstname || ''} ${user.lastname || ''}`.trim(),
                                         }))
                                         : []
                                 }
@@ -571,14 +542,14 @@ const AddOpportunityModal = ({ isModalOpen, setIsModalOpen }) => {
                                 className="flex items-center justify-center border-2 text-[black] border-[red] px-4 py-2 w-[100px]"
                                 disabled={isSubmitting}
                             >
-                                {isSubmitting ? "Submitting..." : "Submit"}
+                                {isSubmitting ? 'Submitting...' : 'Submit'}
                             </button>
                         </div>
                     </div>
                 </form>
             </div>
         </div>
-    )
-}
+    );
+};
 
-export default AddOpportunityModal
+export default AddOpportunityModal;

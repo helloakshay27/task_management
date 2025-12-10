@@ -2,465 +2,520 @@ import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import axios from 'axios';
 import { baseURL } from '../../../apiDomain';
 
-const createApiSlice = (name, fetchThunk) => createSlice({
+const createApiSlice = (name, fetchThunk) =>
+  createSlice({
     name,
     initialState: {
-        loading: false,
-        success: false,
-        error: null,
-        [name]: [],
+      loading: false,
+      success: false,
+      error: null,
+      [name]: [],
     },
     reducers: {
-        resetCommentEdit: (state) => {
-            state.loading = false;
-            state.success = false;
-            state.error = null;
-        },
+      resetCommentEdit: (state) => {
+        state.loading = false;
+        state.success = false;
+        state.error = null;
+      },
     },
     extraReducers: (builder) => {
-        builder
-            .addCase(fetchThunk.pending, (state) => {
-                state.loading = true;
-                state.success = false;
-                state.error = null;
-            })
-            .addCase(fetchThunk.fulfilled, (state, action) => {
-                state.loading = false;
-                state.success = true;
-                state.error = null;
-                state[name] = action.payload;
-            })
-            .addCase(fetchThunk.rejected, (state, action) => {
-                state.loading = false;
-                state.success = false;
-                state.error = action.payload || action.error.message;
-            });
+      builder
+        .addCase(fetchThunk.pending, (state) => {
+          state.loading = true;
+          state.success = false;
+          state.error = null;
+        })
+        .addCase(fetchThunk.fulfilled, (state, action) => {
+          state.loading = false;
+          state.success = true;
+          state.error = null;
+          state[name] = action.payload;
+        })
+        .addCase(fetchThunk.rejected, (state, action) => {
+          state.loading = false;
+          state.success = false;
+          state.error = action.payload || action.error.message;
+        });
     },
-});
+  });
 
-export const createTask = createAsyncThunk('createTask', async ({ token, payload }) => {
+export const createTask = createAsyncThunk(
+  'createTask',
+  async ({ token, payload }, { rejectWithValue }) => {
     try {
-        const response = await axios.post(`${baseURL}/task_managements.json`,
-            { task_management: payload },
-            {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                }
-            });
+      const response = await axios.post(
+        `${baseURL}/task_managements.json`,
+        { task_management: payload },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
 
-        return response.data;
+      return response.data;
     } catch (error) {
-        console.log(error);
-        return error.response.data;
+      console.log(error);
+      return rejectWithValue(error);
     }
-});
+  }
+);
 
 export const createSubTask = createAsyncThunk('createSubTask', async ({ token, payload }) => {
-    try {
-        const response = await axios.post(`${baseURL}/task_managements.json`,
-            { task_management: payload },
-            {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                }
-            });
+  try {
+    const response = await axios.post(
+      `${baseURL}/task_managements.json`,
+      { task_management: payload },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      }
+    );
 
-        return response.data;
-    } catch (error) {
-        console.log(error);
-        return error.response.data;
-    }
+    return response.data;
+  } catch (error) {
+    console.log(error);
+    return error.response.data;
+  }
 });
 
-
 export const fetchTasks = createAsyncThunk('fetchTasks', async ({ token, id, page, search }) => {
-    try {
-        // Build query params so we can optionally include search by title
-        const params = new URLSearchParams();
-        // milestone filter (if id is provided and non-empty)
-        if (id !== undefined && id !== null && String(id) !== "") {
-            params.append('q[milestone_id_eq]', id);
-        }
-        // optional title contains search
-        if (search !== undefined && search !== null && String(search).trim() !== "") {
-            params.append('q[title_cont]', search.trim());
-        }
-        // pagination
-        if (page !== undefined && page !== null) {
-            params.append('page', page);
-        }
-
-        const url = `${baseURL}/task_managements.json?${params.toString()}`;
-
-        const response = await axios.get(url, {
-            headers: {
-                Authorization: `Bearer ${token}`,
-            }
-        });
-
-        return response.data;
+  try {
+    // Build query params so we can optionally include search by title
+    const params = new URLSearchParams();
+    // milestone filter (if id is provided and non-empty)
+    if (id !== undefined && id !== null && String(id) !== '') {
+      params.append('q[milestone_id_eq]', id);
     }
-    catch (error) {
-        console.log(error);
-        return error.response?.data || { error: error.message };
+    // optional title contains search
+    if (search !== undefined && search !== null && String(search).trim() !== '') {
+      params.append('q[title_cont]', search.trim());
     }
+    // pagination
+    if (page !== undefined && page !== null) {
+      params.append('page', page);
+    }
+
+    const url = `${baseURL}/task_managements.json?${params.toString()}`;
+
+    const response = await axios.get(url, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    return response.data;
+  } catch (error) {
+    console.log(error);
+    return error.response?.data || { error: error.message };
+  }
 });
 
 export const fetchMyTasks = createAsyncThunk('fetchMyTasks', async ({ token, page, search }) => {
-    try {
-        const params = new URLSearchParams();
-        if (page !== undefined && page !== null) params.append('page', page);
-        if (search !== undefined && search !== null && String(search).trim() !== '') {
-            params.append('q[title_cont]', search.trim());
-        }
-
-        const url = `${baseURL}/task_managements/my_tasks.json?${params.toString()}`;
-
-        const response = await axios.get(url, {
-            headers: {
-                Authorization: `Bearer ${token}`,
-            }
-        });
-
-        return response.data;
+  try {
+    const params = new URLSearchParams();
+    if (page !== undefined && page !== null) params.append('page', page);
+    if (search !== undefined && search !== null && String(search).trim() !== '') {
+      params.append('q[title_cont]', search.trim());
     }
-    catch (error) {
-        console.log(error);
-        return error.response?.data || { error: error.message };
-    }
+
+    const url = `${baseURL}/task_managements/my_tasks.json?${params.toString()}`;
+
+    const response = await axios.get(url, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    return response.data;
+  } catch (error) {
+    console.log(error);
+    return error.response?.data || { error: error.message };
+  }
 });
-
 
 export const updateTask = createAsyncThunk('updateTask', async ({ token, id, payload }) => {
-    try {
-        const response = await axios.put(`${baseURL}/task_managements/${id}.json`,
-            { task_management: payload },
-            {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                }
-            });
+  try {
+    const response = await axios.put(
+      `${baseURL}/task_managements/${id}.json`,
+      { task_management: payload },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      }
+    );
 
-        return response.data;
-    } catch (error) {
-        console.log(error);
-        return error.response.data;
-    }
-})
+    return response.data;
+  } catch (error) {
+    console.log(error);
+    return error.response.data;
+  }
+});
 
 export const updateIssue = createAsyncThunk('updateIssue', async ({ token, id, payload }) => {
-    try {
-        const response = await axios.put(`${baseURL}/issues/${id}.json`,
-            { issue: payload },
-            {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                }
-            });
+  try {
+    const response = await axios.put(
+      `${baseURL}/issues/${id}.json`,
+      { issue: payload },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      }
+    );
 
-        return response.data;
-    } catch (error) {
-        console.log(error);
-        return error.response.data;
-    }
-})
+    return response.data;
+  } catch (error) {
+    console.log(error);
+    return error.response.data;
+  }
+});
 
 export const taskDetails = createAsyncThunk('taskDetails', async ({ token, id }) => {
+  try {
+    const response = await axios.get(`${baseURL}/task_managements/${id}.json`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    return response.data;
+  } catch (error) {
+    console.log(error);
+    return error.response.data;
+  }
+});
+
+export const fetchTargetDateTasks = createAsyncThunk(
+  'fetchTargetDateTasks',
+  async ({ token, id, date }) => {
     try {
-        const response = await axios.get(`${baseURL}/task_managements/${id}.json`, {
-            headers: {
-                Authorization: `Bearer ${token}`,
-            }
-        });
+      const response = await axios.get(
+        `${baseURL}/task_managements/filtered_tasks.json?allocation_date=${date}&responsible_person_id=${id}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
-        return response.data;
+      return response.data;
     } catch (error) {
-        console.log(error);
-        return error.response.data;
+      console.log(error);
+      return error.response.data;
     }
-})
+  }
+);
 
-export const fetchTargetDateTasks = createAsyncThunk('fetchTargetDateTasks', async ({ token, id, date }) => {
+export const editTask = createAsyncThunk(
+  'editTask',
+  async ({ token, id, payload }, { rejectWithValue }) => {
     try {
-        const response = await axios.get(`${baseURL}/task_managements/filtered_tasks.json?allocation_date=${date}&responsible_person_id=${id}`, {
-            headers: {
-                Authorization: `Bearer ${token}`,
-            }
-        });
+      const response = await axios.put(
+        `${baseURL}/task_managements/${id}.json`,
+        { task_management: payload },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
 
-        return response.data;
+      return response.data;
     } catch (error) {
-        console.log(error);
-        return error.response.data;
+      console.log(error);
+      return rejectWithValue(error);
     }
-})
-
-export const editTask = createAsyncThunk('editTask', async ({ token, id, payload }) => {
-    try {
-        const response = await axios.put(`${baseURL}/task_managements/${id}.json`,
-            { task_management: payload },
-            {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                }
-            });
-
-        return response.data;
-    } catch (error) {
-        console.log(error);
-        return error.response.data;
-    }
-})
+  }
+);
 
 export const deleteTask = createAsyncThunk('deleteTask', async ({ token, id }) => {
+  try {
+    const response = await axios.delete(`${baseURL}/task_managements/${id}.json`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+    });
+
+    return response.data;
+  } catch (error) {
+    console.log(error);
+    return error.response.data;
+  }
+});
+
+export const createTaskComment = createAsyncThunk(
+  'createTaskComment',
+  async ({ token, payload }) => {
     try {
-        const response = await axios.delete(`${baseURL}/task_managements/${id}.json`,
-            {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                }
-            });
+      const response = await axios.post(`${baseURL}/comments.json`, payload, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
-        return response.data;
+      return response.data;
     } catch (error) {
-        console.log(error);
-        return error.response.data;
+      console.log(error);
+      return error.response.data;
     }
-})
+  }
+);
 
-export const createTaskComment = createAsyncThunk('createTaskComment', async ({ token, payload }) => {
+export const fetchKanbanTasks = createAsyncThunk(
+  'fetchKanbanTasks',
+  async ({ token, id, projectId }) => {
+    const queryParam = projectId
+      ? `q[project_management_id_eq]=${projectId}`
+      : `q[milestone_id_eq]=${id}`;
     try {
-        const response = await axios.post(`${baseURL}/comments.json`, payload, {
-            headers: {
-                Authorization: `Bearer ${token}`,
-            }
-        });
+      const response = await axios.get(`${baseURL}/task_managements/kanban.json?${queryParam}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
-        return response.data;
+      return response.data;
     } catch (error) {
-        console.log(error);
-        return error.response.data;
+      console.log(error);
+      return error.response.data;
     }
-})
+  }
+);
 
-export const fetchKanbanTasks = createAsyncThunk('fetchKanbanTasks', async ({ token, id, projectId }) => {
-    const queryParam = projectId ? `q[project_management_id_eq]=${projectId}` : `q[milestone_id_eq]=${id}`;
+export const fetchKanbanTasksOfProject = createAsyncThunk(
+  'fetchKanbanTasks',
+  async ({ token, id }) => {
     try {
-        const response = await axios.get(`${baseURL}/task_managements/kanban.json?${queryParam}`, {
-            headers: {
-                Authorization: `Bearer ${token}`,
-            }
-        });
+      const response = await axios.get(
+        `${baseURL}/task_managements/kanban.json?q[project_management_id_eq]=${id}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
-        return response.data;
+      return response.data;
     } catch (error) {
-        console.log(error);
-        return error.response.data;
+      console.log(error);
+      return error.response.data;
     }
-})
+  }
+);
 
-export const fetchKanbanTasksOfProject = createAsyncThunk('fetchKanbanTasks', async ({ token, id }) => {
+export const editTaskComment = createAsyncThunk(
+  'editTaskComment',
+  async ({ token, id, payload }) => {
+    console.log(payload);
     try {
-        const response = await axios.get(`${baseURL}/task_managements/kanban.json?q[project_management_id_eq]=${id}`, {
-            headers: {
-                Authorization: `Bearer ${token}`,
-            }
-        });
+      const response = await axios.put(`${baseURL}/comments/${id}.json`, payload, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'Multipart/form-data',
+        },
+      });
 
-        return response.data;
+      return response.data;
     } catch (error) {
-        console.log(error);
-        return error.response.data;
+      console.log(error);
+      return error.response.data;
     }
-})
-
-export const editTaskComment = createAsyncThunk('editTaskComment', async ({ token, id, payload }) => {
-    console.log(payload)
-    try {
-        const response = await axios.put(`${baseURL}/comments/${id}.json`, payload, {
-            headers: {
-                Authorization: `Bearer ${token}`,
-                'Content-Type': 'Multipart/form-data'
-            }
-        });
-
-        return response.data;
-    } catch (error) {
-        console.log(error);
-        return error.response.data;
-    }
-})
+  }
+);
 
 export const deleteTaskComment = createAsyncThunk('deleteTaskComment', async ({ token, id }) => {
+  try {
+    const response = await axios.delete(`${baseURL}/comments/${id}.json`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+    });
+
+    return response.data;
+  } catch (error) {
+    console.log(error);
+    return error.response.data;
+  }
+});
+
+export const changeTaskStatus = createAsyncThunk(
+  'changeTaskStatus',
+  async ({ token, id, payload }) => {
     try {
-        const response = await axios.delete(`${baseURL}/comments/${id}.json`, {
-            headers: {
-                Authorization: `Bearer ${token}`,
-                'Content-Type': 'application/json'
-            }
-        });
+      const response = await axios.put(
+        `${baseURL}/task_managements/${id}/update_status.json`,
+        payload,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
-        return response.data;
+      return response.data;
     } catch (error) {
-        console.log(error);
-        return error.response.data;
+      console.log(error);
+      return error.response.data;
     }
-})
-
-export const changeTaskStatus = createAsyncThunk('changeTaskStatus', async ({ token, id, payload }) => {
-    try {
-        const response = await axios.put(`${baseURL}/task_managements/${id}/update_status.json`, payload, {
-            headers: {
-                Authorization: `Bearer ${token}`,
-            }
-        });
-
-        return response.data;
-    } catch (error) {
-        console.log(error);
-        return error.response.data;
-    }
-})
+  }
+);
 
 export const attachFiles = createAsyncThunk('attachFiles', async ({ token, id, payload }) => {
-    try {
-        const response = await axios.put(`${baseURL}/task_managements/${id}.json`,
-            payload,
-            {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                    'Content-Type': 'Multipart/form-data'
-                }
-            }
-        );
+  try {
+    const response = await axios.put(`${baseURL}/task_managements/${id}.json`, payload, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'Multipart/form-data',
+      },
+    });
 
-        return response.data;
-    } catch (error) {
-        console.log(error);
-        return error.response.data;
-    }
-})
-
-export const removeTaskAttachment = createAsyncThunk('removeTaskAttachment', async ({ token, id, image_id }) => {
-    try {
-        const response = await axios.delete(`${baseURL}/task_managements/${id}/remove_attachemnts/${image_id}.json`,
-            {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                    'Content-Type': 'Multipart/form-data'
-                }
-            }
-        );
-
-        return response.data;
-    } catch (error) {
-        console.log(error);
-        return error.response.data;
-    }
-})
-
-export const fetchTasksOfProject = createAsyncThunk('fetchTasksOfProject', async ({ token, id }) => {
-    try {
-        const response = await axios.get(`${baseURL}/task_managements.json?q[project_management_id_eq]=${id}`, {
-            headers: {
-                Authorization: `Bearer ${token}`,
-            }
-        });
-
-        return response.data;
-    } catch (error) {
-        console.log(error);
-        return error.response.data;
-    }
+    return response.data;
+  } catch (error) {
+    console.log(error);
+    return error.response.data;
+  }
 });
 
-export const fetchTasksOfMilestone = createAsyncThunk('fetchTasksOfMilestone', async ({ token, id }) => {
+export const removeTaskAttachment = createAsyncThunk(
+  'removeTaskAttachment',
+  async ({ token, id, image_id }) => {
     try {
-        const response = await axios.get(`${baseURL}/task_managements.json?q[milestone_id_eq]=${id}`, {
-            headers: {
-                Authorization: `Bearer ${token}`,
-            }
-        });
-
-        return response.data;
-    } catch (error) {
-        console.log(error);
-        return error.response.data;
-    }
-});
-
-export const filterTask = createAsyncThunk('filterTask',
-    async ({ token, filter }, { rejectWithValue }) => {
-        try {
-            const params = new URLSearchParams(filter).toString();
-            console.log(params);
-            const response = await axios.get(
-                `${baseURL}/task_managements.json?${params}`,
-                {
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                    },
-                }
-            );
-
-            return response.data;
-        } catch (error) {
-            return rejectWithValue(error.response?.data || error.message);
+      const response = await axios.delete(
+        `${baseURL}/task_managements/${id}/remove_attachemnts/${image_id}.json`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'Multipart/form-data',
+          },
         }
+      );
+
+      return response.data;
+    } catch (error) {
+      console.log(error);
+      return error.response.data;
     }
+  }
+);
+
+export const fetchTasksOfProject = createAsyncThunk(
+  'fetchTasksOfProject',
+  async ({ token, id }) => {
+    try {
+      const response = await axios.get(
+        `${baseURL}/task_managements.json?q[project_management_id_eq]=${id}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      return response.data;
+    } catch (error) {
+      console.log(error);
+      return error.response.data;
+    }
+  }
+);
+
+export const fetchTasksOfMilestone = createAsyncThunk(
+  'fetchTasksOfMilestone',
+  async ({ token, id }) => {
+    try {
+      const response = await axios.get(
+        `${baseURL}/task_managements.json?q[milestone_id_eq]=${id}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      return response.data;
+    } catch (error) {
+      console.log(error);
+      return error.response.data;
+    }
+  }
+);
+
+export const filterTask = createAsyncThunk(
+  'filterTask',
+  async ({ token, filter }, { rejectWithValue }) => {
+    try {
+      const params = new URLSearchParams(filter).toString();
+      console.log(params);
+      const response = await axios.get(`${baseURL}/task_managements.json?${params}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data || error.message);
+    }
+  }
 );
 
 export const createDependancy = createAsyncThunk('createDependancy', async ({ token, payload }) => {
-    try {
-        const response = await axios.post(`${baseURL}/task_dependencies.json`, payload, {
-            headers: {
-                Authorization: `Bearer ${token}`,
-            }
-        });
+  try {
+    const response = await axios.post(`${baseURL}/task_dependencies.json`, payload, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
 
-        return response.data;
-    } catch (error) {
-        console.log(error);
-        return error.response.data;
-    }
-})
+    return response.data;
+  } catch (error) {
+    console.log(error);
+    return error.response.data;
+  }
+});
 
 export const deleteDependancy = createAsyncThunk('deleteDependancy', async ({ token, id }) => {
+  try {
+    const response = await axios.delete(`${baseURL}/task_dependencies/${id}.json`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    return response.data;
+  } catch (error) {
+    console.log(error);
+    return error.response.data;
+  }
+});
+
+export const updateDependancy = createAsyncThunk(
+  'updateDependancy',
+  async ({ token, id, payload }) => {
     try {
-        const response = await axios.delete(`${baseURL}/task_dependencies/${id}.json`, {
-            headers: {
-                Authorization: `Bearer ${token}`,
-            }
-        });
+      const response = await axios.put(`${baseURL}/task_dependencies/${id}.json`, payload, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
-        return response.data;
+      return response.data;
     } catch (error) {
-        console.log(error);
-        return error.response.data;
+      console.log(error);
+      return error.response.data;
     }
-})
-
-export const updateDependancy = createAsyncThunk('updateDependancy', async ({ token, id, payload }) => {
-    try {
-        const response = await axios.put(`${baseURL}/task_dependencies/${id}.json`, payload, {
-            headers: {
-                Authorization: `Bearer ${token}`,
-            }
-        });
-
-        return response.data;
-    } catch (error) {
-        console.log(error);
-        return error.response.data;
-    }
-})
-
+  }
+);
 
 export const createTaskSlice = createApiSlice('createTask', createTask);
 export const fetchTasksSlice = createApiSlice('fetchTasks', fetchTasks);
@@ -479,12 +534,24 @@ export const filterTaskSlice = createApiSlice('filterTask', filterTask);
 export const createDependancySlice = createApiSlice('createDependancy', createDependancy);
 export const updateDependancySlice = createApiSlice('updateDependancy', updateDependancy);
 export const fetchMyTasksSlice = createApiSlice('fetchMyTasks', fetchMyTasks);
-export const fetchTasksOfMilestoneSlice = createApiSlice('fetchTasksOfMilestone', fetchTasksOfMilestone);
-export const removeTaskAttachmentSlice = createApiSlice('removeTaskAttachment', removeTaskAttachment);
+export const fetchTasksOfMilestoneSlice = createApiSlice(
+  'fetchTasksOfMilestone',
+  fetchTasksOfMilestone
+);
+export const removeTaskAttachmentSlice = createApiSlice(
+  'removeTaskAttachment',
+  removeTaskAttachment
+);
 export const fetchKanbanTasksSlice = createApiSlice('fetchKanbanTasks', fetchKanbanTasks);
 export const deleteDependancySlice = createApiSlice('deleteDependancy', deleteDependancy);
-export const fetchTargetDateTasksSlice = createApiSlice('fetchTargetDateTasks', fetchTargetDateTasks);
-export const fetchKanbanTasksOfProjectSlice = createApiSlice('fetchKanbanTasksOfProject', fetchKanbanTasksOfProject);
+export const fetchTargetDateTasksSlice = createApiSlice(
+  'fetchTargetDateTasks',
+  fetchTargetDateTasks
+);
+export const fetchKanbanTasksOfProjectSlice = createApiSlice(
+  'fetchKanbanTasksOfProject',
+  fetchKanbanTasksOfProject
+);
 
 export const createTaskReducer = createTaskSlice.reducer;
 export const fetchTasksReducer = fetchTasksSlice.reducer;

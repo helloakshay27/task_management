@@ -1,83 +1,70 @@
-import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import axios from "axios";
-import { baseURL } from "../../../apiDomain";
+import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import axios from 'axios';
+import { baseURL } from '../../../apiDomain';
 
 // Fetch Shifts
-export const fetchShift = createAsyncThunk(
-  "fetchShift",
-  async ({ token }, { rejectWithValue }) => {
-    try {
-      const response = await axios.get(`${baseURL}/user_shifts.json`, {
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      return response.data;
-    } catch (error) {
-      return rejectWithValue(
-        error.response?.data?.message || "Failed to fetch shifts"
-      );
-    }
+export const fetchShift = createAsyncThunk('fetchShift', async ({ token }, { rejectWithValue }) => {
+  try {
+    const response = await axios.get(`${baseURL}/user_shifts.json`, {
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    return rejectWithValue(error.response?.data?.message || 'Failed to fetch shifts');
   }
-);
+});
 
 // Create Shift
 export const createShift = createAsyncThunk(
-  "createShift",
+  'createShift',
   async ({ token, payload }, { rejectWithValue }) => {
     try {
       const response = await axios.post(`${baseURL}/user_shifts.json`, payload, {
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
         },
       });
       return response.data;
     } catch (error) {
-      return rejectWithValue(
-        error.response?.data || { message: "Failed to create shift" }
-      );
+      return rejectWithValue(error.response?.data || { message: 'Failed to create shift' });
     }
   }
 );
 
 // Update Shift
 export const updateShift = createAsyncThunk(
-  "updateShift",
+  'updateShift',
   async ({ token, id, payload }, { rejectWithValue }) => {
     try {
-      const response = await axios.put(
-        `${baseURL}/user_shifts/${id}.json`,
-        payload,
-        {
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      const response = await axios.put(`${baseURL}/user_shifts/${id}.json`, payload, {
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+      });
       return response.data;
     } catch (error) {
-      return rejectWithValue(
-        error.response?.data || { message: "Failed to update shift" }
-      );
+      return rejectWithValue(error.response?.data || { message: 'Failed to update shift' });
     }
   }
 );
 
 // Delete Shift
 export const deleteShift = createAsyncThunk(
-  "deleteShift",
+  'deleteShift',
   async ({ token, id }, { rejectWithValue }) => {
     console.log('Delete Shift - ID received:', id);
     console.log('Delete Shift - Token:', token ? 'Present' : 'Missing');
     console.log('Delete Shift - Full URL:', `${baseURL}/user_shifts/${id}.json`);
-    
+
     try {
       const response = await axios.delete(`${baseURL}/user_shifts/${id}.json`, {
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
         },
       });
@@ -86,16 +73,14 @@ export const deleteShift = createAsyncThunk(
     } catch (error) {
       console.error('Delete Shift - Error:', error);
       console.error('Delete Shift - Error response:', error.response?.data);
-      return rejectWithValue(
-        error.response?.data?.message || "Failed to delete shift"
-      );
+      return rejectWithValue(error.response?.data?.message || 'Failed to delete shift');
     }
   }
 );
 
 // Fetch Shift Slice
 const fetchShiftSlice = createSlice({
-  name: "fetchShift",
+  name: 'fetchShift',
   initialState: {
     loading: false,
     fetchShift: [],
@@ -114,14 +99,14 @@ const fetchShiftSlice = createSlice({
       })
       .addCase(fetchShift.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload || "Failed to fetch shifts";
+        state.error = action.payload || 'Failed to fetch shifts';
       });
   },
 });
 
 // Create Shift Slice
 const createShiftSlice = createSlice({
-  name: "createShift",
+  name: 'createShift',
   initialState: {
     loading: false,
     createShift: null,
@@ -140,14 +125,14 @@ const createShiftSlice = createSlice({
       })
       .addCase(createShift.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload || "Failed to create shift";
+        state.error = action.payload || 'Failed to create shift';
       });
   },
 });
 
 // Update Shift Slice
 const updateShiftSlice = createSlice({
-  name: "updateShift",
+  name: 'updateShift',
   initialState: {
     loading: false,
     updateShift: null,
@@ -166,14 +151,14 @@ const updateShiftSlice = createSlice({
       })
       .addCase(updateShift.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload || "Failed to update shift";
+        state.error = action.payload || 'Failed to update shift';
       });
   },
 });
 
 // Delete Shift Slice
 const deleteShiftSlice = createSlice({
-  name: "deleteShift",
+  name: 'deleteShift',
   initialState: {
     loading: false,
     deleteShift: null,
@@ -192,7 +177,7 @@ const deleteShiftSlice = createSlice({
       })
       .addCase(deleteShift.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload || "Failed to delete shift";
+        state.error = action.payload || 'Failed to delete shift';
       });
   },
 });

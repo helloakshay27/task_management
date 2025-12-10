@@ -5,16 +5,16 @@
  * @returns {Array} - Filtered columns
  */
 export const getVisibleColumns = (allColumns, selectedColumns) => {
-    // If selectedColumns is empty or not provided, show all columns by default
-    if (!selectedColumns || Object.keys(selectedColumns).length === 0) {
-        return allColumns;
-    }
+  // If selectedColumns is empty or not provided, show all columns by default
+  if (!selectedColumns || Object.keys(selectedColumns).length === 0) {
+    return allColumns;
+  }
 
-    return allColumns.filter((column) => {
-        const columnId = column.id || column.accessorKey;
-        // Default to true (visible) if not explicitly set to false
-        return selectedColumns[columnId] !== false;
-    });
+  return allColumns.filter((column) => {
+    const columnId = column.id || column.accessorKey;
+    // Default to true (visible) if not explicitly set to false
+    return selectedColumns[columnId] !== false;
+  });
 };
 
 /**
@@ -24,21 +24,21 @@ export const getVisibleColumns = (allColumns, selectedColumns) => {
  * @returns {Object} - Column visibility map
  */
 export const loadColumnVisibility = (storageKey, defaultColumns) => {
-    try {
-        const saved = localStorage.getItem(storageKey);
-        if (saved) {
-            return JSON.parse(saved);
-        }
-        // If nothing saved, show all by default
-        const visibility = {};
-        defaultColumns.forEach(col => {
-            visibility[col.id || col.key] = true;
-        });
-        return visibility;
-    } catch (error) {
-        console.error(`Error loading column visibility for ${storageKey}:`, error);
-        return {};
+  try {
+    const saved = localStorage.getItem(storageKey);
+    if (saved) {
+      return JSON.parse(saved);
     }
+    // If nothing saved, show all by default
+    const visibility = {};
+    defaultColumns.forEach((col) => {
+      visibility[col.id || col.key] = true;
+    });
+    return visibility;
+  } catch (error) {
+    console.error(`Error loading column visibility for ${storageKey}:`, error);
+    return {};
+  }
 };
 
 /**
@@ -47,9 +47,9 @@ export const loadColumnVisibility = (storageKey, defaultColumns) => {
  * @param {Object} columnVisibility - Column visibility map
  */
 export const saveColumnVisibility = (storageKey, columnVisibility) => {
-    try {
-        localStorage.setItem(storageKey, JSON.stringify(columnVisibility));
-    } catch (error) {
-        console.error(`Error saving column visibility for ${storageKey}:`, error);
-    }
+  try {
+    localStorage.setItem(storageKey, JSON.stringify(columnVisibility));
+  } catch (error) {
+    console.error(`Error saving column visibility for ${storageKey}:`, error);
+  }
 };

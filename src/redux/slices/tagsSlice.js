@@ -2,41 +2,40 @@ import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import axios from 'axios';
 import { baseURL } from '../../../apiDomain';
 
-const access_token = localStorage.getItem("token");
-
-const createApiSlice = (name, fetchThunk) => createSlice({
-    name,
-    initialState: {
-        loading: false,
-        success: false,
-        error: null,
-        [name]: [],
-    },
-    reducers: {
-        resetSuccess: (state) => {
-            state.success = false;
-        }
-    },
-    extraReducers: (builder) => {
-        builder
-            .addCase(fetchThunk.pending, (state) => {
-                state.loading = true;
+const createApiSlice = (name, fetchThunk) =>
+    createSlice({
+        name,
+        initialState: {
+            loading: false,
+            success: false,
+            error: null,
+            [name]: [],
+        },
+        reducers: {
+            resetSuccess: (state) => {
                 state.success = false;
-                state.error = null;
-            })
-            .addCase(fetchThunk.fulfilled, (state, action) => {
-                state.loading = false;
-                state.success = true;
-                state.error = null;
-                state[name] = action.payload;
-            })
-            .addCase(fetchThunk.rejected, (state, action) => {
-                state.loading = false;
-                state.success = false;
-                state.error = action.payload || action.error.message;
-            });
-    },
-});
+            },
+        },
+        extraReducers: (builder) => {
+            builder
+                .addCase(fetchThunk.pending, (state) => {
+                    state.loading = true;
+                    state.success = false;
+                    state.error = null;
+                })
+                .addCase(fetchThunk.fulfilled, (state, action) => {
+                    state.loading = false;
+                    state.success = true;
+                    state.error = null;
+                    state[name] = action.payload;
+                })
+                .addCase(fetchThunk.rejected, (state, action) => {
+                    state.loading = false;
+                    state.success = false;
+                    state.error = action.payload || action.error.message;
+                });
+        },
+    });
 
 export const fetchTags = createAsyncThunk('fetchTags', async ({ token }) => {
     try {
@@ -47,7 +46,7 @@ export const fetchTags = createAsyncThunk('fetchTags', async ({ token }) => {
         });
         return response.data;
     } catch (error) {
-        console.log(error)
+        console.log(error);
     }
 });
 
@@ -60,7 +59,7 @@ export const fetchActiveTags = createAsyncThunk('fetchActiveTags', async ({ toke
         });
         return response.data;
     } catch (error) {
-        console.log(error)
+        console.log(error);
     }
 });
 
@@ -73,7 +72,7 @@ export const createTag = createAsyncThunk('createTag', async ({ token, payload }
         });
         return response.data;
     } catch (error) {
-        console.log(error)
+        console.log(error);
     }
 });
 
@@ -81,15 +80,11 @@ export const updateTag = createAsyncThunk(
     'tag/update',
     async ({ token, id, data }, { rejectWithValue }) => {
         try {
-            const response = await axios.patch(
-                `${baseURL}/company_tags/${id}.json`,
-                data,
-                {
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                    },
-                }
-            );
+            const response = await axios.patch(`${baseURL}/company_tags/${id}.json`, data, {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            });
             return response.data;
         } catch (error) {
             return rejectWithValue(error.response?.data || error.message);

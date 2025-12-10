@@ -1,49 +1,46 @@
-import { useGSAP } from "@gsap/react";
-import { useRef, useEffect } from "react";
-import { X } from "lucide-react";
-import gsap from "gsap";
-import Tasks from "./Modals/task";
+import { useGSAP } from '@gsap/react';
+import { useRef, useEffect } from 'react';
+import { X } from 'lucide-react';
+import gsap from 'gsap';
+import Tasks from './Modals/task';
 
 const AddTaskModal = ({ title, isEdit, isModalOpen, setIsModalOpen, prefillData }) => {
-    const addTaskModalRef = useRef(null);
+  const addTaskModalRef = useRef(null);
 
-    useGSAP(() => {
-        if (isModalOpen) {
-            gsap.fromTo(
-                addTaskModalRef.current,
-                { x: "100%" },
-                { x: "0%", duration: 0.5, ease: "power3.out" }
-            );
-        }
-    }, [isModalOpen]);
+  useGSAP(() => {
+    if (isModalOpen) {
+      gsap.fromTo(
+        addTaskModalRef.current,
+        { x: '100%' },
+        { x: '0%', duration: 0.5, ease: 'power3.out' }
+      );
+    }
+  }, [isModalOpen]);
 
-    const closeModal = () => {
-        gsap.to(addTaskModalRef.current, {
-            x: "100%",
-            duration: 0.5,
-            ease: "power3.in",
-            onComplete: () => setIsModalOpen(false),
-        });
-    };
+  const closeModal = () => {
+    gsap.to(addTaskModalRef.current, {
+      x: '100%',
+      duration: 0.5,
+      ease: 'power3.in',
+      onComplete: () => setIsModalOpen(false),
+    });
+  };
 
-    return (
-        <div className="fixed inset-0 flex items-center justify-end bg-black bg-opacity-50 z-10">
-            <div
-                ref={addTaskModalRef}
-                className="bg-white py-6 rounded-lg shadow-lg w-[50%] relative h-full right-0"
-            >
-                <h3 className="text-lg font-medium text-center">{title}</h3>
-                <X
-                    className="absolute top-[26px] right-8 cursor-pointer"
-                    onClick={closeModal}
-                />
+  return (
+    <div className="fixed inset-0 flex items-center justify-end bg-black bg-opacity-50 z-10">
+      <div
+        ref={addTaskModalRef}
+        className="bg-white py-6 rounded-lg shadow-lg w-[50%] relative h-full right-0"
+      >
+        <h3 className="text-lg font-medium text-center">{title}</h3>
+        <X className="absolute top-[26px] right-8 cursor-pointer" onClick={closeModal} />
 
-                <hr className="border border-[#E95420] my-4" />
+        <hr className="border border-[#E95420] my-4" />
 
-                <Tasks isEdit={isEdit} onCloseModal={closeModal} prefillData={prefillData} />
-            </div>
-        </div>
-    );
+        <Tasks isEdit={isEdit} onCloseModal={closeModal} prefillData={prefillData} />
+      </div>
+    </div>
+  );
 };
 
 export default AddTaskModal;

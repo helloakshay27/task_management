@@ -1,28 +1,33 @@
-import { useGSAP } from "@gsap/react";
-import { useRef, useEffect, useState } from "react";
-import { X } from "lucide-react";
-import gsap from "gsap";
-import Details from "./Modals/Details.jsx";
-import Milestones from "./Modals/Milestone.jsx";
+import { useGSAP } from '@gsap/react';
+import { useRef, useEffect, useState } from 'react';
+import { X } from 'lucide-react';
+import gsap from 'gsap';
+import Details from './Modals/Details.jsx';
+import Milestones from './Modals/Milestone.jsx';
 import CloseIcon from '@mui/icons-material/Close';
-import Modal from "../../Setup/ProjectTags/Modal.jsx";
-import SelectBox from "../../SelectBox.jsx";
-import { useDispatch, useSelector } from "react-redux";
-import { fetchUsers } from "../../../redux/slices/userSlice.js";
-import MultiSelectBox from "../../MultiSelectBox.jsx";
-import { createProjectTeam, fetchProjectTeams, resetProjectCreateResponse, resetSuccess } from "../../../redux/slices/projectSlice.js";
-import toast from "react-hot-toast";
+import Modal from '../../Setup/ProjectTags/Modal.jsx';
+import SelectBox from '../../SelectBox.jsx';
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchUsers } from '../../../redux/slices/userSlice.js';
+import MultiSelectBox from '../../MultiSelectBox.jsx';
+import {
+  createProjectTeam,
+  fetchProjectTeams,
+  resetProjectCreateResponse,
+  resetSuccess,
+} from '../../../redux/slices/projectSlice.js';
+import toast from 'react-hot-toast';
 
 const CreateNewTeam = ({ setOpenModal }) => {
-  const token = localStorage.getItem("token");
+  const token = localStorage.getItem('token');
   const dispatch = useDispatch();
 
   const { fetchUsers: users = [] } = useSelector((state) => state.fetchUsers);
   const { loading, success } = useSelector((state) => state.createProjectTeam);
 
   const [formData, setFormData] = useState({
-    teamName: "",
-    teamLead: "",
+    teamName: '',
+    teamLead: '',
     teamMembers: [],
   });
 
@@ -42,15 +47,15 @@ const CreateNewTeam = ({ setOpenModal }) => {
   const handleSubmit = () => {
     if (!formData.teamName) {
       toast.dismiss();
-      toast.error("Team name is required");
+      toast.error('Team name is required');
       return;
     } else if (!formData.teamLead) {
       toast.dismiss();
-      toast.error("Team lead is required");
+      toast.error('Team lead is required');
       return;
     } else if (!formData.teamMembers.length) {
       toast.dismiss();
-      toast.error("Team members are required");
+      toast.error('Team members are required');
       return;
     }
 
@@ -62,19 +67,18 @@ const CreateNewTeam = ({ setOpenModal }) => {
       },
     };
 
-
     dispatch(createProjectTeam({ token, payload }));
   };
 
   useEffect(() => {
     if (success) {
-      toast.success("Project team created successfully", {
+      toast.success('Project team created successfully', {
         iconTheme: {
           primary: 'green', // This might directly change the color of the success icon
           secondary: 'white', // The circle background
         },
       });
-      dispatch(fetchProjectTeams({ token }))
+      dispatch(fetchProjectTeams({ token }));
       setOpenModal(false);
       dispatch(resetSuccess());
     }
@@ -111,7 +115,7 @@ const CreateNewTeam = ({ setOpenModal }) => {
             <SelectBox
               placeholder="Select team Lead"
               value={formData.teamLead}
-              onChange={(value) => handleSelectChange("teamLead", value)}
+              onChange={(value) => handleSelectChange('teamLead', value)}
               options={users.map((user) => ({
                 label: `${user.firstname} ${user.lastname}`,
                 value: user.id,
@@ -125,7 +129,7 @@ const CreateNewTeam = ({ setOpenModal }) => {
             <MultiSelectBox
               placeholder="Select Team Members"
               value={formData.teamMembers}
-              onChange={(value) => handleSelectChange("teamMembers", value)}
+              onChange={(value) => handleSelectChange('teamMembers', value)}
               options={users.map((user) => ({
                 label: `${user.firstname} ${user.lastname}`,
                 value: user.id,
@@ -152,44 +156,50 @@ const CreateNewTeam = ({ setOpenModal }) => {
         </div>
       </div>
     </div>
-  )
-}
+  );
+};
 
-const AddProjectModal = ({ isModalOpen, setIsModalOpen, projectname = "New Project", endText = "Next", isEdit, editData, templateDetails }) => {
+const AddProjectModal = ({
+  isModalOpen,
+  setIsModalOpen,
+  projectname = 'New Project',
+  endText = 'Next',
+  isEdit,
+  editData,
+  templateDetails,
+}) => {
   const dispatch = useDispatch();
   const addTaskModalRef = useRef(null);
-  const [tab, setTab] = useState("Details");
+  const [tab, setTab] = useState('Details');
   const [openTagModal, setOpenTagModal] = useState(false);
   const [openTeamModal, setOpenTeamModal] = useState(false);
-  const { createProject: project = {} } = useSelector(
-    (state) => state.createProject
-  );
+  const { createProject: project = {} } = useSelector((state) => state.createProject);
 
   useGSAP(() => {
     if (isModalOpen) {
       gsap.fromTo(
         addTaskModalRef.current,
-        { x: "100%" },
-        { x: "0%", duration: 0.5, ease: "power3.out" }
+        { x: '100%' },
+        { x: '0%', duration: 0.5, ease: 'power3.out' }
       );
     }
   }, [isModalOpen]);
 
   const closeModal = () => {
     gsap.to(addTaskModalRef.current, {
-      x: "100%",
+      x: '100%',
       duration: 0.5,
-      ease: "power3.in",
+      ease: 'power3.in',
       onComplete: () => setIsModalOpen(false),
     });
-    dispatch(resetProjectCreateResponse())
+    dispatch(resetProjectCreateResponse());
   };
 
   const handleSetMiletoneTab = () => {
     if (project && project.id) {
-      setTab("Milestone")
+      setTab('Milestone');
     }
-  }
+  };
 
   return (
     <div className="z-50">
@@ -199,54 +209,58 @@ const AddProjectModal = ({ isModalOpen, setIsModalOpen, projectname = "New Proje
           className="bg-white py-6 rounded-lg shadow-lg w-1/3 relative h-full right-0"
         >
           <h3 className="text-[14px] font-medium text-center ">{projectname}</h3>
-          <X
-            className="absolute top-[26px] right-8 cursor-pointer"
-            onClick={closeModal}
-          />
+          <X className="absolute top-[26px] right-8 cursor-pointer" onClick={closeModal} />
 
           <hr className="border border-[#E95420] my-4" />
 
-          {
-            !isEdit && (
-              <>
-                <div className="flex items-center justify-center gap-40">
-                  {tab == "Details" ?
-                    <div onClick={() => setTab("Details")} className="cursor-pointer border-b-2 border-[#E95420] p-2" >
-                      Details
-                    </div> :
-                    <div onClick={() => setTab("Details")} className="cursor-pointer p-2" >
-                      Details
-                    </div>
-                  }
+          {!isEdit && (
+            <>
+              <div className="flex items-center justify-center gap-40">
+                {tab == 'Details' ? (
+                  <div
+                    onClick={() => setTab('Details')}
+                    className="cursor-pointer border-b-2 border-[#E95420] p-2"
+                  >
+                    Details
+                  </div>
+                ) : (
+                  <div onClick={() => setTab('Details')} className="cursor-pointer p-2">
+                    Details
+                  </div>
+                )}
 
-                  {tab == "Milestone" ?
-                    <div onClick={handleSetMiletoneTab} className="cursor-pointer border-b-2 border-[#E95420] p-2">
-                      Milestone
-                    </div> :
-                    <div onClick={handleSetMiletoneTab} className="cursor-pointer p-2">
-                      Milestone
-                    </div>
-                  }
-                </div>
-                <hr className="border  " />
-              </>
-            )
-          }
+                {tab == 'Milestone' ? (
+                  <div
+                    onClick={handleSetMiletoneTab}
+                    className="cursor-pointer border-b-2 border-[#E95420] p-2"
+                  >
+                    Milestone
+                  </div>
+                ) : (
+                  <div onClick={handleSetMiletoneTab} className="cursor-pointer p-2">
+                    Milestone
+                  </div>
+                )}
+              </div>
+              <hr className="border  " />
+            </>
+          )}
 
-
-          {tab == "Details" && <Details setTab={setTab} setOpenTagModal={setOpenTagModal} setOpenTeamModal={setOpenTeamModal} isEdit={isEdit} endText={isEdit ? "Save" : "Save & Next"} templateDetails={templateDetails} />}
-          {tab == "Milestone" && <Milestones closeModal={() => setIsModalOpen(false)} />}
+          {tab == 'Details' && (
+            <Details
+              setTab={setTab}
+              setOpenTagModal={setOpenTagModal}
+              setOpenTeamModal={setOpenTeamModal}
+              isEdit={isEdit}
+              endText={isEdit ? 'Save' : 'Save & Next'}
+              templateDetails={templateDetails}
+            />
+          )}
+          {tab == 'Milestone' && <Milestones closeModal={() => setIsModalOpen(false)} />}
         </div>
-
       </div>
-      {openTeamModal && (
-        <CreateNewTeam openModal={openTeamModal} setOpenModal={setOpenTeamModal} />
-      )}
-      {
-        openTagModal && (
-          <Modal open={openTagModal} setOpenModal={setOpenTagModal} isEdit={false} />
-        )
-      }
+      {openTeamModal && <CreateNewTeam openModal={openTeamModal} setOpenModal={setOpenTeamModal} />}
+      {openTagModal && <Modal open={openTagModal} setOpenModal={setOpenTagModal} isEdit={false} />}
     </div>
   );
 };

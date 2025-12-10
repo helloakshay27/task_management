@@ -1,4 +1,3 @@
-/* eslint-disable react/prop-types */
 import { useState, useMemo, useEffect } from 'react';
 import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
@@ -10,13 +9,17 @@ import {
   getPaginationRowModel,
 } from '@tanstack/react-table';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchProjectGroup, updateProjectGroup, deleteProjectGroup } from '../../../redux/slices/projectSlice';
+import {
+  fetchProjectGroup,
+  updateProjectGroup,
+  deleteProjectGroup,
+} from '../../../redux/slices/projectSlice';
 import Modal from './Modal';
 import toast from 'react-hot-toast';
-import { DeleteConfirmationModal } from '../../DeleteConfirmationModal'
+import { DeleteConfirmationModal } from '../../DeleteConfirmationModal';
 
 const GroupTable = () => {
-  const token = localStorage.getItem('token')
+  const token = localStorage.getItem('token');
   const [openModal, setOpenModal] = useState(false);
   const [editMode, setEditMode] = useState(false);
   const [selectedData, setSelectedData] = useState(null);
@@ -26,7 +29,6 @@ const GroupTable = () => {
 
   const dispatch = useDispatch();
   const { fetchProjectGroup: projectGroup } = useSelector((state) => state.fetchProjectGroup);
-
 
   // Initial fetch of project Group
   useEffect(() => {
@@ -51,17 +53,16 @@ const GroupTable = () => {
     const r = Math.floor(Math.random() * 76) + 180;
     const g = Math.floor(Math.random() * 76) + 180;
     const b = Math.floor(Math.random() * 76) + 180;
-    return `#${r.toString(16).padStart(2, "0")}${g
+    return `#${r.toString(16).padStart(2, '0')}${g
       .toString(16)
-      .padStart(2, "0")}${b.toString(16).padStart(2, "0")}`;
+      .padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
   };
-
 
   const ActionIcons = ({ row }) => {
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
     const handleEditClick = (row) => {
-      console.log("hi");
+      console.log('hi');
       console.log(row.original);
       setSelectedData(row.original);
       setEditMode(true);
@@ -79,7 +80,6 @@ const GroupTable = () => {
             secondary: 'white', // The circle background
           },
         });
-
       } catch (error) {
         console.error('Failed to delete:', error);
         toast.error('Failed to delete Project Group.', {
@@ -90,7 +90,6 @@ const GroupTable = () => {
         });
       }
     };
-
 
     const handleToggle = async (row) => {
       const updatedValue = !row.original.active;
@@ -122,7 +121,6 @@ const GroupTable = () => {
         <div className=" flex justify-start items-start gap-5 ml-2">
           <Switch
             color={`${row.original.active ? 'success' : 'danger'}`}
-
             checked={row.original.active}
             onChange={() => handleToggle(row)} // toggle the row state
           />
@@ -131,10 +129,11 @@ const GroupTable = () => {
             sx={{ fontSize: '20px', cursor: 'pointer' }}
             onClick={() => handleEditClick(row)}
           />
-          <button
-            title="Delete"
-          >
-            <DeleteOutlineOutlinedIcon sx={{ fontSize: '20px' }} onClick={() => setIsDeleteModalOpen(true)} />
+          <button title="Delete">
+            <DeleteOutlineOutlinedIcon
+              sx={{ fontSize: '20px' }}
+              onClick={() => setIsDeleteModalOpen(true)}
+            />
           </button>
         </div>
 
@@ -147,11 +146,8 @@ const GroupTable = () => {
           }}
         />
       </>
-    )
+    );
   };
-
-
-
 
   function formatToDDMMYYYY(dateString) {
     const date = new Date(dateString);
@@ -169,17 +165,17 @@ const GroupTable = () => {
           <div
             key={index}
             title={member.user_name}
-            className={`w-[30px] h-[30px] rounded-full flex items-center justify-center text-[14px] text-gray-800 cursor-pointer ${index !== 0 ? "-ml-[6px]" : ""
-              }`}
+            className={`w-[30px] h-[30px] rounded-full flex items-center justify-center text-[14px] text-gray-800 cursor-pointer ${
+              index !== 0 ? '-ml-[6px]' : ''
+            }`}
             style={{ backgroundColor: getRandomColor() }}
           >
-            {member.user_name ? member.user_name.charAt(0) : ""}
+            {member.user_name ? member.user_name.charAt(0) : ''}
           </div>
         ))}
       </div>
     );
-  }
-
+  };
 
   const fixedRowsPerPage = 13;
 
@@ -191,7 +187,7 @@ const GroupTable = () => {
         size: 100,
         cell: ({ row, getValue }) => {
           const raw = row.original ? getValue() : '';
-          return raw
+          return raw;
         },
       },
       {
@@ -199,9 +195,7 @@ const GroupTable = () => {
         header: 'Project Group Members',
         size: 20,
         cell: ({ getValue, row }) => {
-          return (
-            <ProjectMembers members={row.original.project_group_members} />
-          )
+          return <ProjectMembers members={row.original.project_group_members} />;
         },
       },
       {
@@ -209,8 +203,7 @@ const GroupTable = () => {
         header: 'Actions',
         size: 50,
         cell: ({ row }) => (row.original ? <ActionIcons row={row} /> : null),
-
-      }
+      },
     ],
     []
   );
@@ -259,24 +252,17 @@ const GroupTable = () => {
                       className="bg-[#D5DBDB] px-2 py-2 text-center font-[500] border-r-2"
                     >
                       {header.isPlaceholder ? null : (
-                        <div>
-                          {flexRender(
-                            header.column.columnDef.header,
-                            header.getContext()
-                          )}
-                        </div>
+                        <div>{flexRender(header.column.columnDef.header, header.getContext())}</div>
                       )}
                     </th>
                   ))}
                 </tr>
               ))}
             </thead>
-            <tbody
-              className="divide-y"
-              style={{ height: `${fixedRowsPerPage * rowHeight}px` }}
-            >
+            <tbody className="divide-y" style={{ height: `${fixedRowsPerPage * rowHeight}px` }}>
               {pageRows.map((row) => {
-                const isDataRowConsideredEmpty = !row.original || Object.values(row.original).every((v) => v === null || v === '');
+                const isDataRowConsideredEmpty =
+                  !row.original || Object.values(row.original).every((v) => v === null || v === '');
 
                 return (
                   <tr
@@ -327,7 +313,7 @@ const GroupTable = () => {
               disabled={!table.getCanPreviousPage()}
               className="text-red-600 disabled:opacity-30"
             >
-              {"<"}
+              {'<'}
             </button>
 
             {/* Page Numbers (Sliding Window of 3) */}
@@ -353,7 +339,7 @@ const GroupTable = () => {
                   <button
                     key={page}
                     onClick={() => table.setPageIndex(page)}
-                    className={` px-3 py-1 ${isActive ? "bg-gray-200 font-bold" : ""}`}
+                    className={` px-3 py-1 ${isActive ? 'bg-gray-200 font-bold' : ''}`}
                   >
                     {page + 1}
                   </button>
@@ -367,7 +353,7 @@ const GroupTable = () => {
               disabled={!table.getCanNextPage()}
               className="text-red-600 disabled:opacity-30"
             >
-              {">"}
+              {'>'}
             </button>
           </div>
         )}

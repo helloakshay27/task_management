@@ -1,29 +1,176 @@
-import { configureStore } from '@reduxjs/toolkit'
-import { changeProjectStatusReducer, deleteProjectGroupReducer, deleteProjectTeamReducer, createProject, createProjectReducer, createProjectTypesReducer, deleteProjectReducer, editProjectReducer, fetchProjectDetailsReducer, fetchProjectsReducer, fetchProjectTypeReducer, fetchTemplatesReducer, filterProjectsReducer, updateProjectTypeReducer, fetchProjectGroupReducer, createProjectGroupReducer, updateProjectGroupReducer, createProjectTeamReducer, fetchProjectTeamsReducer, fetchProjectTeamReducer, updateProjectTeamReducer, removeTagFromProjectReducer, removeMembersFromTeamReducer, deleteProject, fetchActiveProjectTypesReducer, removeAttachmentReducer, fetchProjectTeamMembersReducer } from './slices/projectSlice'
-import { createExternalUserReducer, createInternalUserReducer, fetchAssociatedProjectsReducer, fetchExternalUserReducer, fetchInternalUserDetailsReducer, fetchInternalUserReducer, fetchUpdatelUserReducer, fetchUserAvailabilityReducer, fetchUserShiftReducer, reassignProjectsReducer, removeUserFromProjectReducer, userReducer } from './slices/userSlice'
-import { createTagReducer, deleteTagReducer, fetchActiveTagsReducer, fetchTagsReducer, updateTagReducer } from './slices/tagsSlice'
-import { createRoleReducer, deleteRoleReducer, editRoleReducer, fetchActiveRolesReducer, fetchRolesReducer } from './slices/roleSlice'
-import { changeTaskStatusReducer, createDependancyReducer, createTaskCommentReducer, fetchMyTasksReducer, createTaskReducer, editTaskCommentReducer, editTaskReducer, fetchTasksOfProjectReducer, fetchTasksReducer, filterTaskReducer, taskDetailsReducer, updateDependancyReducer, deleteTaskCommentReducer, fetchTasksOfMilestoneReducer, removeTaskAttachmentReducer, fetchKanbanTasksReducer, deleteDependancyReducer, fetchTargetDateTasksReducer, fetchKanbanTasksOfProjectReducer } from './slices/taskSlice'
-import { createOrganizationReducer, editOrganizationReducer, fetchOrganizationsReducer } from './slices/organizationSlice'
-import { createMilestoneReducer, deleteMilestoneReducer, fetchDependentMilestoneReducer, fetchMilestoneByIdReducer, fetchMilestoneReducer, updateMilestoneReducer } from './slices/milestoneSlice'
-import { fetchSpirintByIdReducer, fetchSpirintsReducer, postSprintReducer, putSprintReducer } from './slices/spirintSlice'
-import { createIssueReducer, fetchIssueReducer, updateIssueReducer, fetchIssueTypeReducer, filterIssueReducer, createIssueTypeReducer, updateIssueTypeReducer, deleteIssueTypeReducer, removeIssueAttachmentReducer, fetchIssueByIdReducer } from './slices/IssueSlice'
-import { fetchStatusReducer, createStatusReducer, deleteStatusReducer, updateStatusReducer } from './slices/statusSlice'
-import { createMoMReducer, fetchMomDetailsReducer, fetchMoMReducer, removeMomAttachmentReducer } from './slices/momSlice'
-import { createMessageReducer, fetchChannelByIdReducer, fetchChannelsReducer, fetchConversationsReducer, fetchMessagesOfConversationReducer, startConversationReducer, updateMessageReducer } from './slices/channelSlice'
-import { createCompanyReducer, editCompanyReducer, fetchCompanyReducer } from './slices/companySlice'
-import { createRegionReducer, updateRegionReducer, fetchRegionReducer, deleteRegionReducer } from './slices/regionSlice'
-import { createZoneReducer, updateZoneReducer, fetchZoneReducer, deleteZoneReducer } from './slices/zoneSlice'
-import { createCountryReducer, updateCountryReducer, fetchCountryReducer, deleteCountryReducer } from './slices/countrySlice'
-import { createDepartmentReducer, updateDepartmentReducer, fetchDepartmentReducer, deleteDepartmentReducer } from './slices/departmentSlice'
-import { createSiteReducer, deleteSiteReducer, fetchSitesReducer, updateSiteReducer } from './slices/siteSlice'
-import { createShiftReducer, updateShiftReducer, fetchShiftReducer, deleteShiftReducer } from './slices/shiftSlice'
+import { configureStore } from '@reduxjs/toolkit';
+import {
+  changeProjectStatusReducer,
+  deleteProjectGroupReducer,
+  deleteProjectTeamReducer,
+  createProjectReducer,
+  createProjectTypesReducer,
+  deleteProjectReducer,
+  editProjectReducer,
+  fetchProjectDetailsReducer,
+  fetchProjectsReducer,
+  fetchProjectTypeReducer,
+  fetchTemplatesReducer,
+  filterProjectsReducer,
+  updateProjectTypeReducer,
+  fetchProjectGroupReducer,
+  createProjectGroupReducer,
+  updateProjectGroupReducer,
+  createProjectTeamReducer,
+  fetchProjectTeamsReducer,
+  fetchProjectTeamReducer,
+  updateProjectTeamReducer,
+  removeTagFromProjectReducer,
+  removeMembersFromTeamReducer,
+  fetchActiveProjectTypesReducer,
+  removeAttachmentReducer,
+  fetchProjectTeamMembersReducer,
+  fetchKanbanProjectsReducer,
+} from './slices/projectSlice';
+import {
+  createExternalUserReducer,
+  createInternalUserReducer,
+  fetchAssociatedProjectsReducer,
+  fetchExternalUserReducer,
+  fetchInternalUserDetailsReducer,
+  fetchInternalUserReducer,
+  fetchUpdatelUserReducer,
+  fetchUserAvailabilityReducer,
+  fetchUserShiftReducer,
+  reassignProjectsReducer,
+  removeUserFromProjectReducer,
+  userReducer,
+} from './slices/userSlice';
+import {
+  createTagReducer,
+  deleteTagReducer,
+  fetchActiveTagsReducer,
+  fetchTagsReducer,
+  updateTagReducer,
+} from './slices/tagsSlice';
+import {
+  createRoleReducer,
+  deleteRoleReducer,
+  editRoleReducer,
+  fetchActiveRolesReducer,
+  fetchRolesReducer,
+} from './slices/roleSlice';
+import {
+  changeTaskStatusReducer,
+  createDependancyReducer,
+  createTaskCommentReducer,
+  fetchMyTasksReducer,
+  createTaskReducer,
+  editTaskCommentReducer,
+  editTaskReducer,
+  fetchTasksOfProjectReducer,
+  fetchTasksReducer,
+  filterTaskReducer,
+  taskDetailsReducer,
+  updateDependancyReducer,
+  deleteTaskCommentReducer,
+  fetchTasksOfMilestoneReducer,
+  removeTaskAttachmentReducer,
+  fetchKanbanTasksReducer,
+  deleteDependancyReducer,
+  fetchTargetDateTasksReducer,
+  fetchKanbanTasksOfProjectReducer,
+} from './slices/taskSlice';
+import {
+  createOrganizationReducer,
+  editOrganizationReducer,
+  fetchOrganizationsReducer,
+} from './slices/organizationSlice';
+import {
+  createMilestoneReducer,
+  deleteMilestoneReducer,
+  fetchDependentMilestoneReducer,
+  fetchMilestoneByIdReducer,
+  fetchMilestoneReducer,
+  updateMilestoneReducer,
+} from './slices/milestoneSlice';
+import {
+  fetchSpirintByIdReducer,
+  fetchSpirintsReducer,
+  postSprintReducer,
+  putSprintReducer,
+} from './slices/spirintSlice';
+import {
+  createIssueReducer,
+  fetchIssueReducer,
+  updateIssueReducer,
+  fetchIssueTypeReducer,
+  filterIssueReducer,
+  createIssueTypeReducer,
+  updateIssueTypeReducer,
+  deleteIssueTypeReducer,
+  removeIssueAttachmentReducer,
+  fetchIssueByIdReducer,
+} from './slices/IssueSlice';
+import { fetchStatusReducer, createStatusReducer, updateStatusReducer } from './slices/statusSlice';
+import {
+  createMoMReducer,
+  fetchMomDetailsReducer,
+  fetchMoMReducer,
+  removeMomAttachmentReducer,
+} from './slices/momSlice';
+import {
+  createMessageReducer,
+  fetchChannelByIdReducer,
+  fetchChannelsReducer,
+  fetchConversationsReducer,
+  fetchMessagesOfConversationReducer,
+  startConversationReducer,
+  updateMessageReducer,
+} from './slices/channelSlice';
+import {
+  createCompanyReducer,
+  editCompanyReducer,
+  fetchCompanyReducer,
+} from './slices/companySlice';
+import {
+  createRegionReducer,
+  updateRegionReducer,
+  fetchRegionReducer,
+  deleteRegionReducer,
+} from './slices/regionSlice';
+import {
+  createZoneReducer,
+  updateZoneReducer,
+  fetchZoneReducer,
+  deleteZoneReducer,
+} from './slices/zoneSlice';
+import {
+  createCountryReducer,
+  updateCountryReducer,
+  fetchCountryReducer,
+  deleteCountryReducer,
+} from './slices/countrySlice';
+import {
+  createDepartmentReducer,
+  updateDepartmentReducer,
+  fetchDepartmentReducer,
+  deleteDepartmentReducer,
+} from './slices/departmentSlice';
+import {
+  createSiteReducer,
+  deleteSiteReducer,
+  fetchSitesReducer,
+  updateSiteReducer,
+} from './slices/siteSlice';
+import {
+  createShiftReducer,
+  updateShiftReducer,
+  fetchShiftReducer,
+  deleteShiftReducer,
+} from './slices/shiftSlice';
 
 export const store = configureStore({
   reducer: {
     //projects
     createProject: createProjectReducer,
     fetchProjects: fetchProjectsReducer,
+    fetchKanbanProjects: fetchKanbanProjectsReducer,
     fetchProjectDetails: fetchProjectDetailsReducer,
     changeProjectStatus: changeProjectStatusReducer,
     editProject: editProjectReducer,
@@ -192,6 +339,6 @@ export const store = configureStore({
     createMessage: createMessageReducer,
     startConversation: startConversationReducer,
     fetchMessagesOfConversation: fetchMessagesOfConversationReducer,
-    updateMessage: updateMessageReducer
+    updateMessage: updateMessageReducer,
   },
-})
+});

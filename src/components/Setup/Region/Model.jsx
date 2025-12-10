@@ -1,58 +1,50 @@
-/* eslint-disable react/prop-types */
-import CloseIcon from "@mui/icons-material/Close";
-import SelectBox from "../../SelectBox";
-import { useEffect, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
-import { updateRegion, createRegion } from "../../../redux/slices/regionSlice";
-import toast from "react-hot-toast";
+import CloseIcon from '@mui/icons-material/Close';
+import SelectBox from '../../SelectBox';
+import { useEffect, useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { updateRegion, createRegion } from '../../../redux/slices/regionSlice';
+import toast from 'react-hot-toast';
 
-const AddRegionModel = ({
-  setOpenModal,
-  isEditMode = false,
-  initialData = null,
-  onSuccess,
-}) => {
-  const token = localStorage.getItem("token");
+const AddRegionModel = ({ setOpenModal, isEditMode = false, initialData = null, onSuccess }) => {
+  const token = localStorage.getItem('token');
   const dispatch = useDispatch();
 
   const { loading } = useSelector((state) => state.createRegion);
   const { loading: editLoading } = useSelector((state) => state.updateRegion);
-  const { fetchCountry: countries } = useSelector(
-    (state) => state.fetchCountry
-  );
+  const { fetchCountry: countries } = useSelector((state) => state.fetchCountry);
 
-  const [error, setError] = useState("");
+  const [error, setError] = useState('');
   const [formData, setFormData] = useState({
-    name: "",
-    country: "",
+    name: '',
+    country: '',
   });
 
   useEffect(() => {
     if (isEditMode && initialData) {
       setFormData({
-        name: initialData.name || "",
-        country: Number(initialData.country_id) || "",
+        name: initialData.name || '',
+        country: Number(initialData.country_id) || '',
       });
     } else {
       setFormData({
-        name: "",
-        country: "",
+        name: '',
+        country: '',
       });
     }
-    setError("");
+    setError('');
   }, [isEditMode, initialData]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError("");
+    setError('');
 
     if (!formData.name.trim()) {
-      setError("Please enter a region name.");
+      setError('Please enter a region name.');
       return;
     }
 
     if (!formData.country) {
-      setError("Please select a country.");
+      setError('Please select a country.');
       return;
     }
 
@@ -67,48 +59,39 @@ const AddRegionModel = ({
     try {
       let result;
       if (isEditMode && initialData?.id) {
-        result = await dispatch(
-          updateRegion({ token, id: initialData.id, payload })
-        ).unwrap();
+        result = await dispatch(updateRegion({ token, id: initialData.id, payload })).unwrap();
       } else {
         result = await dispatch(createRegion({ token, payload })).unwrap();
       }
 
       if (result?.errors) {
-        setError(
-          typeof result.errors === "string"
-            ? result.errors
-            : "Validation error occurred."
-        );
+        setError(typeof result.errors === 'string' ? result.errors : 'Validation error occurred.');
       } else if (result?.user_exists) {
-        setError(result.message || "Region already exists.");
+        setError(result.message || 'Region already exists.');
       } else {
-        toast.success(
-          `Region ${isEditMode ? "updated" : "created"} successfully`,
-          {
-            iconTheme: {
-              primary: "green",
-              secondary: "white",
-            },
-          }
-        );
+        toast.success(`Region ${isEditMode ? 'updated' : 'created'} successfully`, {
+          iconTheme: {
+            primary: 'green',
+            secondary: 'white',
+          },
+        });
         handleSuccess();
       }
     } catch (err) {
-      console.error("Region submit error:", err);
-      setError(err?.message || "Something went wrong.");
+      console.error('Region submit error:', err);
+      setError(err?.message || 'Something went wrong.');
     }
   };
 
   const handleSuccess = () => {
-    setFormData({ name: "", country: "" });
-    setError("");
+    setFormData({ name: '', country: '' });
+    setError('');
     onSuccess();
   };
 
   const handleClose = () => {
-    setFormData({ name: "", country: "" });
-    setError("");
+    setFormData({ name: '', country: '' });
+    setError('');
     setOpenModal(false);
   };
 
@@ -132,9 +115,7 @@ const AddRegionModel = ({
               placeholder="Enter region name"
               className="border border-[#C0C0C0] w-full py-2 px-3 text-[13px] text-[#1B1B1B] focus:outline-none"
               value={formData.name}
-              onChange={(e) =>
-                setFormData({ ...formData, name: e.target.value })
-              }
+              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
             />
           </div>
 
@@ -144,11 +125,7 @@ const AddRegionModel = ({
               Country<span className="text-red-500 ml-1">*</span>
             </label>
             <SelectBox
-              options={
-                countries
-                  ? countries.map((c) => ({ value: c.id, label: c.name }))
-                  : []
-              }
+              options={countries ? countries.map((c) => ({ value: c.id, label: c.name })) : []}
               className="w-full"
               value={formData.country}
               onChange={(value) => setFormData({ ...formData, country: value })}
@@ -157,11 +134,7 @@ const AddRegionModel = ({
         </div>
 
         {/* Error Message */}
-        {error && (
-          <div className="text-right text-red-500 text-[12px] mt-1 mr-5">
-            {error}
-          </div>
-        )}
+        {error && <div className="text-right text-red-500 text-[12px] mt-1 mr-5">{error}</div>}
 
         {/* Footer Buttons */}
         <div className="bg-[#D5DBDB] h-[70px] flex justify-center items-center gap-4 mt-4">
@@ -171,11 +144,7 @@ const AddRegionModel = ({
             onClick={handleSubmit}
             disabled={loading || editLoading}
           >
-            {loading || editLoading
-              ? "Submitting..."
-              : isEditMode
-                ? "Update"
-                : "Save"}
+            {loading || editLoading ? 'Submitting...' : isEditMode ? 'Update' : 'Save'}
           </button>
           <button
             type="button"

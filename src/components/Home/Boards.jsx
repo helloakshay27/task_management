@@ -1,10 +1,10 @@
-import { useGSAP } from "@gsap/react";
-import { ArrowLeftToLine, Plus } from "lucide-react";
-import { useRef, useState } from "react";
-import gsap from "gsap";
-import { useDrop } from "react-dnd";
+import { useGSAP } from '@gsap/react';
+import { ArrowLeftToLine } from 'lucide-react';
+import { useRef, useState } from 'react';
+import gsap from 'gsap';
+import { useDrop } from 'react-dnd';
 
-const Boards = ({ color, add, title, count = 0, children, className, onDrop }) => {
+const Boards = ({ color, title, count = 0, children, className, onDrop }) => {
     const [isCollapsed, setIsCollapsed] = useState(false);
 
     const cardRef = useRef(null);
@@ -12,37 +12,37 @@ const Boards = ({ color, add, title, count = 0, children, className, onDrop }) =
     const btnRef = useRef(null);
 
     const [, dropRef] = useDrop(() => ({
-        accept: ["TASK", "SUBTASK", "PROJECT", "MILESTONE"], // Accept drag items of these types
+        accept: ['TASK', 'SUBTASK', 'PROJECT', 'MILESTONE'], // Accept drag items of these types
         drop: (item) => {
             if (onDrop) {
                 // Safely extract type, id, and fromTaskId from item
                 const dropItem = {
-                    type: item.type || "TASK",
+                    type: item.type || 'TASK',
                     id: item.id,
-                    fromTaskId: item.fromTaskId
+                    fromTaskId: item.fromTaskId,
                 };
-                const formattedTitle = title.toLowerCase().replace(/\s+/g, "_");
+                const formattedTitle = title.toLowerCase().replace(/\s+/g, '_');
                 // console.log("Dropped item:", dropItem, "on title:", formattedTitle);
                 // Call the provided onDrop handler with the item and target status
                 onDrop(dropItem, formattedTitle); // 'title' likely represents the drop zone's status (e.g., "To Do", "In Progress")
             }
-        }
+        },
     }));
     useGSAP(() => {
         gsap.to(cardRef.current, {
-            width: isCollapsed ? "4rem" : "20%",
+            width: isCollapsed ? '4rem' : '20%',
             duration: 0.2,
         });
 
         gsap.to(titleRef.current, {
-            position: isCollapsed ? "absolute" : "static",
+            position: isCollapsed ? 'absolute' : 'static',
             top: isCollapsed ? -15 : 0,
             left: isCollapsed ? 60 : 0,
             duration: 0.2,
         });
 
         gsap.to(btnRef.current, {
-            position: isCollapsed ? "absolute" : "static",
+            position: isCollapsed ? 'absolute' : 'static',
             top: isCollapsed ? -11 : 0,
             left: isCollapsed ? -20 : 0,
             rotate: isCollapsed ? 90 : 0,
@@ -59,13 +59,11 @@ const Boards = ({ color, add, title, count = 0, children, className, onDrop }) =
             className={`bg-[#DEE6E8] h-full rounded-md px-2 py-3 flex flex-col gap-4 ${className}`}
             style={
                 window.location.pathname === '/sprint'
-                    ? { minWidth: isCollapsed ? '4rem' : '250px', maxWidth: !isCollapsed && "250px" }
-                    : { minWidth: isCollapsed && "4rem", maxWidth: !isCollapsed && "20%" }
+                    ? { minWidth: isCollapsed ? '4rem' : '250px', maxWidth: !isCollapsed && '250px' }
+                    : { minWidth: isCollapsed && '4rem', maxWidth: !isCollapsed && '20%' }
             }
         >
-            <div
-                className={`w-full relative ${isCollapsed ? "rotate-90" : "rotate-0"}`}
-            >
+            <div className={`w-full relative ${isCollapsed ? 'rotate-90' : 'rotate-0'}`}>
                 <h3
                     ref={titleRef}
                     className="text-white py-2 px-4 rounded-md text-xs w-max z-10"
@@ -90,9 +88,7 @@ const Boards = ({ color, add, title, count = 0, children, className, onDrop }) =
                 </div>
             </div>
 
-            <div className="h-full overflow-y-auto no-scrollbar w-full">
-                {!isCollapsed && children}
-            </div>
+            <div className="h-full overflow-y-auto no-scrollbar w-full">{!isCollapsed && children}</div>
         </div>
     );
 };

@@ -1,14 +1,17 @@
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 
 const InternalDetails = () => {
-
   const { state } = useLocation();
   const location = useLocation();
-  const navigate = useNavigate()
+  const navigate = useNavigate();
   const userData = location.state || JSON.parse(sessionStorage.getItem('selectedUser'));
 
   if (!state) {
-    return <p>No user selected. Go back to the <button onClick={() => navigate('/')}>Table</button>.</p>;
+    return (
+      <p>
+        No user selected. Go back to the <button onClick={() => navigate('/')}>Table</button>.
+      </p>
+    );
   }
   const { name, email, role, reportingManager } = userData;
 

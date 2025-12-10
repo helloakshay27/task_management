@@ -1,40 +1,46 @@
-import MultiSelectBox from "@/components/MultiSelectBox";
-import SelectBox from "@/components/SelectBox";
-import { removeTagFromProject } from "@/redux/slices/projectSlice";
-import { fetchTags } from "@/redux/slices/tagsSlice";
-import { createSubTask, editTask, fetchKanbanTasks, fetchTargetDateTasks, taskDetails } from "@/redux/slices/taskSlice";
-import { fetchUserAvailability, fetchUsers, fetchUserShift } from "@/redux/slices/userSlice";
-import { useGSAP } from "@gsap/react";
-import gsap from "gsap";
-import { CalendarIcon, X } from "lucide-react";
-import { useCallback, useEffect, useRef, useState } from "react";
-import toast from "react-hot-toast";
-import { useDispatch, useSelector } from "react-redux";
-import { useParams } from "react-router-dom";
-import { CustomCalender } from "./CustomCalender";
-import { TaskDatePicker } from "./TaskDatePicker";
-import TasksOfDate from "./TasksOfDate";
-import { DurationPicker } from "./DurationPicker";
+import MultiSelectBox from '@/components/MultiSelectBox';
+import SelectBox from '@/components/SelectBox';
+import { removeTagFromProject } from '@/redux/slices/projectSlice';
+import { fetchTags } from '@/redux/slices/tagsSlice';
+import { createSubTask, fetchKanbanTasks, fetchTargetDateTasks, taskDetails } from '@/redux/slices/taskSlice';
+import { fetchUserAvailability, fetchUsers, fetchUserShift } from '@/redux/slices/userSlice';
+import { useGSAP } from '@gsap/react';
+import gsap from 'gsap';
+import { CalendarIcon, X } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import toast from 'react-hot-toast';
+import { useDispatch, useSelector } from 'react-redux';
+import { useParams } from 'react-router-dom';
+import { CustomCalender } from './CustomCalender';
+import { TaskDatePicker } from './TaskDatePicker';
+import TasksOfDate from './TasksOfDate';
+import { DurationPicker } from './DurationPicker';
 
 const monthNames = [
-    "Jan",
-    "Feb",
-    "Mar",
-    "Apr",
-    "May",
-    "Jun",
-    "Jul",
-    "Aug",
-    "Sep",
-    "Oct",
-    "Nov",
-    "Dec",
+    'Jan',
+    'Feb',
+    'Mar',
+    'Apr',
+    'May',
+    'Jun',
+    'Jul',
+    'Aug',
+    'Sep',
+    'Oct',
+    'Nov',
+    'Dec',
 ];
 
-const AddSubtaskModal = ({ isModalOpen, setIsModalOpen, title }) => {
+const AddSubtaskModal = ({
+    isModalOpen,
+    setIsModalOpen,
+    title,
+    parentTaskMilestone,
+    parentTaskProject,
+}) => {
     const { id: pid, mid, tid } = useParams();
     const dispatch = useDispatch();
-    const token = localStorage.getItem("token");
+    const token = localStorage.getItem('token');
 
     const addTaskModalRef = useRef(null);
     const collapsibleRef = useRef(null);
@@ -43,13 +49,18 @@ const AddSubtaskModal = ({ isModalOpen, setIsModalOpen, title }) => {
     const endDateRef = useRef(null);
 
     const { fetchTags: tags = [] } = useSelector((state) => state.fetchTags);
-    const { fetchUserAvailability: userAvailability } = useSelector((state) => state.fetchUserAvailability);
+    const { fetchUserAvailability: userAvailability } = useSelector(
+        (state) => state.fetchUserAvailability
+    );
     const { fetchUserShift: shift } = useSelector((state) => state.fetchUserShift);
-    const { fetchProjectTeamMembers: projectTeamMembers } = useSelector(state => state.fetchProjectTeamMembers)
+    const { fetchProjectTeamMembers: projectTeamMembers } = useSelector(
+        (state) => state.fetchProjectTeamMembers
+    );
+    const { taskDetails: parentTask } = useSelector((state) => state.taskDetails);
 
-    const [totalWorkingHours, setTotalWorkingHours] = useState("")
-    const [dateWiseHours, setDateWiseHours] = useState("")
-    const [taskDuration, setTaskDuration] = useState("")
+    const [totalWorkingHours, setTotalWorkingHours] = useState('');
+    const [dateWiseHours, setDateWiseHours] = useState('');
+    const [taskDuration, setTaskDuration] = useState('');
     const [showDatePicker, setShowDatePicker] = useState(false);
     const [showStartDatePicker, setShowStartDatePicker] = useState(false);
     const [startDateTasks, setStartDateTasks] = useState([]);
@@ -57,49 +68,53 @@ const AddSubtaskModal = ({ isModalOpen, setIsModalOpen, title }) => {
     const [showCalender, setShowCalender] = useState(false);
     const [showStartCalender, setShowStartCalender] = useState(false);
     const [calendarTaskHours, setCalendarTaskHours] = useState([]);
-    const [isSubmitting, setIsSubmitting] = useState(false)
+    const [isSubmitting, setIsSubmitting] = useState(false);
     const [prevTags, setPrevTags] = useState([]);
-    const [startDate, setStartDate] = useState(null)
-    const [endDate, setEndDate] = useState(null)
-    const [members, setMembers] = useState([])
+    const [startDate, setStartDate] = useState(null);
+    const [endDate, setEndDate] = useState(null);
+    const [members, setMembers] = useState([]);
     const [formData, setFormData] = useState({
-        title: "",
-        description: "",
-        responsiblePerson: "",
-        responsiblePersonName: "",
-        duration: "",
-        priority: "",
+        title: '',
+        description: '',
+        responsiblePerson: '',
+        responsiblePersonName: '',
+        duration: '',
+        priority: '',
         tags: [],
-    })
-    console.log(projectTeamMembers)
+    });
+    console.log(projectTeamMembers);
 
     useEffect(() => {
         if (projectTeamMembers) {
-            const members = []
+            const members = [];
 
             projectTeamMembers?.project_team_members.map((member) => {
-                members.push(member.user)
-            })
-            members.push(projectTeamMembers.team_lead)
+                members.push(member.user);
+            });
+            members.push(projectTeamMembers.team_lead);
 
-            setMembers(members)
+            setMembers(members);
         }
-    }, [projectTeamMembers])
+    }, [projectTeamMembers]);
 
-    console.log(members)
+    console.log(members);
 
     useEffect(() => {
         const getUsers = async () => {
             try {
                 await dispatch(fetchUsers({ token })).unwrap();
                 await dispatch(fetchTags({ token })).unwrap();
+                // Fetch parent task details to check subtask duration limit
+                if (tid) {
+                    await dispatch(taskDetails({ token, id: tid })).unwrap();
+                }
             } catch (error) {
-                console.log(error)
+                console.log(error);
             }
-        }
+        };
 
-        getUsers()
-    }, [])
+        getUsers();
+    }, [tid, dispatch, token]);
 
     useEffect(() => {
         const el = collapsibleRef.current;
@@ -107,17 +122,17 @@ const AddSubtaskModal = ({ isModalOpen, setIsModalOpen, title }) => {
 
         if (showDatePicker) {
             gsap.to(el, {
-                height: "auto",
+                height: 'auto',
                 opacity: 1,
                 duration: 0.4,
-                ease: "power2.out",
+                ease: 'power2.out',
             });
         } else {
             gsap.to(el, {
                 height: 0,
                 opacity: 0,
                 duration: 0.3,
-                ease: "power2.in",
+                ease: 'power2.in',
             });
         }
     }, [showDatePicker]);
@@ -128,17 +143,17 @@ const AddSubtaskModal = ({ isModalOpen, setIsModalOpen, title }) => {
 
         if (showStartDatePicker) {
             gsap.to(el, {
-                height: "auto",
+                height: 'auto',
                 opacity: 1,
                 duration: 0.4,
-                ease: "power2.out",
+                ease: 'power2.out',
             });
         } else {
             gsap.to(el, {
                 height: 0,
                 opacity: 0,
                 duration: 0.3,
-                ease: "power2.in",
+                ease: 'power2.in',
             });
         }
     }, [showStartDatePicker]);
@@ -147,9 +162,10 @@ const AddSubtaskModal = ({ isModalOpen, setIsModalOpen, title }) => {
         const getStartDateTasks = async () => {
             if (!startDate) return;
 
-            const formattedStartDate = `${startDate.year}-${String(
-                startDate.month + 1
-            ).padStart(2, "0")}-${String(startDate.date).padStart(2, "0")}`;
+            const formattedStartDate = `${startDate.year}-${String(startDate.month + 1).padStart(
+                2,
+                '0'
+            )}-${String(startDate.date).padStart(2, '0')}`;
 
             try {
                 const response = await dispatch(
@@ -172,9 +188,10 @@ const AddSubtaskModal = ({ isModalOpen, setIsModalOpen, title }) => {
 
     useEffect(() => {
         const getTargetDateTasks = async () => {
-            const formattedEndDate = `${endDate.year}-${String(
-                endDate.month + 1
-            ).padStart(2, "0")}-${String(endDate.date).padStart(2, "0")}`;
+            const formattedEndDate = `${endDate.year}-${String(endDate.month + 1).padStart(
+                2,
+                '0'
+            )}-${String(endDate.date).padStart(2, '0')}`;
             try {
                 const response = await dispatch(
                     fetchTargetDateTasks({
@@ -207,17 +224,17 @@ const AddSubtaskModal = ({ isModalOpen, setIsModalOpen, title }) => {
         if (isModalOpen) {
             gsap.fromTo(
                 addTaskModalRef.current,
-                { x: "100%" },
-                { x: "0%", duration: 0.5, ease: "power3.out" }
+                { x: '100%' },
+                { x: '0%', duration: 0.5, ease: 'power3.out' }
             );
         }
     }, [isModalOpen]);
 
     const closeModal = () => {
         gsap.to(addTaskModalRef.current, {
-            x: "100%",
+            x: '100%',
             duration: 0.5,
-            ease: "power3.in",
+            ease: 'power3.in',
             onComplete: () => setIsModalOpen(false),
         });
     };
@@ -228,15 +245,19 @@ const AddSubtaskModal = ({ isModalOpen, setIsModalOpen, title }) => {
     };
 
     const handleSelectChange = (name, value) => {
-        if (name === "responsiblePerson") {
-            setFormData({ ...formData, responsiblePersonName: value.label, responsiblePerson: value.value });
+        if (name === 'responsiblePerson') {
+            setFormData({
+                ...formData,
+                responsiblePersonName: value.label,
+                responsiblePerson: value.value,
+            });
         } else {
             setFormData({ ...formData, [name]: value });
         }
     };
 
     const handleMultiSelectChange = (name, selectedOptions) => {
-        if (name === "tags") {
+        if (name === 'tags') {
             const removed = prevTags.find(
                 (prev) => !selectedOptions.some((curr) => curr.value === prev.value)
             );
@@ -252,30 +273,58 @@ const AddSubtaskModal = ({ isModalOpen, setIsModalOpen, title }) => {
     };
 
     const validateForm = () => {
-        if (
-            !formData.title ||
-            !formData.responsiblePerson ||
-            !startDate ||
-            !endDate ||
-            !formData.priority
-        ) {
-            toast.error("Fill all required fields");
+        if (!formData.title || !formData.responsiblePerson || !endDate || !formData.priority) {
+            toast.error('Fill all required fields');
             return false;
         }
         return true;
-    }
+    };
 
-    const handleSubmit = async (e, id) => {
+    // Validate subtask duration against parent task duration
+    const validateSubtaskDuration = () => {
+        if (!parentTask) {
+            return true; // If parent task data not loaded, skip validation
+        }
+
+        const parentEstimatedHours = parentTask.estimated_hour || 0;
+
+        // Calculate total estimated hours of existing subtasks
+        const existingSubtasksHours = (parentTask.sub_tasks_managements || []).reduce(
+            (sum, subtask) => sum + (subtask.estimated_hour || 0),
+            0
+        );
+
+        // New subtask hours
+        const newSubtaskHours = totalWorkingHours || 0;
+
+        // Total hours if new subtask is created
+        const totalSubtasksHours = existingSubtasksHours + newSubtaskHours;
+
+        // Check if total exceeds parent task duration
+        if (totalSubtasksHours > parentEstimatedHours) {
+            const remainingHours = parentEstimatedHours - existingSubtasksHours;
+            toast.error(
+                `Your subtask duration exceeds task duration limit. Parent task duration: ${parentEstimatedHours}h, Existing subtasks: ${existingSubtasksHours}h, Remaining: ${Math.max(0, remainingHours)}h`
+            );
+            return false;
+        }
+
+        return true;
+    };
+
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        console.log(formData)
+        console.log(formData);
 
-        if (!validateForm()) return
+        if (!validateForm()) return;
 
-        setIsSubmitting(true)
-        const formatedStartDate = `${startDate.year}-${startDate.month + 1}-${startDate.date
-            }`;
-        const formatedEndDate = `${endDate.year}-${endDate.month + 1}-${endDate.date
-            }`;
+        // Validate subtask duration against parent task
+        if (!validateSubtaskDuration()) return;
+
+        setIsSubmitting(true);
+        console.log(startDate);
+        const formatedStartDate = `${startDate?.year}-${startDate?.month + 1}-${startDate?.date}`;
+        const formatedEndDate = `${endDate.year}-${endDate.month + 1}-${endDate.date}`;
         const payload = {
             parent_id: tid,
             title: formData.title,
@@ -287,22 +336,23 @@ const AddSubtaskModal = ({ isModalOpen, setIsModalOpen, title }) => {
             priority: formData.priority,
             task_tag_ids: formData.tags.map((tag) => tag.value),
             task_allocation_times_attributes: dateWiseHours,
-            project_management_id: pid
+            project_management_id: pid ? pid : parentTaskProject,
+            milestone_id: mid ? mid : parentTaskMilestone,
         };
         if (payload.task_tag_ids.length === 0) {
-            payload.task_tag_ids = null
+            payload.task_tag_ids = null;
         }
         try {
             await dispatch(createSubTask({ token, payload })).unwrap();
             await dispatch(fetchKanbanTasks({ token, id: mid })).unwrap();
-            toast.success("Subtask created successfully");
+            toast.success('Subtask created successfully');
             closeModal();
         } catch (error) {
-            console.log(error)
+            console.log(error);
         } finally {
-            setIsSubmitting(false)
+            setIsSubmitting(false);
         }
-    }
+    };
 
     return (
         <div className="fixed inset-0 flex items-center justify-end bg-black bg-opacity-50 z-10">
@@ -311,10 +361,7 @@ const AddSubtaskModal = ({ isModalOpen, setIsModalOpen, title }) => {
                 className="bg-white py-6 rounded-lg shadow-lg w-[50%] relative h-full right-0"
             >
                 <h3 className="text-lg font-medium text-center">{title}</h3>
-                <X
-                    className="absolute top-[26px] right-8 cursor-pointer"
-                    onClick={closeModal}
-                />
+                <X className="absolute top-[26px] right-8 cursor-pointer" onClick={closeModal} />
 
                 <hr className="border border-[#E95420] mt-4" />
 
@@ -365,7 +412,7 @@ const AddSubtaskModal = ({ isModalOpen, setIsModalOpen, title }) => {
                                     placeholder="Select Person"
                                     value={formData.responsiblePerson}
                                     onChange={(p) => {
-                                        handleSelectChange("responsiblePerson", p)
+                                        handleSelectChange('responsiblePerson', p);
                                         dispatch(fetchUserAvailability({ token, id: p.value }));
                                         dispatch(fetchUserShift({ token, id: p.value }));
                                     }}
@@ -374,36 +421,6 @@ const AddSubtaskModal = ({ isModalOpen, setIsModalOpen, title }) => {
                             </div>
 
                             <div className="flex justify-between mt-3 gap-2 text-[12px]">
-                                <div className="space-y-2 w-full">
-                                    <label className="block">Start Date</label>
-                                    <button
-                                        type="button"
-                                        className="w-full border outline-none border-gray-300 px-2 py-[7px] text-[13px] flex items-center gap-3 text-gray-400"
-                                        onClick={() => {
-                                            if (showDatePicker) {
-                                                setShowDatePicker(false);
-                                            }
-                                            setShowStartDatePicker(!showStartDatePicker);
-                                        }}
-                                        ref={startDateRef}
-                                    >
-                                        {startDate ? (
-                                            <div className="text-black flex items-center justify-between w-full">
-                                                <CalendarIcon className="w-4 h-4" />
-                                                <div>
-                                                    Start Date : {startDate.date.toString().padStart(2, "0")}{" "}
-                                                    {monthNames[startDate.month]}
-                                                </div>
-                                                <X className="w-4 h-4" onClick={() => setStartDate(null)} />
-                                            </div>
-                                        ) : (
-                                            <>
-                                                <CalendarIcon className="w-4 h-4" /> Select Start Date
-                                            </>
-                                        )}
-                                    </button>
-                                </div>
-
                                 <div className="space-y-2 w-full">
                                     <label className="block">
                                         Target Date <span className="text-red-600">*</span>
@@ -423,7 +440,7 @@ const AddSubtaskModal = ({ isModalOpen, setIsModalOpen, title }) => {
                                             <div className="text-black flex items-center justify-between w-full">
                                                 <CalendarIcon className="w-4 h-4" />
                                                 <div>
-                                                    Target : {endDate.date.toString().padStart(2, "0")}{" "}
+                                                    Target : {endDate.date.toString().padStart(2, '0')}{' '}
                                                     {monthNames[endDate.month]}
                                                 </div>
                                                 <X className="w-4 h-4" onClick={() => setEndDate(null)} />
@@ -435,12 +452,42 @@ const AddSubtaskModal = ({ isModalOpen, setIsModalOpen, title }) => {
                                         )}
                                     </button>
                                 </div>
+
+                                <div className="space-y-2 w-full">
+                                    <label className="block">Start Date</label>
+                                    <button
+                                        type="button"
+                                        className="w-full border outline-none border-gray-300 px-2 py-[7px] text-[13px] flex items-center gap-3 text-gray-400"
+                                        onClick={() => {
+                                            if (showDatePicker) {
+                                                setShowDatePicker(false);
+                                            }
+                                            setShowStartDatePicker(!showStartDatePicker);
+                                        }}
+                                        ref={startDateRef}
+                                    >
+                                        {startDate ? (
+                                            <div className="text-black flex items-center justify-between w-full">
+                                                <CalendarIcon className="w-4 h-4" />
+                                                <div>
+                                                    Start Date : {startDate.date.toString().padStart(2, '0')}{' '}
+                                                    {monthNames[startDate.month]}
+                                                </div>
+                                                <X className="w-4 h-4" onClick={() => setStartDate(null)} />
+                                            </div>
+                                        ) : (
+                                            <>
+                                                <CalendarIcon className="w-4 h-4" /> Select Start Date
+                                            </>
+                                        )}
+                                    </button>
+                                </div>
                             </div>
 
                             <div className="flex justify-between mt-4 gap-2 text-[12px]">
                                 <div className="space-y-2 w-full">
                                     <label className="block">
-                                        Duration <span className="text-red-600">*</span>
+                                        Efforts Duration <span className="text-red-600">*</span>
                                     </label>
                                     <DurationPicker
                                         value={taskDuration}
@@ -459,7 +506,7 @@ const AddSubtaskModal = ({ isModalOpen, setIsModalOpen, title }) => {
                             <div
                                 ref={startCollapsibleRef}
                                 className="overflow-hidden opacity-0 h-0"
-                                style={{ willChange: "height, opacity" }}
+                                style={{ willChange: 'height, opacity' }}
                             >
                                 {!startDate ? (
                                     showStartCalender ? (
@@ -492,7 +539,7 @@ const AddSubtaskModal = ({ isModalOpen, setIsModalOpen, title }) => {
                             <div
                                 ref={collapsibleRef}
                                 className="overflow-hidden opacity-0 h-0"
-                                style={{ willChange: "height, opacity" }}
+                                style={{ willChange: 'height, opacity' }}
                             >
                                 {!endDate ? (
                                     showCalender ? (
@@ -529,14 +576,14 @@ const AddSubtaskModal = ({ isModalOpen, setIsModalOpen, title }) => {
                                     </label>
                                     <SelectBox
                                         options={[
-                                            { label: "High", value: "High" },
-                                            { label: "Medium", value: "Medium" },
-                                            { label: "Low", value: "Low" },
+                                            { label: 'High', value: 'High' },
+                                            { label: 'Medium', value: 'Medium' },
+                                            { label: 'Low', value: 'Low' },
                                         ]}
                                         placeholder="Select Priority"
                                         name="priority"
                                         value={formData.priority}
-                                        onChange={(value) => handleSelectChange("priority", value)}
+                                        onChange={(value) => handleSelectChange('priority', value)}
                                     />
                                 </div>
                             </div>
@@ -549,7 +596,7 @@ const AddSubtaskModal = ({ isModalOpen, setIsModalOpen, title }) => {
                                     <MultiSelectBox
                                         options={tags.map((tag) => ({ value: tag.id, label: tag.name }))}
                                         value={formData.tags}
-                                        onChange={(values) => handleMultiSelectChange("tags", values)}
+                                        onChange={(values) => handleMultiSelectChange('tags', values)}
                                         placeholder="Select Tags"
                                     />
                                 </div>
@@ -568,7 +615,7 @@ const AddSubtaskModal = ({ isModalOpen, setIsModalOpen, title }) => {
                 </form>
             </div>
         </div>
-    )
-}
+    );
+};
 
-export default AddSubtaskModal
+export default AddSubtaskModal;

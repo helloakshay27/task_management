@@ -29,7 +29,9 @@ const ActionIcons = ({ row, onEditClick }) => {
     };
 
     try {
-      await dispatch(fetchUpdateUser({ token, userId: userData.id, updatedData: payload })).unwrap();
+      await dispatch(
+        fetchUpdateUser({ token, userId: userData.id, updatedData: payload })
+      ).unwrap();
       await dispatch(fetchInternalUser({ token })).unwrap();
       setIsActive(updatedValue);
       toast.dismiss();
@@ -67,18 +69,17 @@ const ActionIcons = ({ row, onEditClick }) => {
   );
 };
 
-
 const InternalTable = () => {
   const navigate = useNavigate();
   const token = localStorage.getItem('token');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
-  const [searchQuery, setSearchQuery] = useState("")
+  const [searchQuery, setSearchQuery] = useState('');
 
   const dispatch = useDispatch();
-  const { fetchInternalUser: internalUser } = useSelector(state => state.fetchInternalUser);
-  const { fetchUsers: users } = useSelector(state => state.fetchUsers);
+  const { fetchInternalUser: internalUser } = useSelector((state) => state.fetchInternalUser);
+  const { fetchUsers: users } = useSelector((state) => state.fetchUsers);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -96,7 +97,7 @@ const InternalTable = () => {
     }
   }, [dispatch, token]);
 
-  const filteredUsers = users?.filter(user => {
+  const filteredUsers = users?.filter((user) => {
     const fullName = `${user.firstname} ${user.lastname}`.toLowerCase();
     const query = searchQuery.toLowerCase();
 
@@ -107,7 +108,6 @@ const InternalTable = () => {
       user.email.toLowerCase().includes(query)
     );
   });
-
 
   const handleAddClick = () => {
     setIsEditMode(false);
@@ -132,79 +132,86 @@ const InternalTable = () => {
     }
   }, [dispatch, token]);
 
-  const columns = useMemo(() => [
-    {
-      accessorKey: 'firstname',
-      header: 'User Name',
-      size: 250,
-      cell: ({ row }) => {
-        const { firstname, lastname } = row.original;
-        return (
-          <Link to={`/setup/internal-users/details/${row.original.id}`}>
-            <span className="cursor-pointer">{firstname} {lastname}</span>
-          </Link>
-        );
+  const columns = useMemo(
+    () => [
+      {
+        accessorKey: 'firstname',
+        header: 'User Name',
+        size: 250,
+        cell: ({ row }) => {
+          const { firstname, lastname } = row.original;
+          return (
+            <Link to={`/setup/internal-users/details/${row.original.id}`}>
+              <span className="cursor-pointer">
+                {firstname} {lastname}
+              </span>
+            </Link>
+          );
+        },
       },
-    },
-    {
-      accessorKey: 'mobile',
-      header: 'Mobile No.',
-      size: 150,
-    },
-    {
-      accessorKey: 'email',
-      header: 'Email Id',
-      size: 200,
-      cell: ({ row, getValue }) => {
-        const value = row.original ? getValue() : null;
-        return <span className="pl-2">{value}</span>;
+      {
+        accessorKey: 'mobile',
+        header: 'Mobile No.',
+        size: 150,
       },
-    },
-    {
-      accessorKey: 'user_company_name',
-      header: 'Company',
-      size: 200,
-      cell: ({ row, getValue }) => {
-        const value = row.original ? getValue() : null;
-        return <span className="pl-2">{value}</span>;
+      {
+        accessorKey: 'email',
+        header: 'Email Id',
+        size: 200,
+        cell: ({ row, getValue }) => {
+          const value = row.original ? getValue() : null;
+          return <span className="pl-2">{value}</span>;
+        },
       },
-    },
-    {
-      accessorKey: 'lock_role.display_name',
-      header: 'Role',
-      size: 150,
-      cell: ({ row, getValue }) => {
-        const value = row.original ? getValue() : null;
-        if (!value) return null;
-        const formattedValue = value.replace(/_/g, ' ');
-        return (
-          <span className="pl-2">
-            {formattedValue.charAt(0).toUpperCase() + formattedValue.slice(1)}
-          </span>
-        );
+      {
+        accessorKey: 'user_company_name',
+        header: 'Company',
+        size: 200,
+        cell: ({ row, getValue }) => {
+          const value = row.original ? getValue() : null;
+          return <span className="pl-2">{value}</span>;
+        },
       },
-    },
-    {
-      accessorKey: 'report_to_id',
-      header: 'Reports to',
-      size: 150,
-      cell: ({ row, getValue }) => {
-        const user = users.find((user) => user.id === getValue());
-        return <span className="pl-2">{user ? `${user.firstname} ${user.lastname}` : 'N/A'}</span>;
+      {
+        accessorKey: 'lock_role.display_name',
+        header: 'Role',
+        size: 150,
+        cell: ({ row, getValue }) => {
+          const value = row.original ? getValue() : null;
+          if (!value) return null;
+          const formattedValue = value.replace(/_/g, ' ');
+          return (
+            <span className="pl-2">
+              {formattedValue.charAt(0).toUpperCase() + formattedValue.slice(1)}
+            </span>
+          );
+        },
       },
-    },
-    {
-      accessorKey: 'associated_projects_count',
-      header: 'Associated Projects',
-      size: 100,
-    },
-    {
-      id: 'actions',
-      header: 'Actions',
-      size: 60,
-      cell: ({ row }) => <ActionIcons row={row} onEditClick={handleEditClick} />,
-    },
-  ], [users]);
+      {
+        accessorKey: 'report_to_id',
+        header: 'Reports to',
+        size: 150,
+        cell: ({ row, getValue }) => {
+          const user = users.find((user) => user.id === getValue());
+          return (
+            <span className="pl-2">{user ? `${user.firstname} ${user.lastname}` : 'N/A'}</span>
+          );
+        },
+      },
+      {
+        accessorKey: 'associated_projects_count',
+        header: 'Associated Projects',
+        size: 100,
+      },
+      {
+        id: 'actions',
+        header: 'Actions',
+        size: 60,
+        cell: ({ row }) => <ActionIcons row={row} onEditClick={handleEditClick} />,
+      },
+    ],
+    [users]
+  );
 
   return (
     <>

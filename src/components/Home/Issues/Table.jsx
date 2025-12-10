@@ -1,34 +1,30 @@
-import { useState, useEffect, useMemo, useRef, useCallback } from "react";
-import { Link, useParams } from "react-router-dom";
-import { useIsCloudRoute } from "../../../utils/navigationUtils";
-import { useDispatch, useSelector } from "react-redux";
-import {
-  useReactTable,
-  getCoreRowModel,
-  flexRender
-} from "@tanstack/react-table";
-import { useDrag, useDrop, DndProvider } from "react-dnd";
-import { HTML5Backend } from "react-dnd-html5-backend";
+import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
+import { Link, useParams } from 'react-router-dom';
+import { useIsCloudRoute } from '../../../utils/navigationUtils';
+import { useDispatch, useSelector } from 'react-redux';
+import { useReactTable, getCoreRowModel, flexRender } from '@tanstack/react-table';
+import { useDrag, useDrop, DndProvider } from 'react-dnd';
+import { HTML5Backend } from 'react-dnd-html5-backend';
 
 // Custom Components
-import StatusBadge from "../Projects/statusBadge";
-import { ArrowPathIcon } from "@heroicons/react/20/solid";
-import SelectBox from "../../SelectBox";
-import qs from "qs";
+import StatusBadge from '../Projects/statusBadge';
+import { ArrowPathIcon } from '@heroicons/react/20/solid';
+import SelectBox from '../../SelectBox';
+import qs from 'qs';
 
 // Redux Thunks
-import { fetchUsers } from "../../../redux/slices/userSlice";
+import { fetchUsers } from '../../../redux/slices/userSlice';
 import {
   fetchIssue,
   createIssue,
   updateIssue,
   fetchIssueType,
   filterIssue,
-} from "../../../redux/slices/IssueSlice";
-import { fetchProjects } from "../../../redux/slices/projectSlice";
-import { fetchMilestone } from "../../../redux/slices/milestoneSlice";
-import { editTaskComment, fetchKanbanTasks } from "../../../redux/slices/taskSlice";
-import toast from "react-hot-toast";
+} from '../../../redux/slices/IssueSlice';
+import { fetchKanbanProjects } from '../../../redux/slices/projectSlice';
+import { fetchMilestone } from '../../../redux/slices/milestoneSlice';
+import { editTaskComment, fetchKanbanTasks } from '../../../redux/slices/taskSlice';
+import toast from 'react-hot-toast';
 
 const NewIssuesTextField = ({
   value,
@@ -39,7 +35,7 @@ const NewIssuesTextField = ({
   validator,
 }) => {
   const handleKeyDown = (event) => {
-    if (event.key === "Enter") {
+    if (event.key === 'Enter') {
       event.preventDefault();
       onEnterPress();
     }
@@ -54,26 +50,19 @@ const NewIssuesTextField = ({
       type="text"
       onBlur={handleBlur}
       placeholder={placeholder}
-      value={value || ""}
+      value={value || ''}
       onChange={onChange}
       onKeyDown={handleKeyDown}
-      className={`${validator ? "border border-red-500" : "border-none"
+      className={`${validator ? 'border border-red-500' : 'border-none'
         } w-full p-1 focus:outline-none rounded text-[12px]`}
-      style={{ background: "none" }}
+      style={{ background: 'none' }}
     />
   );
 };
 
-const NewIssuesDateEditor = ({
-  value,
-  onChange,
-  onEnterPress,
-  placeholder,
-  validator,
-  min,
-}) => {
+const NewIssuesDateEditor = ({ value, onChange, onEnterPress, placeholder, validator, min }) => {
   const handleKeyDown = (event) => {
-    if (event.key === "Enter") {
+    if (event.key === 'Enter') {
       event.preventDefault();
       onEnterPress();
     }
@@ -83,10 +72,10 @@ const NewIssuesDateEditor = ({
       type="date"
       min={min}
       placeholder={placeholder}
-      value={value || ""}
+      value={value || ''}
       onChange={onChange}
       onKeyDown={handleKeyDown}
-      className={`${validator ? "border border-red-500" : "border-none"
+      className={`${validator ? 'border border-red-500' : 'border-none'
         } my-custom-date-editor w-full p-1 focus:outline-none rounded text-[13px]`}
     />
   );
@@ -94,11 +83,13 @@ const NewIssuesDateEditor = ({
 
 // Separate component for comment cell to handle state properly
 const CommentCell = ({ initialValue, issueId, commentId, onUpdate }) => {
-  const [editField, setEditField] = useState(initialValue || "");
+  const [editField, setEditField] = useState(initialValue || '');
 
   // Sync with prop changes
   useEffect(() => {
-    setEditField(initialValue || "");
+    setEditField(
+      initialValue.replace(/@\[(.*?)\]\(\d+\)/g, '@$1').replace(/#\[(.*?)\]\(\d+\)/g, '#$1') || ''
+    );
   }, [initialValue]);
 
   return (
@@ -137,7 +128,7 @@ const Attachments = ({
   };
 
   const handleRemoveFile = (indexToRemove) => {
-    setAttachments(prev => prev.filter((_, index) => index !== indexToRemove));
+    setAttachments((prev) => prev.filter((_, index) => index !== indexToRemove));
   };
 
   const handleChangeFiles = (e) => {
@@ -153,7 +144,10 @@ const Attachments = ({
         <div className="flex flex-col gap-1">
           <div className="max-h-[100px] overflow-y-auto">
             {attachments.map((file, index) => (
-              <div key={index} className="flex items-center justify-between gap-2 text-[11px] py-1 px-2 bg-gray-50 rounded">
+              <div
+                key={index}
+                className="flex items-center justify-between gap-2 text-[11px] py-1 px-2 bg-gray-50 rounded"
+              >
                 <span className="truncate flex-1" title={file.name}>
                   {file.name}
                 </span>
@@ -179,10 +173,7 @@ const Attachments = ({
           </button>
         </div>
       ) : (
-        <span
-          onClick={handleAttachFile}
-          className="block cursor-pointer text-gray-400 text-[12px]"
-        >
+        <span onClick={handleAttachFile} className="block cursor-pointer text-gray-400 text-[12px]">
           <i>Click to attach files</i>
         </span>
       )}
@@ -190,7 +181,7 @@ const Attachments = ({
         type="file"
         multiple
         ref={fileInputRef}
-        style={{ display: "none" }}
+        style={{ display: 'none' }}
         onChange={handleFileChange}
       />
     </div>
@@ -198,15 +189,15 @@ const Attachments = ({
 };
 
 // Constants
-const globalPriorityOptions = ["None", "Low", "Medium", "High", "Urgent"];
-const globalStatusOptions = ["open", "in_progress", "completed", "on_hold", "reopen", "closed"];
-const globalTypesOptions = ["bug", "task", "feature", "UI", "UX"];
+const globalPriorityOptions = ['None', 'Low', 'Medium', 'High', 'Urgent'];
+const globalStatusOptions = ['open', 'in_progress', 'completed', 'on_hold', 'reopen', 'closed'];
+const globalTypesOptions = ['bug', 'task', 'feature', 'UI', 'UX'];
 
 // Draggable Column Header Component
 const DraggableColumnHeader = ({ header, onReorderColumns, columnOrder }) => {
   const [{ isDragging }, dragRef] = useDrag(
     () => ({
-      type: "column",
+      type: 'column',
       item: { id: header.id },
       collect: (monitor) => ({
         isDragging: monitor.isDragging(),
@@ -217,7 +208,7 @@ const DraggableColumnHeader = ({ header, onReorderColumns, columnOrder }) => {
 
   const [{ isOver }, dropRef] = useDrop(
     () => ({
-      accept: "column",
+      accept: 'column',
       hover: (item) => {
         if (item.id !== header.id) {
           onReorderColumns(item.id, header.id);
@@ -241,22 +232,22 @@ const DraggableColumnHeader = ({ header, onReorderColumns, columnOrder }) => {
       style={{
         width: header.getSize() ? `${header.getSize()}px` : undefined,
         opacity: isDragging ? 0.5 : 1,
-        backgroundColor: isOver ? "bg-gray-300" : "bg-gray-300",
-        transition: "all 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
-        transform: isOver ? "scale(1.02)" : "scale(1)",
+        backgroundColor: isOver ? 'bg-gray-300' : 'bg-gray-300',
+        transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+        transform: isOver ? 'scale(1.02)' : 'scale(1)',
       }}
-      className={`border p-2 bg-gray-300 text-center text-gray-700 font-semibold sticky top-0 cursor-move select-none ${isDragging ? "shadow-lg" : ""
-        } ${isOver ? "bg-gray-300" : ""}`}
+      className={`border p-2 bg-gray-300 text-center text-gray-700 font-semibold sticky top-0 cursor-move select-none ${isDragging ? 'shadow-lg' : ''
+        } ${isOver ? 'bg-gray-300' : ''}`}
     >
       {flexRender(header.column.columnDef.header, header.getContext())}
     </th>
   );
 };
 
-const IssuesTable = ({ selectedColumns }) => {
+const IssuesTable = ({ selectedColumns, projectId, searchQuery = '' }) => {
   const { id: parentId } = useParams();
   const dispatch = useDispatch();
-  const token = localStorage.getItem("token");
+  const token = localStorage.getItem('token');
   const isCloudRoute = useIsCloudRoute();
 
   const {
@@ -272,30 +263,29 @@ const IssuesTable = ({ selectedColumns }) => {
     loading: loadingFilteredIssues,
     error: filteredIssuesError,
     success: filterSuccess,
-  } = useSelector((state) => state.filterIssue || {
-    filterIssue: [],
-    pagination: { current_page: 1, total_pages: 1, total_count: 0 },
-    loading: false,
-    error: null,
-    success: false,
-  });
+  } = useSelector(
+    (state) =>
+      state.filterIssue || {
+        filterIssue: [],
+        pagination: { current_page: 1, total_pages: 1, total_count: 0 },
+        loading: false,
+        error: null,
+        success: false,
+      }
+  );
 
   const {
     fetchUsers: users,
     loading: loadingUsers,
     error: usersFetchError,
-  } = useSelector(
-    (state) =>
-      state.fetchUsers || { fetchUsers: [], loading: false, error: null }
-  );
+  } = useSelector((state) => state.fetchUsers || { fetchUsers: [], loading: false, error: null });
 
   const {
-    fetchProjects: projects,
+    fetchKanbanProjects: projects,
     loading: loadingProjects,
     error: projectsFetchError,
   } = useSelector(
-    (state) =>
-      state.fetchProjects || { fetchProjects: [], loading: false, error: null }
+    (state) => state.fetchKanbanProjects || { fetchKanbanProjects: [], loading: false, error: null }
   );
 
   const {
@@ -311,15 +301,20 @@ const IssuesTable = ({ selectedColumns }) => {
       }
   );
 
-  const {
-    loading: loadingTasks,
-    error: tasksFetchError,
-  } = useSelector(
+  const { loading: loadingTasks, error: tasksFetchError } = useSelector(
     (state) =>
-      state.fetchKanbanTasks || { fetchKanbanTasks: [], loading: false, error: null }
+      state.fetchKanbanTasks || {
+        fetchKanbanTasks: [],
+        loading: false,
+        error: null,
+      }
   );
 
-  const { fetchIssueType: issueType, loading: loadingIssueType, error: issueTypeFetchError, } = useSelector((state) => state.fetchIssueType);
+  const {
+    fetchIssueType: issueType,
+    loading: loadingIssueType,
+    error: issueTypeFetchError,
+  } = useSelector((state) => state.fetchIssueType);
 
   const { fetchProjectDetails: projectDetails } = useSelector(
     (state) =>
@@ -333,21 +328,35 @@ const IssuesTable = ({ selectedColumns }) => {
   const [data, setData] = useState([]);
   const [columnOrder, setColumnOrder] = useState(() => {
     // Load column order from local storage or use default
-    const savedOrder = localStorage.getItem("issuesTableColumnOrder");
+    const savedOrder = localStorage.getItem('issuesTableColumnOrder');
     return savedOrder
       ? JSON.parse(savedOrder)
-      : ["id", "projectName", "milestoneName", "taskName", "subtaskName", "issueTitle", "attachments", "status", "responsiblePerson", "issueType", "startDate", "endDate", "priority", "comments"];
+      : [
+        'id',
+        'projectName',
+        'milestoneName',
+        'taskName',
+        'subtaskName',
+        'issueTitle',
+        'attachments',
+        'status',
+        'responsiblePerson',
+        'issueType',
+        'startDate',
+        'endDate',
+        'priority',
+        'comments',
+      ];
   });
   const [isAddingNewIssues, setIsAddingNewIssues] = useState(false);
-  const [newIssuesTitle, setNewIssuesTitle] = useState("");
-  const [newIssuesStatus, setNewIssuesStatus] = useState("open");
-  const [newIssuesResponsiblePersonId, setNewIssuesResponsiblePersonId] =
-    useState(null);
-  const [newIssuesType, setNewIssuesType] = useState("");
-  const [newIssuesStartDate, setNewIssuesStartDate] = useState("");
-  const [newIssuesEndDate, setNewIssuesEndDate] = useState("");
-  const [newIssuesPriority, setNewIssuesPriority] = useState("None");
-  const [newIssuesComments, setNewIssuesComments] = useState("");
+  const [newIssuesTitle, setNewIssuesTitle] = useState('');
+  const [newIssuesStatus, setNewIssuesStatus] = useState('open');
+  const [newIssuesResponsiblePersonId, setNewIssuesResponsiblePersonId] = useState(null);
+  const [newIssuesType, setNewIssuesType] = useState('');
+  const [newIssuesStartDate, setNewIssuesStartDate] = useState('');
+  const [newIssuesEndDate, setNewIssuesEndDate] = useState('');
+  const [newIssuesPriority, setNewIssuesPriority] = useState('None');
+  const [newIssuesComments, setNewIssuesComments] = useState('');
   const [newIssuesProjectId, setNewIssuesProjectId] = useState(null);
   const [newIssuesMilestoneId, setNewIssuesMilestoneId] = useState(null);
   const [newIssuesTaskId, setNewIssuesTaskId] = useState(null);
@@ -363,7 +372,7 @@ const IssuesTable = ({ selectedColumns }) => {
   const [localError, setLocalError] = useState(null);
   const [isFileDialogOpen, setIsFileDialogOpen] = useState(false);
   const [validator, setValidator] = useState(false);
-  const [tasks, setTasks] = useState([])
+  const [tasks, setTasks] = useState([]);
 
   const [pagination, setPagination] = useState({
     pageIndex: current_page - 1,
@@ -392,9 +401,39 @@ const IssuesTable = ({ selectedColumns }) => {
     }
   }, [dispatch, loadingIssueType, issueType, issueTypeFetchError, token]);
 
-  console.log(issueType)
+  console.log(issueType);
 
-  // Fetch issues
+  // Handle search with pagination
+  useEffect(() => {
+    if (searchQuery.trim()) {
+      // Reset to first page when search query changes
+      setPagination((prev) => ({
+        ...prev,
+        pageIndex: 0,
+      }));
+
+      const page = 1;
+      const filter = {
+        'q[title_or_project_management_title_cont]': searchQuery,
+        page,
+        per_page: 10,
+        ...(projectId && { 'q[project_management_id_eq]': projectId }),
+      };
+
+      const queryString = qs.stringify(filter);
+      dispatch(
+        filterIssue({
+          token,
+          filter: queryString,
+        })
+      );
+    } else {
+      // If search is cleared, reset to initial fetch
+      allIssuesFetchInitiatedRef.current = false;
+    }
+  }, [searchQuery, dispatch, token, projectId]);
+
+  // Fetch issues - only for initial load if no search
   useEffect(() => {
     if (
       !loadingAllIssues &&
@@ -402,15 +441,32 @@ const IssuesTable = ({ selectedColumns }) => {
         !Array.isArray(allIssuesFromStore) ||
         allIssuesFromStore.length === 0) &&
       !allIssuesError &&
-      !allIssuesFetchInitiatedRef.current
+      !allIssuesFetchInitiatedRef.current &&
+      !searchQuery.trim()
     ) {
-      dispatch(
-        fetchIssue({
-          token,
+      // If projectId is provided, use filter to get issues for that project
+      if (projectId) {
+        const filter = {
+          'q[project_management_id_eq]': projectId,
           page: pagination.pageIndex + 1,
           per_page: pagination.pageSize,
-        })
-      );
+        };
+        const queryString = qs.stringify(filter);
+        dispatch(
+          filterIssue({
+            token,
+            filter: queryString,
+          })
+        );
+      } else {
+        dispatch(
+          fetchIssue({
+            token,
+            page: pagination.pageIndex + 1,
+            per_page: pagination.pageSize,
+          })
+        );
+      }
       allIssuesFetchInitiatedRef.current = true;
     }
   }, [
@@ -421,6 +477,8 @@ const IssuesTable = ({ selectedColumns }) => {
     token,
     pagination.pageIndex,
     pagination.pageSize,
+    projectId,
+    searchQuery,
   ]);
 
   useEffect(() => {
@@ -430,16 +488,39 @@ const IssuesTable = ({ selectedColumns }) => {
     }));
   }, [current_page]);
 
+  // Handle pagination for search results
+  useEffect(() => {
+    if (searchQuery.trim() && pagination.pageIndex > 0) {
+      const page = pagination.pageIndex + 1;
+      const filter = {
+        'q[title_or_project_management_title_cont]': searchQuery,
+        page,
+        per_page: 10,
+        ...(projectId && { 'q[project_management_id_eq]': projectId }),
+      };
+
+      const queryString = qs.stringify(filter);
+      dispatch(
+        filterIssue({
+          token,
+          filter: queryString,
+        })
+      );
+    }
+  }, [pagination.pageIndex, searchQuery, dispatch, token, projectId]);
+
   useEffect(() => {
     const loadTasks = async () => {
       if (!loadingTasks && !tasksFetchError) {
         try {
           if (newIssuesMilestoneId) {
-            const response = await dispatch(fetchKanbanTasks({ id: newIssuesMilestoneId, token })).unwrap();
-            setTasks(response)
+            const response = await dispatch(
+              fetchKanbanTasks({ id: newIssuesMilestoneId, token })
+            ).unwrap();
+            setTasks(response);
           } else if (!newIssuesProjectId && !newIssuesMilestoneId) {
-            const response = await dispatch(fetchKanbanTasks({ id: "", token })).unwrap();
-            setTasks(response)
+            const response = await dispatch(fetchKanbanTasks({ id: '', token })).unwrap();
+            setTasks(response);
           }
 
           setNewIssuesTaskId(null);
@@ -447,8 +528,8 @@ const IssuesTable = ({ selectedColumns }) => {
           setNewIssuesSubtaskId(null);
           setSubtaskOptions([]);
         } catch (err) {
-          console.error("Error fetching tasks:", err);
-          toast.error("Error fetching tasks");
+          console.error('Error fetching tasks:', err);
+          toast.error('Error fetching tasks');
           setTaskOptions([]);
           setSubtaskOptions([]);
         }
@@ -456,12 +537,7 @@ const IssuesTable = ({ selectedColumns }) => {
     };
 
     loadTasks();
-  }, [
-    dispatch,
-    newIssuesMilestoneId,
-    newIssuesProjectId,
-    token,
-  ]);
+  }, [dispatch, newIssuesMilestoneId, newIssuesProjectId, token]);
 
   // Set task options
   useEffect(() => {
@@ -505,13 +581,7 @@ const IssuesTable = ({ selectedColumns }) => {
       setNewIssuesSubtaskId(null);
       setSubtaskOptions([]);
     }
-  }, [
-    dispatch,
-    newIssuesProjectId,
-    loadingProjects,
-    projectsFetchError,
-    token,
-  ]);
+  }, [dispatch, newIssuesProjectId, loadingProjects, projectsFetchError, token]);
 
   useEffect(() => {
     if (
@@ -554,10 +624,10 @@ const IssuesTable = ({ selectedColumns }) => {
           !projectsFetchInitiatedRef.current
         ) {
           projectsFetchInitiatedRef.current = true;
-          await dispatch(fetchProjects({ token }));
+          await dispatch(fetchKanbanProjects({ token }));
         }
       } catch (error) {
-        console.error("Error fetching projects:", error);
+        console.error('Error fetching projects:', error);
       }
     };
 
@@ -569,16 +639,20 @@ const IssuesTable = ({ selectedColumns }) => {
     if (loadingProjects) return;
 
     if (projectsFetchError) {
-      console.error("Failed to fetch projects:", projectsFetchError);
+      console.error('Failed to fetch projects:', projectsFetchError);
       setProjectOptions([]);
       return;
     }
 
-    if (projects && Array.isArray(projects) && projects.length > 0) {
+    if (
+      projects &&
+      Array.isArray(projects.project_managements) &&
+      projects.project_managements.length > 0
+    ) {
       try {
-        const options = projects.map((project) => {
+        const options = projects.project_managements.map((project) => {
           if (!project?.id || !project?.title) {
-            throw new Error("Invalid project data structure.");
+            throw new Error('Invalid project data structure.');
           }
           return {
             value: project.id,
@@ -588,7 +662,7 @@ const IssuesTable = ({ selectedColumns }) => {
 
         setProjectOptions(options);
       } catch (err) {
-        console.error("Error while mapping project options:", err);
+        console.error('Error while mapping project options:', err);
         setProjectOptions([]);
       }
     } else {
@@ -599,15 +673,22 @@ const IssuesTable = ({ selectedColumns }) => {
   // Process issues data
   useEffect(() => {
     let allIssues;
-    if (parentId !== null && parentId !== undefined) {
-      allIssues = allIssuesFromStore.filter(
-        (issue) => issue.project_management_id == parentId
-      );
+
+    // If search is active, use filtered issues
+    if (searchQuery.trim()) {
+      allIssues =
+        filterSuccess && filteredIssues && Array.isArray(filteredIssues) ? filteredIssues : [];
+    }
+    // If projectId prop is provided, use filtered issues
+    else if (projectId) {
+      allIssues =
+        filterSuccess && filteredIssues && Array.isArray(filteredIssues) ? filteredIssues : [];
+    } else if (parentId !== null && parentId !== undefined) {
+      allIssues = allIssuesFromStore.filter((issue) => issue.project_management_id == parentId);
     } else if (
       filterSuccess &&
       filteredIssues &&
-      (localStorage.getItem("IssueFilters") ||
-        localStorage.getItem("issueStatus"))
+      (localStorage.getItem('IssueFilters') || localStorage.getItem('issueStatus'))
     ) {
       allIssues = filteredIssues;
     } else {
@@ -617,43 +698,29 @@ const IssuesTable = ({ selectedColumns }) => {
     if (allIssues && Array.isArray(allIssues)) {
       const processedIssues = allIssues.map((issue) => ({
         id: issue.id,
-        issueTitle: issue.title || "Unnamed Issues",
-        status: issue.status || "open",
-        responsiblePerson: issue.responsible_person?.name || "Unassigned",
+        issueTitle: issue.title || 'Unnamed Issues',
+        status: issue.status || 'open',
+        responsiblePerson: issue.responsible_person?.name || 'Unassigned',
         responsiblePersonId: issue.responsible_person?.id || null,
         issueType: Number(issue.issue_type),
-        startDate: issue.start_date
-          ? new Date(issue.start_date).toLocaleDateString("en-CA")
-          : null,
-        endDate: issue.end_date
-          ? new Date(issue.end_date).toLocaleDateString("en-CA")
-          : null,
-        priority: issue.priority || "None",
-        projectName: issue.project_management_name || "",
-        milestoneName: issue.milstone_name || "",
-        taskName: issue.task_management_name || "",
-        subtaskName: issue.sub_task_management_name || "",
-        comments: issue.comments?.length
-          ? issue.comments[issue.comments.length - 1].body
-          : "",
-        commentId: issue.comments?.length
-          ? issue.comments[issue.comments.length - 1].id
-          : null,
+        startDate: issue.start_date ? new Date(issue.start_date).toLocaleDateString('en-CA') : null,
+        endDate: issue.end_date ? new Date(issue.end_date).toLocaleDateString('en-CA') : null,
+        priority: issue.priority || 'None',
+        projectName: issue.project_management_name || '',
+        milestoneName: issue.milstone_name || '',
+        taskName: issue.task_management_name || '',
+        subtaskName: issue.sub_task_management_name || '',
+        comments: issue.comments?.length ? issue.comments[issue.comments.length - 1].body : '',
+        commentId: issue.comments?.length ? issue.comments[issue.comments.length - 1].id : null,
         attachments: issue.attachments || [],
       }));
       setData(processedIssues);
       setLocalError(null);
     } else if (allIssuesError) {
-      setLocalError("Failed to load issues.");
+      setLocalError('Failed to load issues.');
       setData([]);
     }
-  }, [
-    allIssuesFromStore,
-    allIssuesError,
-    parentId,
-    filteredIssues,
-    filterSuccess,
-  ]);
+  }, [allIssuesFromStore, allIssuesError, parentId, filteredIssues, filterSuccess, projectId, searchQuery]);
 
   // Focus new issue title input
   useEffect(() => {
@@ -663,15 +730,15 @@ const IssuesTable = ({ selectedColumns }) => {
   }, [isAddingNewIssues]);
 
   const resetNewIssuesForm = useCallback(() => {
-    setNewIssuesTitle("");
-    setNewIssuesStatus("open");
+    setNewIssuesTitle('');
+    setNewIssuesStatus('open');
     setNewIssuesResponsiblePersonId(null);
-    setNewIssuesType("");
-    setNewIssuesStartDate("");
-    setNewIssuesEndDate("");
-    setNewIssuesPriority("None");
+    setNewIssuesType('');
+    setNewIssuesStartDate('');
+    setNewIssuesEndDate('');
+    setNewIssuesPriority('None');
     setAttachments([]);
-    setNewIssuesComments("");
+    setNewIssuesComments('');
     setLocalError(null);
     setNewIssuesProjectId(null);
     setNewIssuesMilestoneId(null);
@@ -691,13 +758,8 @@ const IssuesTable = ({ selectedColumns }) => {
   }, [resetNewIssuesForm]);
 
   const handleSaveNewIssues = useCallback(async () => {
-    if (
-      !newIssuesTitle ||
-      newIssuesTitle.trim() === "" ||
-      !newIssuesEndDate ||
-      !newIssuesTaskId
-    ) {
-      setLocalError("Please fill in all required fields.");
+    if (!newIssuesTitle || newIssuesTitle.trim() === '' || !newIssuesEndDate || !newIssuesTaskId) {
+      setLocalError('Please fill in all required fields.');
       setValidator(true);
       return;
     }
@@ -706,30 +768,24 @@ const IssuesTable = ({ selectedColumns }) => {
     setValidator(false);
     const formData = new FormData();
 
-    formData.append("issue[title]", newIssuesTitle.trim());
-    formData.append("issue[status]", newIssuesStatus);
+    formData.append('issue[title]', newIssuesTitle.trim());
+    formData.append('issue[status]', newIssuesStatus);
+    formData.append('issue[responsible_person_id]', newIssuesResponsiblePersonId || '');
+    formData.append('issue[project_management_id]', parentId || newIssuesProjectId || '');
+    formData.append('issue[milestone_id]', newIssuesMilestoneId || '');
     formData.append(
-      "issue[responsible_person_id]",
-      newIssuesResponsiblePersonId || ""
+      'issue[task_management_id]',
+      newIssuesSubtaskId ? newIssuesSubtaskId : newIssuesTaskId || ''
     );
-    formData.append(
-      "issue[project_management_id]",
-      parentId || newIssuesProjectId || ""
-    );
-    formData.append("issue[milestone_id]", newIssuesMilestoneId || "");
-    formData.append("issue[task_management_id]", newIssuesSubtaskId ? newIssuesSubtaskId : newIssuesTaskId || "");
-    formData.append("issue[start_date]", newIssuesStartDate || "");
-    formData.append("issue[end_date]", newIssuesEndDate || "");
-    formData.append("issue[priority]", newIssuesPriority);
-    formData.append(
-      "issue[created_by_id]",
-      JSON.parse(localStorage.getItem("user"))?.id || ""
-    );
-    formData.append("issue[issue_type]", newIssuesType);
-    formData.append("issue[comment]", newIssuesComments);
+    formData.append('issue[start_date]', newIssuesStartDate || '');
+    formData.append('issue[end_date]', newIssuesEndDate || '');
+    formData.append('issue[priority]', newIssuesPriority);
+    formData.append('issue[created_by_id]', JSON.parse(localStorage.getItem('user'))?.id || '');
+    formData.append('issue[issue_type]', newIssuesType);
+    formData.append('issue[comment]', newIssuesComments);
 
     attachments.forEach((file) => {
-      formData.append("issue[attachments][]", file);
+      formData.append('issue[attachments][]', file);
     });
 
     try {
@@ -744,11 +800,11 @@ const IssuesTable = ({ selectedColumns }) => {
       setIsAddingNewIssues(false);
       resetNewIssuesForm();
     } catch (error) {
-      console.error("Failed to create Issues:", error);
+      console.error('Failed to create Issues:', error);
       const errorMessage =
         error?.response?.data?.message ||
         error?.message ||
-        (typeof error === "string" ? error : "Failed to save Issues.");
+        (typeof error === 'string' ? error : 'Failed to save Issues.');
       setLocalError(errorMessage);
     } finally {
       setIsSavingIssues(false);
@@ -776,9 +832,7 @@ const IssuesTable = ({ selectedColumns }) => {
   ]);
 
   const handleDeleteExistingIssues = useCallback((IssuesId) => {
-    alert(
-      `API for deleting existing Issues ${IssuesId} needs to be implemented.`
-    );
+    alert(`API for deleting existing Issues ${IssuesId} needs to be implemented.`);
   }, []);
 
   const handleUpdateIssues = useCallback(
@@ -789,34 +843,30 @@ const IssuesTable = ({ selectedColumns }) => {
 
       try {
         const payload = { [field]: newValue };
-        if (field === "responsiblePersonId") {
+        if (field === 'responsiblePersonId') {
           delete payload.responsiblePersonId;
           payload.responsible_person_id = newValue;
         }
         await dispatch(updateIssue({ token, id, payload })).unwrap();
-        if (localStorage.getItem("IssueFilters")) {
-          const item = JSON.parse(localStorage.getItem("IssueFilters"));
+        if (localStorage.getItem('IssueFilters')) {
+          const item = JSON.parse(localStorage.getItem('IssueFilters'));
           const newFilter = {
-            "q[status_in][]":
-              item.selectedStatuses.length > 0 ? item.selectedStatuses : [],
-            "q[created_by_id_eq]":
-              item.selectedCreators.length > 0 ? item.selectedCreators : [],
-            "q[start_date_eq]": item.dates["Start Date"],
-            "q[end_date_eq]": item.dates["End Date"],
-            "q[responsible_person_id_in][]":
-              item.selectedResponsible.length > 0
-                ? item.selectedResponsible
-                : [],
-            "q[issue_type_in][]":
-              item.selectedTypes.length > 0 ? item.selectedTypes : [],
-            "q[project_management_id_in][]":
+            'q[status_in][]': item.selectedStatuses.length > 0 ? item.selectedStatuses : [],
+            'q[created_by_id_eq]': item.selectedCreators.length > 0 ? item.selectedCreators : [],
+            'q[start_date_eq]': item.dates['Start Date'],
+            'q[end_date_eq]': item.dates['End Date'],
+            'q[responsible_person_id_in][]':
+              item.selectedResponsible.length > 0 ? item.selectedResponsible : [],
+            'q[issue_type_in][]': item.selectedTypes.length > 0 ? item.selectedTypes : [],
+            'q[project_management_id_in][]':
               item.selectedProjects.length > 0 ? item.selectedProjects : [],
-            "q[task_management_id_in][]":
-              item.selectedTasks.length > 0 ? item.selectedTasks : [],
-            "q[subtask_management_id_in][]":
+            'q[task_management_id_in][]': item.selectedTasks.length > 0 ? item.selectedTasks : [],
+            'q[subtask_management_id_in][]':
               item.selectedSubtasks?.length > 0 ? item.selectedSubtasks : [],
           };
-          const queryString = qs.stringify(newFilter, { arrayFormat: "repeat" });
+          const queryString = qs.stringify(newFilter, {
+            arrayFormat: 'repeat',
+          });
           await dispatch(
             filterIssue({
               token,
@@ -825,9 +875,9 @@ const IssuesTable = ({ selectedColumns }) => {
               per_page: pagination.pageSize,
             })
           ).unwrap();
-        } else if (localStorage.getItem("issueStatus")) {
-          const status = localStorage.getItem("issueStatus");
-          const filter = { "q[status_eq]": status };
+        } else if (localStorage.getItem('issueStatus')) {
+          const status = localStorage.getItem('issueStatus');
+          const filter = { 'q[status_eq]': status };
           await dispatch(
             filterIssue({
               token,
@@ -846,11 +896,9 @@ const IssuesTable = ({ selectedColumns }) => {
           ).unwrap();
         }
       } catch (error) {
-        console.error("Failed to update comment:", error);
+        console.error('Failed to update comment:', error);
         const errorMessage =
-          error?.response?.data?.message ||
-          error?.message ||
-          "Failed to update comment.";
+          error?.response?.data?.message || error?.message || 'Failed to update comment.';
         setLocalError(errorMessage);
         dispatch(
           fetchIssue({
@@ -869,11 +917,11 @@ const IssuesTable = ({ selectedColumns }) => {
   // Clear filters on unload
   useEffect(() => {
     const handleBeforeUnload = () => {
-      localStorage.removeItem("IssueFilters");
+      localStorage.removeItem('IssueFilters');
     };
-    window.addEventListener("beforeunload", handleBeforeUnload);
+    window.addEventListener('beforeunload', handleBeforeUnload);
     return () => {
-      window.removeEventListener("beforeunload", handleBeforeUnload);
+      window.removeEventListener('beforeunload', handleBeforeUnload);
     };
   }, []);
 
@@ -896,18 +944,12 @@ const IssuesTable = ({ selectedColumns }) => {
     };
 
     if (isAddingNewIssues) {
-      document.addEventListener("mousedown", handleClickOutsideNewIssuesRow);
+      document.addEventListener('mousedown', handleClickOutsideNewIssuesRow);
     }
     return () => {
-      document.removeEventListener("mousedown", handleClickOutsideNewIssuesRow);
+      document.removeEventListener('mousedown', handleClickOutsideNewIssuesRow);
     };
-  }, [
-    isAddingNewIssues,
-    isSavingIssues,
-    isUpdatingIssue,
-    isFileDialogOpen,
-    handleSaveNewIssues,
-  ]);
+  }, [isAddingNewIssues, isSavingIssues, isUpdatingIssue, isFileDialogOpen, handleSaveNewIssues]);
 
   const handleUpdateComment = useCallback(
     async (issueId, commentId, newComment) => {
@@ -918,7 +960,7 @@ const IssuesTable = ({ selectedColumns }) => {
       try {
         if (commentId) {
           const sendComment = new FormData();
-          sendComment.append("comment[body]", newComment);
+          sendComment.append('comment[body]', newComment);
           await dispatch(
             editTaskComment({
               token,
@@ -935,29 +977,25 @@ const IssuesTable = ({ selectedColumns }) => {
             })
           ).unwrap();
         }
-        if (localStorage.getItem("IssueFilters")) {
-          const item = JSON.parse(localStorage.getItem("IssueFilters"));
+        if (localStorage.getItem('IssueFilters')) {
+          const item = JSON.parse(localStorage.getItem('IssueFilters'));
           const newFilter = {
-            "q[status_in][]":
-              item.selectedStatuses.length > 0 ? item.selectedStatuses : [],
-            "q[created_by_id_eq]":
-              item.selectedCreators.length > 0 ? item.selectedCreators : [],
-            "q[start_date_eq]": item.dates["Start Date"],
-            "q[end_date_eq]": item.dates["End Date"],
-            "q[responsible_person_id_in][]":
-              item.selectedResponsible.length > 0
-                ? item.selectedResponsible
-                : [],
-            "q[issue_type_in][]":
-              item.selectedTypes.length > 0 ? item.selectedTypes : [],
-            "q[project_management_id_in][]":
+            'q[status_in][]': item.selectedStatuses.length > 0 ? item.selectedStatuses : [],
+            'q[created_by_id_eq]': item.selectedCreators.length > 0 ? item.selectedCreators : [],
+            'q[start_date_eq]': item.dates['Start Date'],
+            'q[end_date_eq]': item.dates['End Date'],
+            'q[responsible_person_id_in][]':
+              item.selectedResponsible.length > 0 ? item.selectedResponsible : [],
+            'q[issue_type_in][]': item.selectedTypes.length > 0 ? item.selectedTypes : [],
+            'q[project_management_id_in][]':
               item.selectedProjects.length > 0 ? item.selectedProjects : [],
-            "q[task_management_id_in][]":
-              item.selectedTasks.length > 0 ? item.selectedTasks : [],
-            "q[subtask_management_id_in][]":
+            'q[task_management_id_in][]': item.selectedTasks.length > 0 ? item.selectedTasks : [],
+            'q[subtask_management_id_in][]':
               item.selectedSubtasks?.length > 0 ? item.selectedSubtasks : [],
           };
-          const queryString = qs.stringify(newFilter, { arrayFormat: "repeat" });
+          const queryString = qs.stringify(newFilter, {
+            arrayFormat: 'repeat',
+          });
           await dispatch(
             filterIssue({
               token,
@@ -966,9 +1004,9 @@ const IssuesTable = ({ selectedColumns }) => {
               per_page: pagination.pageSize,
             })
           ).unwrap();
-        } else if (localStorage.getItem("issueStatus")) {
-          const status = localStorage.getItem("issueStatus");
-          const filter = { "q[status_eq]": status };
+        } else if (localStorage.getItem('issueStatus')) {
+          const status = localStorage.getItem('issueStatus');
+          const filter = { 'q[status_eq]': status };
           await dispatch(
             filterIssue({
               token,
@@ -987,11 +1025,9 @@ const IssuesTable = ({ selectedColumns }) => {
           ).unwrap();
         }
       } catch (error) {
-        console.error("Failed to update comment:", error);
+        console.error('Failed to update comment:', error);
         const errorMessage =
-          error?.response?.data?.message ||
-          error?.message ||
-          "Failed to update comment.";
+          error?.response?.data?.message || error?.message || 'Failed to update comment.';
         setLocalError(errorMessage);
         dispatch(
           fetchIssue({
@@ -1011,23 +1047,23 @@ const IssuesTable = ({ selectedColumns }) => {
   useEffect(() => {
     const handleEscape = (event) => {
       if (!isAddingNewIssues) return;
-      if (event.key === "Escape") {
+      if (event.key === 'Escape') {
         handleCancelNewIssues();
       }
     };
-    window.addEventListener("keydown", handleEscape);
+    window.addEventListener('keydown', handleEscape);
     return () => {
-      window.removeEventListener("keydown", handleEscape);
+      window.removeEventListener('keydown', handleEscape);
     };
   }, [isAddingNewIssues, handleCancelNewIssues]);
 
   const userOptionsForSelectBox = useMemo(
     () => [
-      { value: null, label: "Unassigned" },
+      { value: null, label: 'Unassigned' },
       ...(Array.isArray(users)
         ? users.map((u) => ({
           value: u.id,
-          label: `${u.firstname || ""} ${u.lastname || ""}`.trim(),
+          label: `${u.firstname || ''} ${u.lastname || ''}`.trim(),
         }))
         : []),
     ],
@@ -1047,7 +1083,7 @@ const IssuesTable = ({ selectedColumns }) => {
       newOrder.splice(targetIndex, 0, draggedId);
 
       // Save to local storage
-      localStorage.setItem("issuesTableColumnOrder", JSON.stringify(newOrder));
+      localStorage.setItem('issuesTableColumnOrder', JSON.stringify(newOrder));
 
       return newOrder;
     });
@@ -1061,8 +1097,8 @@ const IssuesTable = ({ selectedColumns }) => {
   const allColumns = useMemo(
     () => [
       {
-        accessorKey: "id",
-        header: "Issue ID",
+        accessorKey: 'id',
+        header: 'Issue ID',
         size: 80,
         cell: ({ getValue }) => {
           const issueId = getValue();
@@ -1076,38 +1112,38 @@ const IssuesTable = ({ selectedColumns }) => {
         },
       },
       {
-        accessorKey: "projectName",
-        header: "Project Name",
+        accessorKey: 'projectName',
+        header: 'Project Name',
         size: 150,
-        cell: ({ getValue }) => getValue() || "Not selected",
+        cell: ({ getValue }) => getValue() || 'Not selected',
       },
       {
-        accessorKey: "milestoneName",
-        header: "Milestone Name",
+        accessorKey: 'milestoneName',
+        header: 'Milestone Name',
         size: 150,
-        cell: ({ getValue }) => getValue() || "Not selected",
+        cell: ({ getValue }) => getValue() || 'Not selected',
       },
       {
-        accessorKey: "taskName",
-        header: "Task Name",
+        accessorKey: 'taskName',
+        header: 'Task Name',
         size: 150,
-        cell: ({ getValue }) => getValue() || "Not selected",
+        cell: ({ getValue }) => getValue() || 'Not selected',
       },
       {
-        accessorKey: "subtaskName",
-        header: "Subtask Name",
+        accessorKey: 'subtaskName',
+        header: 'Subtask Name',
         size: 150,
-        cell: ({ getValue }) => getValue() || "Not selected",
+        cell: ({ getValue }) => getValue() || 'Not selected',
       },
       {
-        accessorKey: "issueTitle",
-        header: "Issues Title",
+        accessorKey: 'issueTitle',
+        header: 'Issues Title',
         size: 120,
         cell: (info) => info.getValue(),
       },
       {
-        accessorKey: "attachments",
-        header: "Attachments",
+        accessorKey: 'attachments',
+        header: 'Attachments',
         size: 120,
         cell: ({ getValue }) => (
           <div className="flex justify-center items-center w-full h-full">
@@ -1116,22 +1152,20 @@ const IssuesTable = ({ selectedColumns }) => {
         ),
       },
       {
-        accessorKey: "status",
-        header: "Status",
+        accessorKey: 'status',
+        header: 'Status',
         size: 100,
         cell: ({ row }) => (
           <StatusBadge
             status={row.original.status}
             statusOptions={globalStatusOptions}
-            onStatusChange={(newStatus) =>
-              handleUpdateIssues(row.original.id, "status", newStatus)
-            }
+            onStatusChange={(newStatus) => handleUpdateIssues(row.original.id, 'status', newStatus)}
           />
         ),
       },
       {
-        accessorKey: "responsiblePerson",
-        header: "Responsible Person",
+        accessorKey: 'responsiblePerson',
+        header: 'Responsible Person',
         size: 200,
         cell: ({ row }) => (
           <SelectBox
@@ -1139,35 +1173,25 @@ const IssuesTable = ({ selectedColumns }) => {
             options={userOptionsForSelectBox}
             value={row.original.responsiblePersonId}
             onChange={(selectedOptionValue) =>
-              handleUpdateIssues(
-                row.original.id,
-                "responsible_person_id",
-                selectedOptionValue
-              )
+              handleUpdateIssues(row.original.id, 'responsible_person_id', selectedOptionValue)
             }
             className="w-full"
           />
         ),
       },
       {
-        accessorKey: "issueType",
-        header: "Type",
+        accessorKey: 'issueType',
+        header: 'Type',
         size: 150,
         cell: ({ row }) => (
           <SelectBox
-            options={
-              issueType.map((i) => ({
-                value: i.id,
-                label: i.name,
-              }))
-            }
+            options={issueType.map((i) => ({
+              value: i.id,
+              label: i.name,
+            }))}
             value={row.original.issueType}
             onChange={(selectedOptionValue) =>
-              handleUpdateIssues(
-                row.original.id,
-                "issue_type",
-                selectedOptionValue
-              )
+              handleUpdateIssues(row.original.id, 'issue_type', selectedOptionValue)
             }
             className="w-full"
             table={true}
@@ -1175,36 +1199,28 @@ const IssuesTable = ({ selectedColumns }) => {
         ),
       },
       {
-        accessorKey: "startDate",
-        header: "Start Date",
+        accessorKey: 'startDate',
+        header: 'Start Date',
         size: 100,
         cell: ({ row }) => (
           <NewIssuesDateEditor
-            value={row.original.startDate || ""}
+            value={row.original.startDate || ''}
             onChange={(e) =>
-              handleUpdateIssues(
-                row.original.id,
-                "start_date",
-                e.target.value || null
-              )
+              handleUpdateIssues(row.original.id, 'start_date', e.target.value || null)
             }
             placeholder="Start Date"
           />
         ),
       },
       {
-        accessorKey: "endDate",
-        header: "End Date",
+        accessorKey: 'endDate',
+        header: 'End Date',
         size: 100,
         cell: ({ row }) => (
           <NewIssuesDateEditor
-            value={row.original.endDate || ""}
+            value={row.original.endDate || ''}
             onChange={(e) =>
-              handleUpdateIssues(
-                row.original.id,
-                "end_date",
-                e.target.value || null
-              )
+              handleUpdateIssues(row.original.id, 'end_date', e.target.value || null)
             }
             placeholder="End Date"
             min={row.original.startDate}
@@ -1212,22 +1228,22 @@ const IssuesTable = ({ selectedColumns }) => {
         ),
       },
       {
-        accessorKey: "priority",
-        header: "Priority",
+        accessorKey: 'priority',
+        header: 'Priority',
         size: 100,
         cell: ({ row }) => (
           <StatusBadge
             status={row.original.priority}
             statusOptions={globalPriorityOptions}
             onStatusChange={(newStatus) =>
-              handleUpdateIssues(row.original.id, "priority", newStatus)
+              handleUpdateIssues(row.original.id, 'priority', newStatus)
             }
           />
         ),
       },
       {
-        accessorKey: "comments",
-        header: "Comments",
+        accessorKey: 'comments',
+        header: 'Comments',
         size: 360,
         cell: ({ row }) => (
           <CommentCell
@@ -1245,7 +1261,9 @@ const IssuesTable = ({ selectedColumns }) => {
 
   // Reorder columns based on columnOrder state
   const columns = columnOrder
-    .map((columnId) => allColumns.find((col) => col.id === columnId || col.accessorKey === columnId))
+    .map((columnId) =>
+      allColumns.find((col) => col.id === columnId || col.accessorKey === columnId)
+    )
     .filter(Boolean)
     .filter((col) => {
       // If selectedColumns is empty or not provided, show all columns
@@ -1266,16 +1284,12 @@ const IssuesTable = ({ selectedColumns }) => {
       projectName: (
         <td key="projectName" className="border p-1 text-xs text-gray-400 align-middle">
           {parentId ? (
-            <span className="text-xs text-gray-600">
-              {projectDetails?.title}
-            </span>
+            <span className="text-xs text-gray-600">{projectDetails?.title}</span>
           ) : (
             <SelectBox
               options={projectOptions}
               value={newIssuesProjectId}
-              onChange={(selected) =>
-                setNewIssuesProjectId(selected)
-              }
+              onChange={(selected) => setNewIssuesProjectId(selected)}
               placeholder="Select Project"
               table={true}
             />
@@ -1287,9 +1301,7 @@ const IssuesTable = ({ selectedColumns }) => {
           <SelectBox
             options={milestoneOptions}
             value={newIssuesMilestoneId}
-            onChange={(selected) =>
-              setNewIssuesMilestoneId(selected)
-            }
+            onChange={(selected) => setNewIssuesMilestoneId(selected)}
             placeholder="Select Milestone"
             table={true}
           />
@@ -1367,14 +1379,10 @@ const IssuesTable = ({ selectedColumns }) => {
       issueType: (
         <td key="issueType" className="border p-1 align-middle">
           <SelectBox
-            options={
-              issueType.map(type => (
-                {
-                  label: type.name,
-                  value: type.id
-                }
-              ))
-            }
+            options={issueType.map((type) => ({
+              label: type.name,
+              value: type.id,
+            }))}
             value={newIssuesType}
             onChange={setNewIssuesType}
             table={true}
@@ -1388,7 +1396,7 @@ const IssuesTable = ({ selectedColumns }) => {
             onChange={(e) => setNewIssuesStartDate(e.target.value)}
             onEnterPress={handleSaveNewIssues}
             validator={validator}
-            min={new Date().toISOString().split("T")[0]}
+            min={new Date().toISOString().split('T')[0]}
           />
         </td>
       ),
@@ -1436,7 +1444,7 @@ const IssuesTable = ({ selectedColumns }) => {
     state: { pagination },
     onPaginationChange: (updater) => {
       setPagination((prev) => {
-        const newState = typeof updater === "function" ? updater(prev) : updater;
+        const newState = typeof updater === 'function' ? updater(prev) : updater;
         dispatch(
           fetchIssue({
             token,
@@ -1469,27 +1477,22 @@ const IssuesTable = ({ selectedColumns }) => {
   } else if (allIssuesError || usersFetchError) {
     pageContent = (
       <div className="p-4 text-red-600 bg-red-100 border border-red-400 rounded">
-        Error:{" "}
+        Error:{' '}
         {localError ||
           String(
             allIssuesError?.message ||
             allIssuesError ||
             usersFetchError?.message ||
             usersFetchError ||
-            "Could not load required data."
+            'Could not load required data.'
           )}
       </div>
     );
   } else {
     pageContent = (
       <div>
-        {localError && (
-          <div className="mb-4 px-3 text-red-700 text-sm">{localError}</div>
-        )}
-        <div
-          className="project-table-container font-light mt-2"
-          style={{ minHeight: "200px" }}
-        >
+        {localError && <div className="mb-4 px-3 text-red-700 text-sm">{localError}</div>}
+        <div className="project-table-container font-light mt-2" style={{ minHeight: '200px' }}>
           <div className="table-wrapper overflow-x-auto">
             <table className="w-full border text-sm bg-white overflow-y-auto">
               <thead className="bg-gray-300">
@@ -1510,11 +1513,7 @@ const IssuesTable = ({ selectedColumns }) => {
                 {data.length === 0 && (
                   <tr>
                     <td colSpan={columns.length} className="text-center py-4">
-                      <i>
-                        {filterSuccess
-                          ? "Try adjusting the filters."
-                          : "No issues found"}
-                      </i>
+                      <i>{filterSuccess ? 'Try adjusting the filters.' : 'No issues found'}</i>
                     </td>
                   </tr>
                 )}
@@ -1527,35 +1526,24 @@ const IssuesTable = ({ selectedColumns }) => {
                     {row.getVisibleCells().map((cell) => (
                       <td
                         key={cell.id}
-                        className={`border p-1 align-middle ${cell.column.id === "actions"
-                          ? "text-center"
-                          : "text-left"
+                        className={`border p-1 align-middle ${cell.column.id === 'actions' ? 'text-center' : 'text-left'
                           }`}
                       >
                         <div className="p-1 h-full flex items-center">
-                          {flexRender(
-                            cell.column.columnDef.cell,
-                            cell.getContext()
-                          )}
+                          {flexRender(cell.column.columnDef.cell, cell.getContext())}
                         </div>
                       </td>
                     ))}
                   </tr>
                 ))}
                 {isAddingNewIssues && (
-                  <tr
-                    ref={newIssueFormRowRef}
-                    style={{ height: `${rowHeight}px` }}
-                  >
+                  <tr ref={newIssueFormRowRef} style={{ height: `${rowHeight}px` }}>
                     {renderNewIssueRow()}
                   </tr>
                 )}
                 {!isAddingNewIssues && (
                   <tr>
-                    <td
-                      colSpan={columns.length}
-                      className="border p-2 text-left text-[12px]"
-                    >
+                    <td colSpan={columns.length} className="border p-2 text-left text-[12px]">
                       <button
                         onClick={handleShowNewIssuesForm}
                         className="text-red-500 hover:underline text-sm py-1"
@@ -1576,7 +1564,7 @@ const IssuesTable = ({ selectedColumns }) => {
                 disabled={!table.getCanPreviousPage()}
                 className="text-blue-600 disabled:opacity-30"
               >
-                {"<"}
+                {'<'}
               </button>
               {(() => {
                 const { current_page: currPage, total_pages: totPages } = filterSuccess
@@ -1596,7 +1584,7 @@ const IssuesTable = ({ selectedColumns }) => {
                     <button
                       key={page}
                       onClick={() => table.setPageIndex(page)}
-                      className={`px-3 py-1 ${isActive ? "bg-gray-200 font-semibold" : ""}`}
+                      className={`px-3 py-1 ${isActive ? 'bg-gray-200 font-semibold' : ''}`}
                     >
                       {page + 1}
                     </button>
@@ -1608,7 +1596,7 @@ const IssuesTable = ({ selectedColumns }) => {
                 disabled={!table.getCanNextPage()}
                 className="text-blue-600 disabled:opacity-30"
               >
-                {">"}
+                {'>'}
               </button>
             </div>
           )}
@@ -1617,7 +1605,11 @@ const IssuesTable = ({ selectedColumns }) => {
     );
   }
 
-  return <div className="project-list-wrapper p-2"><DndProvider backend={HTML5Backend}>{pageContent}</DndProvider></div>;
+  return (
+    <div className="project-list-wrapper p-2">
+      <DndProvider backend={HTML5Backend}>{pageContent}</DndProvider>
+    </div>
+  );
 };
 
 export default IssuesTable;

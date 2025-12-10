@@ -15,11 +15,11 @@ export const getLogoSvgBase64 = () => {
         </defs>
       </svg>
     `.trim();
-    
+
     const img = new Image();
     const svgBlob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' });
     const url = URL.createObjectURL(svgBlob);
-    
+
     img.onload = () => {
       const canvas = document.createElement('canvas');
       canvas.width = 173 * 2; // 2x for better quality
@@ -31,12 +31,12 @@ export const getLogoSvgBase64 = () => {
       URL.revokeObjectURL(url);
       resolve(pngData);
     };
-    
+
     img.onerror = () => {
       URL.revokeObjectURL(url);
       reject(new Error('Failed to load SVG'));
     };
-    
+
     img.src = url;
   });
 };

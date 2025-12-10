@@ -1,4 +1,3 @@
-/* eslint-disable react/prop-types */
 import { useState, useMemo, useEffect } from 'react';
 import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
@@ -10,7 +9,11 @@ import {
   getPaginationRowModel,
 } from '@tanstack/react-table';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchDepartment, updateDepartment, deleteDepartment } from '../../../redux/slices/departmentSlice';
+import {
+  fetchDepartment,
+  updateDepartment,
+  deleteDepartment,
+} from '../../../redux/slices/departmentSlice';
 import AddDepartmentModel from './Modal';
 import toast from 'react-hot-toast';
 import { DeleteConfirmationModal } from '../../DeleteConfirmationModal';
@@ -28,7 +31,7 @@ const DepartmentTable = ({ openModal, setOpenModal, editMode, setEditMode }) => 
       try {
         await dispatch(fetchDepartment({ token })).unwrap();
       } catch (error) {
-        toast.error("Failed to fetch departments");
+        toast.error('Failed to fetch departments');
       }
     };
     fetchData();
@@ -120,12 +123,12 @@ const DepartmentTable = ({ openModal, setOpenModal, editMode, setEditMode }) => 
           isOpen={isDeleteModalOpen}
           onClose={() => setIsDeleteModalOpen(false)}
           onConfirm={() => {
-            handleDeleteClick(row.original.id)
+            handleDeleteClick(row.original.id);
             setIsDeleteModalOpen(false);
           }}
         />
       </>
-    )
+    );
   };
 
   const fixedRowsPerPage = 13;
@@ -198,7 +201,10 @@ const DepartmentTable = ({ openModal, setOpenModal, editMode, setEditMode }) => 
   return (
     <>
       <div className="project-table-container text-[14px] font-light">
-        <div className="table-wrapper overflow-x-auto" style={{ height: `${desiredTableHeight}px` }}>
+        <div
+          className="table-wrapper overflow-x-auto"
+          style={{ height: `${desiredTableHeight}px` }}
+        >
           <table className="w-full">
             <thead>
               {table.getHeaderGroups().map((headerGroup) => (
@@ -210,7 +216,9 @@ const DepartmentTable = ({ openModal, setOpenModal, editMode, setEditMode }) => 
                       style={{ width: header.getSize() }}
                       className="bg-[#D5DBDB] px-3 py-3.5 text-center font-[500] border-r-2"
                     >
-                      {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
+                      {header.isPlaceholder
+                        ? null
+                        : flexRender(header.column.columnDef.header, header.getContext())}
                     </th>
                   ))}
                 </tr>
@@ -218,7 +226,8 @@ const DepartmentTable = ({ openModal, setOpenModal, editMode, setEditMode }) => 
             </thead>
             <tbody className="divide-y" style={{ height: `${fixedRowsPerPage * rowHeight}px` }}>
               {pageRows.map((row) => {
-                const isEmpty = !row.original || Object.values(row.original).every((v) => v === null || v === '');
+                const isEmpty =
+                  !row.original || Object.values(row.original).every((v) => v === null || v === '');
                 return (
                   <tr
                     key={row.id}
@@ -231,16 +240,26 @@ const DepartmentTable = ({ openModal, setOpenModal, editMode, setEditMode }) => 
                         style={{ width: cell.column.getSize() }}
                         className={`${cell.column.columnDef.meta?.cellClassName || ''} whitespace-nowrap px-3 py-2 border-r-2`}
                       >
-                        {!isEmpty ? flexRender(cell.column.columnDef.cell, cell.getContext()) : null}
+                        {!isEmpty
+                          ? flexRender(cell.column.columnDef.cell, cell.getContext())
+                          : null}
                       </td>
                     ))}
                   </tr>
                 );
               })}
               {Array.from({ length: numEmptyRowsToAdd }).map((_, index) => (
-                <tr key={`empty-row-${index}`} style={{ height: `${rowHeight}px` }} className="even:bg-[#D5DBDB4D] pointer-events-none">
+                <tr
+                  key={`empty-row-${index}`}
+                  style={{ height: `${rowHeight}px` }}
+                  className="even:bg-[#D5DBDB4D] pointer-events-none"
+                >
                   {table.getAllLeafColumns().map((column) => (
-                    <td key={`empty-cell-${index}-${column.id}`} style={{ width: column.getSize() }} className="whitespace-nowrap px-3 py-2 text-transparent">
+                    <td
+                      key={`empty-cell-${index}-${column.id}`}
+                      style={{ width: column.getSize() }}
+                      className="whitespace-nowrap px-3 py-2 text-transparent"
+                    >
                       &nbsp;
                     </td>
                   ))}
@@ -252,7 +271,11 @@ const DepartmentTable = ({ openModal, setOpenModal, editMode, setEditMode }) => 
 
         {data.length > 0 && (
           <div className="flex items-center justify-start gap-4 mt-4 text-[12px]">
-            <button onClick={() => table.previousPage()} disabled={!table.getCanPreviousPage()} className="text-red-600 disabled:opacity-30">
+            <button
+              onClick={() => table.previousPage()}
+              disabled={!table.getCanPreviousPage()}
+              className="text-red-600 disabled:opacity-30"
+            >
               {'<'}
             </button>
             {(() => {
@@ -279,7 +302,11 @@ const DepartmentTable = ({ openModal, setOpenModal, editMode, setEditMode }) => 
                 );
               });
             })()}
-            <button onClick={() => table.nextPage()} disabled={!table.getCanNextPage()} className="text-red-600 disabled:opacity-30">
+            <button
+              onClick={() => table.nextPage()}
+              disabled={!table.getCanNextPage()}
+              className="text-red-600 disabled:opacity-30"
+            >
               {'>'}
             </button>
           </div>

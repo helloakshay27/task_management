@@ -1,10 +1,10 @@
-import { useState, useEffect, useRef } from "react";
-import { Grid, Settings } from "lucide-react";
+import { useState, useEffect, useRef } from 'react';
+import { Grid } from 'lucide-react';
 
 const ColumnSelector = ({
     tableType, // "Task", "Project", "Issue", "Milestone"
     availableColumns,
-    onColumnsChange
+    onColumnsChange,
 }) => {
     const [isOpen, setIsOpen] = useState(false);
     const [selectedColumns, setSelectedColumns] = useState({});
@@ -20,10 +20,10 @@ const ColumnSelector = ({
                 const parsed = JSON.parse(savedColumns);
                 setSelectedColumns(parsed);
             } catch (error) {
-                console.error("Error parsing saved columns:", error);
+                console.error('Error parsing saved columns:', error);
                 // If error, select all columns by default
                 const allColumns = {};
-                availableColumns.forEach(col => {
+                availableColumns.forEach((col) => {
                     allColumns[col.id || col.key] = true;
                 });
                 setSelectedColumns(allColumns);
@@ -31,7 +31,7 @@ const ColumnSelector = ({
         } else {
             // First time: select all columns by default
             const allColumns = {};
-            availableColumns.forEach(col => {
+            availableColumns.forEach((col) => {
                 allColumns[col.id || col.key] = true;
             });
             setSelectedColumns(allColumns);
@@ -43,7 +43,7 @@ const ColumnSelector = ({
     const handleColumnToggle = (columnId) => {
         const updatedColumns = {
             ...selectedColumns,
-            [columnId]: !selectedColumns[columnId]
+            [columnId]: !selectedColumns[columnId],
         };
         setSelectedColumns(updatedColumns);
         localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedColumns));
@@ -58,20 +58,18 @@ const ColumnSelector = ({
             }
         };
 
-        document.addEventListener("mousedown", handleClickOutside);
-        return () => document.removeEventListener("mousedown", handleClickOutside);
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
 
     // Check if at least one column is selected
-    const hasSelectedColumns = Object.values(selectedColumns).some(v => v);
+    const hasSelectedColumns = Object.values(selectedColumns).some((v) => v);
 
     return (
         <div className="relative" ref={dropdownRef}>
             <button
                 onClick={() => setIsOpen(!isOpen)}
-                className={`flex items-center gap-2 px-3 py-2 rounded border ${isOpen
-                    ? "bg-gray-100 border-gray-400"
-                    : "bg-white border-gray-300 hover:bg-gray-50"
+                className={`flex items-center gap-2 px-3 py-2 rounded border ${isOpen ? 'bg-gray-100 border-gray-400' : 'bg-white border-gray-300 hover:bg-gray-50'
                     } text-sm`}
                 title="Show/Hide Columns"
             >
@@ -81,9 +79,7 @@ const ColumnSelector = ({
             {isOpen && (
                 <div className="absolute right-0 mt-2 w-64 bg-white border border-gray-300 rounded-md shadow-lg z-50">
                     <div className="p-3 border-b border-gray-200">
-                        <h3 className="text-sm font-semibold text-gray-700 mb-3">
-                            Select Columns to Display
-                        </h3>
+                        <h3 className="text-sm font-semibold text-gray-700 mb-3">Select Columns to Display</h3>
 
                         <div className="space-y-2 max-h-96 overflow-y-auto">
                             {availableColumns.map((column) => {
@@ -91,7 +87,10 @@ const ColumnSelector = ({
                                 const isChecked = selectedColumns[columnId] !== false; // Default true if not explicitly set to false
 
                                 return (
-                                    <label key={columnId} className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 p-2 rounded">
+                                    <label
+                                        key={columnId}
+                                        className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 p-2 rounded"
+                                    >
                                         <input
                                             type="checkbox"
                                             checked={isChecked}
@@ -117,7 +116,7 @@ const ColumnSelector = ({
                         <button
                             onClick={() => {
                                 const allColumns = {};
-                                availableColumns.forEach(col => {
+                                availableColumns.forEach((col) => {
                                     allColumns[col.id || col.key] = true;
                                 });
                                 setSelectedColumns(allColumns);

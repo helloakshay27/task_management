@@ -1,707 +1,692 @@
-/* eslint-disable react/prop-types */
-import { useState, useMemo, useEffect, useCallback, useRef } from "react";
+import { useState, useMemo, useEffect, useCallback, useRef } from 'react';
 import {
-    useReactTable,
-    getCoreRowModel,
-    flexRender,
-    getPaginationRowModel,
-} from "@tanstack/react-table";
-import StatusBadge from "../Home/Projects/statusBadge";
-import { useLocation } from "react-router-dom";
-import Loader from "../Loader";
-import SelectBox from "../SelectBox";
-import { Search } from "lucide-react";
-import { useDrag, useDrop } from "react-dnd";
+  useReactTable,
+  getCoreRowModel,
+  flexRender,
+  getPaginationRowModel,
+} from '@tanstack/react-table';
+import StatusBadge from '../Home/Projects/statusBadge';
+import { useLocation } from 'react-router-dom';
+import Loader from '../Loader';
+import SelectBox from '../SelectBox';
+import { Search } from 'lucide-react';
+import { useDrag, useDrop } from 'react-dnd';
 // --- Input Components for Inline Add Row ---
 const InlineAddTextField = ({
-    value,
-    onChange,
-    onEnterPress,
-    inputRef,
-    placeholder,
-    className,
-    validator,
+  value,
+  onChange,
+  onEnterPress,
+  inputRef,
+  placeholder,
+  className,
+  validator,
 }) => {
-    const handleKeyDown = (event) => {
-        if (event.key === "Enter" && onEnterPress) {
-            event.preventDefault();
-            onEnterPress();
-        }
-    };
-    return (
-        <input
-            ref={inputRef}
-            type="text"
-            placeholder={placeholder}
-            value={value || ""}
-            onChange={onChange}
-            onKeyDown={handleKeyDown}
-            className={`${validator ? "border border-red-500" : " border-none"
-                } w-full p-1 h-full focus:outline-none rounded text-[13px] border border-gray-300 ${className || ""
-                }`}
-        />
-    );
+  const handleKeyDown = (event) => {
+    if (event.key === 'Enter' && onEnterPress) {
+      event.preventDefault();
+      onEnterPress();
+    }
+  };
+  return (
+    <input
+      ref={inputRef}
+      type="text"
+      placeholder={placeholder}
+      value={value || ''}
+      onChange={onChange}
+      onKeyDown={handleKeyDown}
+      className={`${
+        validator ? 'border border-red-500' : ' border-none'
+      } w-full p-1 h-full focus:outline-none rounded text-[13px] border border-gray-300 ${
+        className || ''
+      }`}
+    />
+  );
 };
 
 const InlineAddDateEditor = ({
-    value,
-    onChange,
-    onEnterPress,
-    placeholder,
-    className,
-    validator,
-    min,
+  value,
+  onChange,
+  onEnterPress,
+  placeholder,
+  className,
+  validator,
+  min,
 }) => {
-    const handleKeyDown = (event) => {
-        if (event.key === "Enter" && onEnterPress) {
-            event.preventDefault();
-            onEnterPress();
-        }
-    };
-    return (
-        <input
-            type="date"
-            min={min}
-            placeholder={placeholder}
-            value={value || ""}
-            onChange={onChange}
-            onKeyDown={handleKeyDown}
-            className={`${validator ? "border border-red-500" : " border-none"
-                } w-full p-1 h-full focus:outline-none rounded text-[13px] border border-gray-300 ${className || ""
-                }`}
-        />
-    );
+  const handleKeyDown = (event) => {
+    if (event.key === 'Enter' && onEnterPress) {
+      event.preventDefault();
+      onEnterPress();
+    }
+  };
+  return (
+    <input
+      type="date"
+      min={min}
+      placeholder={placeholder}
+      value={value || ''}
+      onChange={onChange}
+      onKeyDown={handleKeyDown}
+      className={`${
+        validator ? 'border border-red-500' : ' border-none'
+      } w-full p-1 h-full focus:outline-none rounded text-[13px] border border-gray-300 ${
+        className || ''
+      }`}
+    />
+  );
 };
 // --- End Input Components ---
 
-const globalStatusOptionsForInlineAdd = [
-    "open",
-    "in_progress",
-    "completed",
-    "on_hold",
-];
-const globalPriorityOptions = ["low", "medium", "high"];
+const globalStatusOptionsForInlineAdd = ['open', 'in_progress', 'completed', 'on_hold'];
+const globalPriorityOptions = ['low', 'medium', 'high'];
 
 // Draggable Column Header Component
 const DraggableColumnHeader = ({ header, onReorderColumns, columnOrder }) => {
-    const [{ isDragging }, dragRef] = useDrag(
-        () => ({
-            type: "column",
-            item: { id: header.id },
-            collect: (monitor) => ({
-                isDragging: monitor.isDragging(),
-            }),
-        }),
-        []
-    );
+  const [{ isDragging }, dragRef] = useDrag(
+    () => ({
+      type: 'column',
+      item: { id: header.id },
+      collect: (monitor) => ({
+        isDragging: monitor.isDragging(),
+      }),
+    }),
+    []
+  );
 
-    const [{ isOver }, dropRef] = useDrop(
-        () => ({
-            accept: "column",
-            hover: (item) => {
-                if (item.id !== header.id) {
-                    onReorderColumns(item.id, header.id);
-                }
-            },
-            collect: (monitor) => ({
-                isOver: monitor.isOver(),
-            }),
-        }),
-        [header.id, columnOrder]
-    );
+  const [{ isOver }, dropRef] = useDrop(
+    () => ({
+      accept: 'column',
+      hover: (item) => {
+        if (item.id !== header.id) {
+          onReorderColumns(item.id, header.id);
+        }
+      },
+      collect: (monitor) => ({
+        isOver: monitor.isOver(),
+      }),
+    }),
+    [header.id, columnOrder]
+  );
 
-    const combinedRef = (el) => {
-        dragRef(el);
-        dropRef(el);
-    };
+  const combinedRef = (el) => {
+    dragRef(el);
+    dropRef(el);
+  };
 
-    return (
-        <th
-            ref={combinedRef}
-            colSpan={header.colSpan}
-            style={{
-                width: header.column.getSize(),
-                opacity: isDragging ? 0.5 : 1,
-                transition: "all 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
-                transform: isOver ? "scale(1.02)" : "scale(1)",
-            }}
-            className={`bg-[#D5DBDB] px-3 py-3.5 text-center font-[500] border-r-2 border-[#FFFFFF66] cursor-move select-none ${isDragging ? "shadow-lg opacity-50" : ""
-                } ${isOver ? "bg-[#C5CBCB]" : ""}`}
-        >
-            {header.isPlaceholder
-                ? null
-                : flexRender(header.column.columnDef.header, header.getContext())}
-        </th>
-    );
+  return (
+    <th
+      ref={combinedRef}
+      colSpan={header.colSpan}
+      style={{
+        width: header.column.getSize(),
+        opacity: isDragging ? 0.5 : 1,
+        transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+        transform: isOver ? 'scale(1.02)' : 'scale(1)',
+      }}
+      className={`bg-[#D5DBDB] px-3 py-3.5 text-center font-[500] border-r-2 border-[#FFFFFF66] cursor-move select-none ${
+        isDragging ? 'shadow-lg opacity-50' : ''
+      } ${isOver ? 'bg-[#C5CBCB]' : ''}`}
+    >
+      {header.isPlaceholder
+        ? null
+        : flexRender(header.column.columnDef.header, header.getContext())}
+    </th>
+  );
 };
 
 const CustomTable = ({
+  data,
+  columns,
+  fixedRowsPerPage = 10,
+  rowHeight = 40, // This will apply to data rows and the inline add form
+  headerHeight = 48,
+  title,
+  buttonText, // For the original header button
+  onAdd, // For the original header button
+  onCreateInlineItem,
+  onRefreshInlineData,
+  layout = 'block',
+  showDropdown = false,
+  inlineAddButtonText = '+ Add Item Inline', // Text for the button at the bottom of the table
+  loadingMessage = '',
+  loading = false,
+  users = null,
+  searchQuery,
+  setSearchQuery,
+  isSprint = false,
+  columnOrder = null,
+  onReorderColumns = null,
+}) => {
+  const location = useLocation();
+  const [pagination, setPagination] = useState({
+    pageIndex: 0,
+    pageSize: fixedRowsPerPage,
+  });
+  const [isAddingInlineItem, setIsAddingInlineItem] = useState(false);
+  const [newInlineItemTitle, setNewInlineItemTitle] = useState('');
+  const [newInlineItemStatus, setNewInlineItemStatus] = useState(
+    globalStatusOptionsForInlineAdd[0]
+  );
+  const [newInlineItemStartDate, setNewInlineItemStartDate] = useState('');
+  const [newInlineItemResponsibleId, setNewInlineItemResponsibleId] = useState('');
+  const [newInlineItemPriority, setNewInlineItemPriority] = useState('');
+  const [newInlineItemEndDate, setNewInlineItemEndDate] = useState('');
+  const [inlineItemLocalError, setInlineItemLocalError] = useState(null);
+  const [isSavingInlineItem, setIsSavingInlineItem] = useState(false);
+  const [validator, setValidator] = useState(false);
+
+  const newInlineItemTitleInputRef = useRef(null);
+  const newInlineItemFormRowRef = useRef(null);
+
+  const table = useReactTable({
     data,
     columns,
-    fixedRowsPerPage = 10,
-    rowHeight = 40, // This will apply to data rows and the inline add form
-    headerHeight = 48,
-    title,
-    buttonText, // For the original header button
-    onAdd, // For the original header button
+    state: { pagination },
+    onPaginationChange: setPagination,
+    getCoreRowModel: getCoreRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
+    manualPagination: false,
+  });
+
+  const pageRows = table.getRowModel().rows;
+  // Empty rows calculation ensures fixed table height for data area
+  // The inline add form, if active, will visually take up one of these potential slots or add to scroll height
+  const numEmptyRowsToAdd = Math.max(
+    0,
+    fixedRowsPerPage - pageRows.length - (isAddingInlineItem ? 1 : 0)
+  );
+  const desiredTableHeight = fixedRowsPerPage * rowHeight + headerHeight;
+  const isInline = layout === 'inline';
+
+  const resetInlineItemForm = useCallback(() => {
+    setNewInlineItemTitle('');
+    setNewInlineItemStatus(globalStatusOptionsForInlineAdd[0]);
+    setNewInlineItemStartDate('');
+    setNewInlineItemEndDate('');
+    setInlineItemLocalError(null);
+    setValidator(false);
+  }, []);
+
+  const handleShowInlineItemForm = useCallback(() => {
+    if (isAddingInlineItem || isSavingInlineItem) return;
+    resetInlineItemForm();
+    setIsAddingInlineItem(true);
+  }, [resetInlineItemForm, isAddingInlineItem, isSavingInlineItem]);
+
+  const handleCancelInlineItem = useCallback(() => {
+    setIsAddingInlineItem(false);
+    resetInlineItemForm();
+  }, [resetInlineItemForm]);
+
+  const handleSaveInlineItem = useCallback(async () => {
+    if (
+      !newInlineItemTitle ||
+      newInlineItemTitle.trim() === '' ||
+      !newInlineItemEndDate ||
+      !newInlineItemStartDate
+    ) {
+      setInlineItemLocalError('Please fill out all required fields.');
+      setValidator(true);
+      if (newInlineItemTitleInputRef.current) newInlineItemTitleInputRef.current.focus();
+      return;
+    }
+    if (typeof onCreateInlineItem !== 'function') {
+      setInlineItemLocalError('Saving not configured. (onCreateInlineItem missing)');
+      return;
+    }
+    setInlineItemLocalError(null);
+    setIsSavingInlineItem(true);
+    setValidator(false);
+    const newInlineItemData = {
+      name: newInlineItemTitle.trim(),
+      owner_id: newInlineItemResponsibleId,
+      priority: newInlineItemPriority,
+      status: newInlineItemStatus,
+      start_date: newInlineItemStartDate || null,
+      end_date: newInlineItemEndDate || null,
+      project_id: 3,
+    };
+    try {
+      await onCreateInlineItem(newInlineItemData);
+      if (typeof onRefreshInlineData === 'function') {
+        await onRefreshInlineData();
+      }
+      handleCancelInlineItem();
+    } catch (error) {
+      setInlineItemLocalError(error.message || 'Failed to save item.');
+    } finally {
+      setIsSavingInlineItem(false);
+    }
+  }, [
+    newInlineItemTitle,
+    newInlineItemStatus,
+    newInlineItemStartDate,
+    newInlineItemEndDate,
     onCreateInlineItem,
     onRefreshInlineData,
-    layout = "block",
-    showDropdown = false,
-    inlineAddButtonText = "+ Add Item Inline", // Text for the button at the bottom of the table
-    loadingMessage = "",
-    loading = false,
-    users = null,
-    searchQuery,
-    setSearchQuery,
-    isSprint = false,
-    columnOrder = null,
-    onReorderColumns = null,
-}) => {
-    const location = useLocation();
-    const [pagination, setPagination] = useState({
-        pageIndex: 0,
-        pageSize: fixedRowsPerPage,
-    });
-    const [isAddingInlineItem, setIsAddingInlineItem] = useState(false);
-    const [newInlineItemTitle, setNewInlineItemTitle] = useState("");
-    const [newInlineItemStatus, setNewInlineItemStatus] = useState(
-        globalStatusOptionsForInlineAdd[0]
-    );
-    const [newInlineItemStartDate, setNewInlineItemStartDate] = useState("");
-    const [newInlineItemResponsibleId, setNewInlineItemResponsibleId] =
-        useState("");
-    const [newInlineItemPriority, setNewInlineItemPriority] = useState("");
-    const [newInlineItemEndDate, setNewInlineItemEndDate] = useState("");
-    const [inlineItemLocalError, setInlineItemLocalError] = useState(null);
-    const [isSavingInlineItem, setIsSavingInlineItem] = useState(false);
-    const [validator, setValidator] = useState(false);
+    handleCancelInlineItem,
+    newInlineItemResponsibleId,
+    newInlineItemPriority,
+  ]);
 
-    const newInlineItemTitleInputRef = useRef(null);
-    const newInlineItemFormRowRef = useRef(null);
+  useEffect(() => {
+    if (isAddingInlineItem && newInlineItemTitleInputRef.current) {
+      newInlineItemTitleInputRef.current.focus();
+    }
+  }, [isAddingInlineItem]);
 
-    const table = useReactTable({
-        data,
-        columns,
-        state: { pagination },
-        onPaginationChange: setPagination,
-        getCoreRowModel: getCoreRowModel(),
-        getPaginationRowModel: getPaginationRowModel(),
-        manualPagination: false,
-    });
+  useEffect(() => {
+    const handleClickOutsideInlineForm = (event) => {
+      if (
+        !isAddingInlineItem ||
+        isSavingInlineItem ||
+        !newInlineItemFormRowRef.current ||
+        newInlineItemFormRowRef.current.contains(event.target)
+      ) {
+        return;
+      }
 
-    const pageRows = table.getRowModel().rows;
-    // Empty rows calculation ensures fixed table height for data area
-    // The inline add form, if active, will visually take up one of these potential slots or add to scroll height
-    const numEmptyRowsToAdd = Math.max(
-        0,
-        fixedRowsPerPage - pageRows.length - (isAddingInlineItem ? 1 : 0)
-    );
-    const desiredTableHeight = fixedRowsPerPage * rowHeight + headerHeight;
-    const isInline = layout === "inline";
+      handleSaveInlineItem();
+    };
+    if (isAddingInlineItem) {
+      document.addEventListener('mousedown', handleClickOutsideInlineForm);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutsideInlineForm);
+    };
+  }, [
+    isAddingInlineItem,
+    isSavingInlineItem,
+    newInlineItemTitle,
+    handleSaveInlineItem,
+    handleCancelInlineItem,
+  ]);
 
-    const resetInlineItemForm = useCallback(() => {
-        setNewInlineItemTitle("");
-        setNewInlineItemStatus(globalStatusOptionsForInlineAdd[0]);
-        setNewInlineItemStartDate("");
-        setNewInlineItemEndDate("");
-        setInlineItemLocalError(null);
-        setValidator(false);
-    }, []);
+  useEffect(() => {
+    const handleEscape = (event) => {
+      if (!isAddingInlineItem) return;
+      if (event.key === 'Escape') {
+        handleCancelInlineItem();
+      }
+    };
 
-    const handleShowInlineItemForm = useCallback(() => {
-        if (isAddingInlineItem || isSavingInlineItem) return;
-        resetInlineItemForm();
-        setIsAddingInlineItem(true);
-    }, [resetInlineItemForm, isAddingInlineItem, isSavingInlineItem]);
+    window.addEventListener('keydown', handleEscape);
 
-    const handleCancelInlineItem = useCallback(() => {
-        setIsAddingInlineItem(false);
-        resetInlineItemForm();
-    }, [resetInlineItemForm]);
+    return () => {
+      window.removeEventListener('keydown', handleEscape);
+    };
+  }, [isAddingInlineItem, handleCancelInlineItem]);
 
-    const handleSaveInlineItem = useCallback(async () => {
-        if (
-            !newInlineItemTitle ||
-            newInlineItemTitle.trim() === "" ||
-            !newInlineItemEndDate ||
-            !newInlineItemStartDate
-        ) {
-            setInlineItemLocalError("Please fill out all required fields.");
-            setValidator(true);
-            if (newInlineItemTitleInputRef.current)
-                newInlineItemTitleInputRef.current.focus();
-            return;
-        }
-        if (typeof onCreateInlineItem !== "function") {
-            setInlineItemLocalError(
-                "Saving not configured. (onCreateInlineItem missing)"
-            );
-            return;
-        }
-        setInlineItemLocalError(null);
-        setIsSavingInlineItem(true);
-        setValidator(false);
-        const newInlineItemData = {
-            name: newInlineItemTitle.trim(),
-            owner_id: newInlineItemResponsibleId,
-            priority: newInlineItemPriority,
-            status: newInlineItemStatus,
-            start_date: newInlineItemStartDate || null,
-            end_date: newInlineItemEndDate || null,
-            project_id: 3,
-        };
-        try {
-            await onCreateInlineItem(newInlineItemData);
-            if (typeof onRefreshInlineData === "function") {
-                await onRefreshInlineData();
-            }
-            handleCancelInlineItem();
-        } catch (error) {
-            setInlineItemLocalError(error.message || "Failed to save item.");
-        } finally {
-            setIsSavingInlineItem(false);
-        }
-    }, [
-        newInlineItemTitle,
-        newInlineItemStatus,
-        newInlineItemStartDate,
-        newInlineItemEndDate,
-        onCreateInlineItem,
-        onRefreshInlineData,
-        handleCancelInlineItem,
-        newInlineItemResponsibleId,
-        newInlineItemPriority,
-    ]);
+  const tableColumns = table.getAllLeafColumns();
+  const totalTableColumns = tableColumns.length;
 
-    useEffect(() => {
-        if (isAddingInlineItem && newInlineItemTitleInputRef.current) {
-            newInlineItemTitleInputRef.current.focus();
-        }
-    }, [isAddingInlineItem]);
+  // Helper to get column width or a default if not available (e.g. for a new column)
+  const getColWidth = (index) => tableColumns[index]?.getSize() ?? (index < 4 ? 150 : 100);
 
-    useEffect(() => {
-        const handleClickOutsideInlineForm = (event) => {
-            if (
-                !isAddingInlineItem ||
-                isSavingInlineItem ||
-                !newInlineItemFormRowRef.current ||
-                newInlineItemFormRowRef.current.contains(event.target)
-            ) {
-                return;
-            }
+  let content;
+  if (loading) {
+    content = <Loader message={loadingMessage} />;
+  } else {
+    content = (
+      <>
+        <div
+          className={`px-4 pl-7 ${
+            !location.pathname.startsWith('/sprint-list') && 'pt-4'
+          } ${isInline ? 'flex justify-between items-center' : ''}`}
+        >
+          {!isSprint && (
+            <div className="relative">
+              <input
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                type="text"
+                className="border border-gray-300 ps-10 pe-2 py-2 w-[400px] focus:outline-none text-sm"
+                placeholder="Search..."
+              />
+              <Search className="absolute left-2 top-2 text-gray-400" size={20} color="#C72030" />
+            </div>
+          )}
+          {!isInline && <div className="border-b border-gray-200 mt-2"></div>}
+          {buttonText && onAdd && (
+            <div className={`${isInline ? '' : 'flex justify-end mt-4 mr-3'}`}>
+              <button
+                className=" h-[38px] w-[170px] bg-[#C72030] text-white mr-5"
+                onClick={onAdd}
+                disabled={isAddingInlineItem || isSavingInlineItem}
+              >
+                <span className="mr-2">+</span>
+                <span className="text-[15px]">{buttonText}</span>
+                {/* <span className="ml-1 text-xs">▾</span> */}
+              </button>
+            </div>
+          )}
+        </div>
 
-            handleSaveInlineItem();
-        };
-        if (isAddingInlineItem) {
-            document.addEventListener("mousedown", handleClickOutsideInlineForm);
-        }
-        return () => {
-            document.removeEventListener("mousedown", handleClickOutsideInlineForm);
-        };
-    }, [
-        isAddingInlineItem,
-        isSavingInlineItem,
-        newInlineItemTitle,
-        handleSaveInlineItem,
-        handleCancelInlineItem,
-    ]);
+        {inlineItemLocalError && isAddingInlineItem && (
+          <div className="px-4 pl-7 mt-2 mb-2">
+            <div className="p-2 text-sm text-red-700  rounded">{inlineItemLocalError}</div>
+          </div>
+        )}
 
-    useEffect(() => {
-        const handleEscape = (event) => {
-            if (!isAddingInlineItem) return;
-            if (event.key === "Escape") {
-                handleCancelInlineItem();
-            }
-        };
+        <div className="project-table-container text-[14px] font-light px-4 mt-4">
+          <div
+            className="table-wrapper overflow-x-auto"
+            // style={{ height: `${desiredTableHeight}px` }}
+          >
+            <table className="w-full">
+              <thead>
+                {table.getHeaderGroups().map((headerGroup) => (
+                  <tr key={headerGroup.id}>
+                    {headerGroup.headers.map((header) => {
+                      // Use DraggableColumnHeader if columnOrder and onReorderColumns are provided
+                      if (columnOrder && onReorderColumns) {
+                        return (
+                          <DraggableColumnHeader
+                            key={header.id}
+                            header={header}
+                            onReorderColumns={onReorderColumns}
+                            columnOrder={columnOrder}
+                          />
+                        );
+                      }
+                      // Otherwise use regular th element
+                      return (
+                        <th
+                          key={header.id}
+                          colSpan={header.colSpan}
+                          style={{
+                            width: header.column.getSize(),
+                            height: `${headerHeight}px`,
+                          }} // Use header.column.getSize() for consistency
+                          className="bg-[#D5DBDB] px-3 py-3.5 text-center font-[500] border-r-2 border-[#FFFFFF66]"
+                        >
+                          {header.isPlaceholder ? null : (
+                            <div>
+                              {flexRender(header.column.columnDef.header, header.getContext())}
+                            </div>
+                          )}
+                        </th>
+                      );
+                    })}
+                  </tr>
+                ))}
+              </thead>
+              <tbody className="divide-y divide-gray-200">
+                {pageRows.map((row) => {
+                  /* ... existing data row mapping ... */
+                  const isDataRowEmpty =
+                    !row.original || Object.values(row.original).every((v) => !v);
+                  return (
+                    <tr
+                      key={row.id}
+                      className={`hover:bg-gray-50 even:bg-[#D5DBDB4D]  ${
+                        isDataRowEmpty ? 'pointer-events-none' : ''
+                      }`}
+                      style={{ height: `${rowHeight}px` }}
+                    >
+                      {row.getVisibleCells().map((cell) => (
+                        <td
+                          key={cell.id}
+                          style={{ width: cell.column.getSize() }}
+                          className={`${
+                            cell.column.columnDef.meta?.cellClassName || ''
+                          } whitespace-nowrap px-3 py-3  ${
+                            isDataRowEmpty ? 'text-transparent' : 'text-gray-700'
+                          }`}
+                        >
+                          {!isDataRowEmpty ? (
+                            flexRender(cell.column.columnDef.cell, cell.getContext())
+                          ) : (
+                            <span>&nbsp;</span>
+                          )}
+                        </td>
+                      ))}
+                    </tr>
+                  );
+                })}
+                {isAddingInlineItem && (
+                  <tr ref={newInlineItemFormRowRef} style={{ height: `${rowHeight}px` }}>
+                    {tableColumns.map((column) => {
+                      const columnId = column.id || column.columnDef?.accessorKey;
 
-        window.addEventListener("keydown", handleEscape);
-
-        return () => {
-            window.removeEventListener("keydown", handleEscape);
-        };
-    }, [isAddingInlineItem, handleCancelInlineItem]);
-
-    const tableColumns = table.getAllLeafColumns();
-    const totalTableColumns = tableColumns.length;
-
-    // Helper to get column width or a default if not available (e.g. for a new column)
-    const getColWidth = (index) =>
-        tableColumns[index]?.getSize() ?? (index < 4 ? 150 : 100);
-
-    let content;
-    if (loading) {
-        content = <Loader message={loadingMessage} />;
-    } else {
-        content = (
-            <>
-                <div
-                    className={`px-4 pl-7 ${!location.pathname.startsWith("/sprint-list") && "pt-4"
-                        } ${isInline ? "flex justify-between items-center" : ""}`}
-                >
-                    {
-                        !isSprint && <div className='relative'>
-                            <input value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} type="text" className="border border-gray-300 ps-10 pe-2 py-2 w-[400px] focus:outline-none text-sm" placeholder="Search..." />
-                            <Search className="absolute left-2 top-2 text-gray-400" size={20} color="#C72030" />
-                        </div>
-                    }
-                    {!isInline && <div className="border-b border-gray-200 mt-2"></div>}
-                    {buttonText && onAdd && (
-                        <div className={`${isInline ? "" : "flex justify-end mt-4 mr-3"}`}>
-                            <button
-                                className=" h-[38px] w-[170px] bg-[#C72030] text-white mr-5"
-                                onClick={onAdd}
-                                disabled={isAddingInlineItem || isSavingInlineItem}
-                            >
-                                <span className="mr-2">+</span>
-                                <span className="text-[15px]">{buttonText}</span>
-                                {/* <span className="ml-1 text-xs">▾</span> */}
-                            </button>
-                        </div>
-                    )}
-                </div>
-
-                {inlineItemLocalError && isAddingInlineItem && (
-                    <div className="px-4 pl-7 mt-2 mb-2">
-                        <div className="p-2 text-sm text-red-700  rounded">
-                            {inlineItemLocalError}
-                        </div>
-                    </div>
+                      // Render appropriate input based on column ID
+                      if (columnId === 'id' || columnId === 0) {
+                        return (
+                          <td
+                            key={column.id}
+                            className="px-1 py-0 align-middle h-full"
+                            style={{ width: column.getSize() }}
+                          >
+                            &nbsp;
+                          </td>
+                        );
+                      } else if (columnId === 'name' || columnId === 'title') {
+                        return (
+                          <td
+                            key={column.id}
+                            className="px-1 py-0 align-middle h-full"
+                            style={{ width: column.getSize() }}
+                          >
+                            <InlineAddTextField
+                              inputRef={newInlineItemTitleInputRef}
+                              value={newInlineItemTitle}
+                              onChange={(e) => {
+                                setNewInlineItemTitle(e.target.value);
+                                if (inlineItemLocalError) setInlineItemLocalError(null);
+                              }}
+                              onEnterPress={handleSaveInlineItem}
+                              placeholder="Title"
+                              validator={validator}
+                            />
+                          </td>
+                        );
+                      } else if (columnId === 'status') {
+                        return (
+                          <td
+                            key={column.id}
+                            className="px-1 py-0 align-middle h-full"
+                            style={{ width: column.getSize() }}
+                          >
+                            <StatusBadge
+                              statusOptions={globalStatusOptionsForInlineAdd}
+                              status={newInlineItemStatus}
+                              onStatusChange={setNewInlineItemStatus}
+                            />
+                          </td>
+                        );
+                      } else if (
+                        columnId === 'sprint_owner_name' ||
+                        columnId === 'manager' ||
+                        columnId === 'owner_id'
+                      ) {
+                        return (
+                          <td
+                            key={column.id}
+                            className="px-1 py-0 align-middle h-full"
+                            style={{ width: column.getSize() }}
+                          >
+                            <SelectBox
+                              table={true}
+                              options={
+                                users &&
+                                users.map((user) => {
+                                  return {
+                                    label: user.firstname + ' ' + user.lastname,
+                                    value: user.id,
+                                  };
+                                })
+                              }
+                              value={newInlineItemResponsibleId}
+                              onChange={(selectedOptionValue) =>
+                                setNewInlineItemResponsibleId(selectedOptionValue)
+                              }
+                            />
+                          </td>
+                        );
+                      } else if (columnId === 'start_date') {
+                        return (
+                          <td
+                            key={column.id}
+                            className="px-1 py-0 align-middle h-full"
+                            style={{ width: column.getSize() }}
+                          >
+                            <InlineAddDateEditor
+                              value={newInlineItemStartDate}
+                              min={new Date().toISOString().split('T')[0]}
+                              onChange={(e) => setNewInlineItemStartDate(e.target.value)}
+                              onEnterPress={handleSaveInlineItem}
+                              placeholder="Start Date"
+                              validator={validator}
+                            />
+                          </td>
+                        );
+                      } else if (columnId === 'end_date') {
+                        return (
+                          <td
+                            key={column.id}
+                            className="px-1 py-0 align-middle h-full"
+                            style={{ width: column.getSize() }}
+                          >
+                            <InlineAddDateEditor
+                              value={newInlineItemEndDate}
+                              min={newInlineItemStartDate}
+                              onChange={(e) => setNewInlineItemEndDate(e.target.value)}
+                              onEnterPress={handleSaveInlineItem}
+                              placeholder="End Date"
+                              validator={validator}
+                            />
+                          </td>
+                        );
+                      } else if (columnId === 'priority') {
+                        return (
+                          <td
+                            key={column.id}
+                            className="px-1 py-0 align-middle h-full"
+                            style={{ width: column.getSize() }}
+                          >
+                            <StatusBadge
+                              statusOptions={globalPriorityOptions}
+                              status={newInlineItemPriority}
+                              onStatusChange={setNewInlineItemPriority}
+                            />
+                          </td>
+                        );
+                      } else {
+                        // Empty cell for other columns
+                        return (
+                          <td
+                            key={column.id}
+                            className="px-1 py-0 align-middle h-full"
+                            style={{ width: column.getSize() }}
+                          >
+                            &nbsp;
+                          </td>
+                        );
+                      }
+                    })}
+                  </tr>
                 )}
 
-                <div className="project-table-container text-[14px] font-light px-4 mt-4">
-                    <div
-                        className="table-wrapper overflow-x-auto"
-                    // style={{ height: `${desiredTableHeight}px` }}
+                {Array.from({ length: numEmptyRowsToAdd }).map(
+                  (_, index /* ... existing empty row mapping ... */) => (
+                    <tr
+                      key={`empty-row-${index}`}
+                      style={{ height: `${rowHeight}px` }}
+                      className="even:bg-[#D5DBDB4D] pointer-events-none"
                     >
-                        <table className="w-full">
-                            <thead>
-                                {table.getHeaderGroups().map((headerGroup) => (
-                                    <tr key={headerGroup.id}>
-                                        {headerGroup.headers.map((header) => {
-                                            // Use DraggableColumnHeader if columnOrder and onReorderColumns are provided
-                                            if (columnOrder && onReorderColumns) {
-                                                return (
-                                                    <DraggableColumnHeader
-                                                        key={header.id}
-                                                        header={header}
-                                                        onReorderColumns={onReorderColumns}
-                                                        columnOrder={columnOrder}
-                                                    />
-                                                );
-                                            }
-                                            // Otherwise use regular th element
-                                            return (
-                                                <th
-                                                    key={header.id}
-                                                    colSpan={header.colSpan}
-                                                    style={{
-                                                        width: header.column.getSize(),
-                                                        height: `${headerHeight}px`,
-                                                    }} // Use header.column.getSize() for consistency
-                                                    className="bg-[#D5DBDB] px-3 py-3.5 text-center font-[500] border-r-2 border-[#FFFFFF66]"
-                                                >
-                                                    {header.isPlaceholder ? null : (
-                                                        <div>
-                                                            {flexRender(
-                                                                header.column.columnDef.header,
-                                                                header.getContext()
-                                                            )}
-                                                        </div>
-                                                    )}
-                                                </th>
-                                            );
-                                        })}
-                                    </tr>
-                                ))}
-                            </thead>
-                            <tbody className="divide-y divide-gray-200">
-                                {pageRows.map((row) => {
-                                    /* ... existing data row mapping ... */
-                                    const isDataRowEmpty =
-                                        !row.original ||
-                                        Object.values(row.original).every((v) => !v);
-                                    return (
-                                        <tr
-                                            key={row.id}
-                                            className={`hover:bg-gray-50 even:bg-[#D5DBDB4D]  ${isDataRowEmpty ? "pointer-events-none" : ""
-                                                }`}
-                                            style={{ height: `${rowHeight}px` }}
-                                        >
-                                            {row.getVisibleCells().map((cell) => (
-                                                <td
-                                                    key={cell.id}
-                                                    style={{ width: cell.column.getSize() }}
-                                                    className={`${cell.column.columnDef.meta?.cellClassName || ""
-                                                        } whitespace-nowrap px-3 py-3  ${isDataRowEmpty
-                                                            ? "text-transparent"
-                                                            : "text-gray-700"
-                                                        }`}
-                                                >
-                                                    {!isDataRowEmpty ? (
-                                                        flexRender(
-                                                            cell.column.columnDef.cell,
-                                                            cell.getContext()
-                                                        )
-                                                    ) : (
-                                                        <span>&nbsp;</span>
-                                                    )}
-                                                </td>
-                                            ))}
-                                        </tr>
-                                    );
-                                })}
-                                {isAddingInlineItem && (
-                                    <tr
-                                        ref={newInlineItemFormRowRef}
-                                        style={{ height: `${rowHeight}px` }}
-                                    >
-                                        {tableColumns.map((column) => {
-                                            const columnId = column.id || column.columnDef?.accessorKey;
+                      {tableColumns.map(
+                        (
+                          column // Use tableColumns for consistency
+                        ) => (
+                          <td
+                            key={`empty-cell-${index}-${column.id}`}
+                            style={{ width: column.getSize() }}
+                            className="whitespace-nowrap px-3 py-2 text-transparent"
+                          >
+                            &nbsp;
+                          </td>
+                        )
+                      )}
+                    </tr>
+                  )
+                )}
 
-                                            // Render appropriate input based on column ID
-                                            if (columnId === "id" || columnId === 0) {
-                                                return (
-                                                    <td
-                                                        key={column.id}
-                                                        className="px-1 py-0 align-middle h-full"
-                                                        style={{ width: column.getSize() }}
-                                                    >
-                                                        &nbsp;
-                                                    </td>
-                                                );
-                                            } else if (columnId === "name" || columnId === "title") {
-                                                return (
-                                                    <td
-                                                        key={column.id}
-                                                        className="px-1 py-0 align-middle h-full"
-                                                        style={{ width: column.getSize() }}
-                                                    >
-                                                        <InlineAddTextField
-                                                            inputRef={newInlineItemTitleInputRef}
-                                                            value={newInlineItemTitle}
-                                                            onChange={(e) => {
-                                                                setNewInlineItemTitle(e.target.value);
-                                                                if (inlineItemLocalError)
-                                                                    setInlineItemLocalError(null);
-                                                            }}
-                                                            onEnterPress={handleSaveInlineItem}
-                                                            placeholder="Title"
-                                                            validator={validator}
-                                                        />
-                                                    </td>
-                                                );
-                                            } else if (columnId === "status") {
-                                                return (
-                                                    <td
-                                                        key={column.id}
-                                                        className="px-1 py-0 align-middle h-full"
-                                                        style={{ width: column.getSize() }}
-                                                    >
-                                                        <StatusBadge
-                                                            statusOptions={globalStatusOptionsForInlineAdd}
-                                                            status={newInlineItemStatus}
-                                                            onStatusChange={setNewInlineItemStatus}
-                                                        />
-                                                    </td>
-                                                );
-                                            } else if (columnId === "sprint_owner_name" || columnId === "manager" || columnId === "owner_id") {
-                                                return (
-                                                    <td
-                                                        key={column.id}
-                                                        className="px-1 py-0 align-middle h-full"
-                                                        style={{ width: column.getSize() }}
-                                                    >
-                                                        <SelectBox
-                                                            table={true}
-                                                            options={users && users.map((user) => {
-                                                                return {
-                                                                    label: user.firstname + " " + user.lastname,
-                                                                    value: user.id,
-                                                                };
-                                                            })}
-                                                            value={newInlineItemResponsibleId}
-                                                            onChange={(selectedOptionValue) =>
-                                                                setNewInlineItemResponsibleId(selectedOptionValue)
-                                                            }
-                                                        />
-                                                    </td>
-                                                );
-                                            } else if (columnId === "start_date") {
-                                                return (
-                                                    <td
-                                                        key={column.id}
-                                                        className="px-1 py-0 align-middle h-full"
-                                                        style={{ width: column.getSize() }}
-                                                    >
-                                                        <InlineAddDateEditor
-                                                            value={newInlineItemStartDate}
-                                                            min={new Date().toISOString().split("T")[0]}
-                                                            onChange={(e) =>
-                                                                setNewInlineItemStartDate(e.target.value)
-                                                            }
-                                                            onEnterPress={handleSaveInlineItem}
-                                                            placeholder="Start Date"
-                                                            validator={validator}
-                                                        />
-                                                    </td>
-                                                );
-                                            } else if (columnId === "end_date") {
-                                                return (
-                                                    <td
-                                                        key={column.id}
-                                                        className="px-1 py-0 align-middle h-full"
-                                                        style={{ width: column.getSize() }}
-                                                    >
-                                                        <InlineAddDateEditor
-                                                            value={newInlineItemEndDate}
-                                                            min={newInlineItemStartDate}
-                                                            onChange={(e) =>
-                                                                setNewInlineItemEndDate(e.target.value)
-                                                            }
-                                                            onEnterPress={handleSaveInlineItem}
-                                                            placeholder="End Date"
-                                                            validator={validator}
-                                                        />
-                                                    </td>
-                                                );
-                                            } else if (columnId === "priority") {
-                                                return (
-                                                    <td
-                                                        key={column.id}
-                                                        className="px-1 py-0 align-middle h-full"
-                                                        style={{ width: column.getSize() }}
-                                                    >
-                                                        <StatusBadge
-                                                            statusOptions={globalPriorityOptions}
-                                                            status={newInlineItemPriority}
-                                                            onStatusChange={setNewInlineItemPriority}
-                                                        />
-                                                    </td>
-                                                );
-                                            } else {
-                                                // Empty cell for other columns
-                                                return (
-                                                    <td
-                                                        key={column.id}
-                                                        className="px-1 py-0 align-middle h-full"
-                                                        style={{ width: column.getSize() }}
-                                                    >
-                                                        &nbsp;
-                                                    </td>
-                                                );
-                                            }
-                                        })}
-                                    </tr>
-                                )}
+                {/* Trigger for Inline Add - Placed at the end of tbody */}
+                {!isAddingInlineItem &&
+                  onCreateInlineItem && ( // Show only if inline add is configured
+                    <tr style={{ height: `${rowHeight}px` }} className="border-t border-gray-200">
+                      <td colSpan={totalTableColumns} className="p-1 text-left">
+                        <button
+                          onClick={handleShowInlineItemForm}
+                          className="w-full text-left px-3 py-2 text-red-600 hover:underline flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
+                          disabled={isSavingInlineItem}
+                        >
+                          + Add Sprint
+                        </button>
+                      </td>
+                    </tr>
+                  )}
+              </tbody>
+            </table>
+          </div>
 
-                                {Array.from({ length: numEmptyRowsToAdd }).map(
-                                    (_, index /* ... existing empty row mapping ... */) => (
-                                        <tr
-                                            key={`empty-row-${index}`}
-                                            style={{ height: `${rowHeight}px` }}
-                                            className="even:bg-[#D5DBDB4D] pointer-events-none"
-                                        >
-                                            {tableColumns.map(
-                                                (
-                                                    column // Use tableColumns for consistency
-                                                ) => (
-                                                    <td
-                                                        key={`empty-cell-${index}-${column.id}`}
-                                                        style={{ width: column.getSize() }}
-                                                        className="whitespace-nowrap px-3 py-2 text-transparent"
-                                                    >
-                                                        &nbsp;
-                                                    </td>
-                                                )
-                                            )}
-                                        </tr>
-                                    )
-                                )}
+          {data.length > 0 && (
+            <div className=" flex items-center justify-start gap-4 mt-4 text-[12px]">
+              {/* Previous Button */}
+              <button
+                onClick={() => table.previousPage()}
+                disabled={!table.getCanPreviousPage()}
+                className="text-red-600 disabled:opacity-30"
+              >
+                {'<'}
+              </button>
 
-                                {/* Trigger for Inline Add - Placed at the end of tbody */}
-                                {!isAddingInlineItem &&
-                                    onCreateInlineItem && ( // Show only if inline add is configured
-                                        <tr
-                                            style={{ height: `${rowHeight}px` }}
-                                            className="border-t border-gray-200"
-                                        >
-                                            <td colSpan={totalTableColumns} className="p-1 text-left">
-                                                <button
-                                                    onClick={handleShowInlineItemForm}
-                                                    className="w-full text-left px-3 py-2 text-red-600 hover:underline flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
-                                                    disabled={isSavingInlineItem}
-                                                >
-                                                    + Add Sprint
-                                                </button>
-                                            </td>
-                                        </tr>
-                                    )}
-                            </tbody>
-                        </table>
-                    </div>
+              {/* Page Numbers (Sliding Window of 3) */}
+              {(() => {
+                const totalPages = table.getPageCount();
+                const currentPage = table.getState().pagination.pageIndex;
+                const visiblePages = 3;
 
-                    {data.length > 0 && (
-                        <div className=" flex items-center justify-start gap-4 mt-4 text-[12px]">
-                            {/* Previous Button */}
-                            <button
-                                onClick={() => table.previousPage()}
-                                disabled={!table.getCanPreviousPage()}
-                                className="text-red-600 disabled:opacity-30"
-                            >
-                                {"<"}
-                            </button>
+                let start = Math.max(0, currentPage - Math.floor(visiblePages / 2));
+                let end = start + visiblePages;
 
-                            {/* Page Numbers (Sliding Window of 3) */}
-                            {(() => {
-                                const totalPages = table.getPageCount();
-                                const currentPage = table.getState().pagination.pageIndex;
-                                const visiblePages = 3;
+                // Ensure end does not exceed total pages
+                if (end > totalPages) {
+                  end = totalPages;
+                  start = Math.max(0, end - visiblePages);
+                }
 
-                                let start = Math.max(
-                                    0,
-                                    currentPage - Math.floor(visiblePages / 2)
-                                );
-                                let end = start + visiblePages;
+                return [...Array(end - start)].map((_, i) => {
+                  const page = start + i;
+                  const isActive = page === currentPage;
 
-                                // Ensure end does not exceed total pages
-                                if (end > totalPages) {
-                                    end = totalPages;
-                                    start = Math.max(0, end - visiblePages);
-                                }
+                  return (
+                    <button
+                      key={page}
+                      onClick={() => table.setPageIndex(page)}
+                      className={` px-3 py-1 ${isActive ? 'bg-gray-200 font-bold' : ''}`}
+                    >
+                      {page + 1}
+                    </button>
+                  );
+                });
+              })()}
 
-                                return [...Array(end - start)].map((_, i) => {
-                                    const page = start + i;
-                                    const isActive = page === currentPage;
-
-                                    return (
-                                        <button
-                                            key={page}
-                                            onClick={() => table.setPageIndex(page)}
-                                            className={` px-3 py-1 ${isActive ? "bg-gray-200 font-bold" : ""
-                                                }`}
-                                        >
-                                            {page + 1}
-                                        </button>
-                                    );
-                                });
-                            })()}
-
-                            {/* Next Button */}
-                            <button
-                                onClick={() => table.nextPage()}
-                                disabled={!table.getCanNextPage()}
-                                className="text-red-600 disabled:opacity-30"
-                            >
-                                {">"}
-                            </button>
-                        </div>
-                    )}
-                </div>
-            </>
-        );
-    }
-    return <div>{content}</div>;
+              {/* Next Button */}
+              <button
+                onClick={() => table.nextPage()}
+                disabled={!table.getCanNextPage()}
+                className="text-red-600 disabled:opacity-30"
+              >
+                {'>'}
+              </button>
+            </div>
+          )}
+        </div>
+      </>
+    );
+  }
+  return <div>{content}</div>;
 };
 
 export default CustomTable;

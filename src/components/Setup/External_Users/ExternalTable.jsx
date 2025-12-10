@@ -1,4 +1,3 @@
-/* eslint-disable react/prop-types */
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import Switch from '@mui/joy/Switch';
@@ -26,13 +25,15 @@ const ActionIcons = ({ row, onEdit }) => {
     };
 
     try {
-      await dispatch(fetchUpdateUser({ token, userId: userData.id, updatedData: payload })).unwrap();
+      await dispatch(
+        fetchUpdateUser({ token, userId: userData.id, updatedData: payload })
+      ).unwrap();
       toast.dismiss();
       toast.success(`Status ${updatedValue ? 'activated' : 'deactivated'} successfully`, {
         iconTheme: {
           primary: updatedValue ? 'green' : 'red',
           secondary: 'white',
-        }
+        },
       });
     } catch (error) {
       toast.dismiss();
@@ -68,20 +69,19 @@ const ActionIcons = ({ row, onEdit }) => {
   );
 };
 
-
 const ExternalTable = () => {
   const token = localStorage.getItem('token');
   const dispatch = useDispatch();
-  const { fetchExternalUser: externalUsers } = useSelector(state => state.fetchExternalUser);
-  const [searchQuery, setSearchQuery] = useState('')
+  const { fetchExternalUser: externalUsers } = useSelector((state) => state.fetchExternalUser);
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     const fetchUsers = async () => {
       try {
         await dispatch(fetchExternalUser({ token })).unwrap();
       } catch (error) {
-        console.error("Error fetching external users:", error);
-        toast.error("Failed to load external users");
+        console.error('Error fetching external users:', error);
+        toast.error('Failed to load external users');
       }
     };
 
@@ -90,12 +90,11 @@ const ExternalTable = () => {
     }
   }, [dispatch, token]);
 
-
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
 
-  const filteredUsers = externalUsers?.filter(user => {
+  const filteredUsers = externalUsers?.filter((user) => {
     const fullName = `${user.firstname} ${user.lastname}`.toLowerCase();
     const query = searchQuery.toLowerCase();
 
@@ -121,84 +120,79 @@ const ExternalTable = () => {
 
   const handleSuccess = useCallback(() => {
     dispatch(fetchExternalUser({ token })); // refresh roles list
-    setIsModalOpen(false);  // close modal
+    setIsModalOpen(false); // close modal
   }, [dispatch]);
 
-  const columns = useMemo(() => [
-    {
-      accessorKey: 'firstname',
-      header: 'User Name',
-      size: 150,
-      cell: ({ row }) => {
-        const { firstname, lastname } = row.original;
-        return `${firstname} ${lastname}`;
+  const columns = useMemo(
+    () => [
+      {
+        accessorKey: 'firstname',
+        header: 'User Name',
+        size: 150,
+        cell: ({ row }) => {
+          const { firstname, lastname } = row.original;
+          return `${firstname} ${lastname}`;
+        },
       },
-    },
-    {
-      accessorKey: 'organization_name',
-      header: 'Organisation',
-      size: 200,
-    },
-    {
-      accessorKey: 'user_company_name',
-      header: 'Company',
-      size: 200,
-      cell: ({ getValue }) => (
-        <div className="px-4"> {/* px-4 = horizontal padding */}
-          {getValue()}
-        </div>
-      ),
-    },
-    {
-
-      accessorKey: 'mobile',
-      header: 'Mobile No.',
-      size: 200,
-      cell: ({ getValue }) => <span className="pl-2">{getValue()}</span>,
-    },
-    {
-      accessorKey: 'email',
-      header: 'Email Id',
-      size: 250,
-      cell: ({ getValue }) => <span className="pl-2">{getValue()}</span>,
-    },
-    {
-      accessorKey: 'lock_role.display_name',
-      header: 'Role',
-      size: 180,
-      cell: ({ row, getValue }) => {
-        const value = row.original ? getValue() : null;
-        if (!value) return null;
-        const formattedValue = value.replace(/_/g, ' ');
-        return formattedValue.charAt(0).toUpperCase() + formattedValue.slice(1);
+      {
+        accessorKey: 'organization_name',
+        header: 'Organisation',
+        size: 200,
       },
-    },
-    {
-      accessorKey: 'status',
-      header: 'Invitation Status',
-      size: 150,
-      cell: ({ getValue }) => {
-        const value = getValue();
-        const color = value === 'Accepted' ? 'green' : 'red';
-        return (
-          <span style={{ color, fontWeight: 500 }}>
-            {value}
-          </span>
-        );
+      {
+        accessorKey: 'user_company_name',
+        header: 'Company',
+        size: 200,
+        cell: ({ getValue }) => (
+          <div className="px-4">
+            {' '}
+            {/* px-4 = horizontal padding */}
+            {getValue()}
+          </div>
+        ),
       },
-    },
-    {
-      id: 'actions',
-      header: 'Actions',
-      size: 120,
-      cell: ({ row }) => (
-        <ActionIcons
-          row={row}
-          onEdit={handleEditClick}
-        />
-      ),
-    },
-  ], [externalUsers]);
+      {
+        accessorKey: 'mobile',
+        header: 'Mobile No.',
+        size: 200,
+        cell: ({ getValue }) => <span className="pl-2">{getValue()}</span>,
+      },
+      {
+        accessorKey: 'email',
+        header: 'Email Id',
+        size: 250,
+        cell: ({ getValue }) => <span className="pl-2">{getValue()}</span>,
+      },
+      {
+        accessorKey: 'lock_role.display_name',
+        header: 'Role',
+        size: 180,
+        cell: ({ row, getValue }) => {
+          const value = row.original ? getValue() : null;
+          if (!value) return null;
+          const formattedValue = value.replace(/_/g, ' ');
+          return formattedValue.charAt(0).toUpperCase() + formattedValue.slice(1);
+        },
+      },
+      {
+        accessorKey: 'status',
+        header: 'Invitation Status',
+        size: 150,
+        cell: ({ getValue }) => {
+          const value = getValue();
+          const color = value === 'Accepted' ? 'green' : 'red';
+          return <span style={{ color, fontWeight: 500 }}>{value}</span>;
+        },
+      },
+      {
+        id: 'actions',
+        header: 'Actions',
+        size: 120,
+        cell: ({ row }) => <ActionIcons row={row} onEdit={handleEditClick} />,
+      },
+    ],
+    [externalUsers]
+  );
 
   return (
     <div>
@@ -213,18 +207,15 @@ const ExternalTable = () => {
         searchQuery={searchQuery}
         setSearchQuery={setSearchQuery}
       />
-      {
-        isModalOpen && (
-          <AddExternalUserModal
-            open={isModalOpen}
-            onClose={() => setIsModalOpen(false)}
-            isEditMode={isEditMode}
-            initialData={selectedUser}
-            onSuccess={handleSuccess}
-          />
-        )
-      }
-
+      {isModalOpen && (
+        <AddExternalUserModal
+          open={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          isEditMode={isEditMode}
+          initialData={selectedUser}
+          onSuccess={handleSuccess}
+        />
+      )}
     </div>
   );
 };

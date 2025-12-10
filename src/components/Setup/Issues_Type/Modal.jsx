@@ -47,41 +47,35 @@ const Modal = ({ openModal, setOpenModal, editMode = false, existingData = {} })
     try {
       let response;
       if (editMode && existingData?.id) {
-        response = await dispatch(updateIssueType({ token, id: existingData.id, payload })).unwrap();
-      }
-      else
-        response = await dispatch(createIssueType({ token, payload })).unwrap();
-      if (response?.name[0] != "has already been taken") {
+        response = await dispatch(
+          updateIssueType({ token, id: existingData.id, payload })
+        ).unwrap();
+      } else response = await dispatch(createIssueType({ token, payload })).unwrap();
+      if (response?.name[0] != 'has already been taken') {
         toast.success(`Type ${editMode ? 'Updated' : 'Created'} successfully`, {
           iconTheme: {
             primary: 'green', // This might directly change the color of the success icon
             secondary: 'white', // The circle background
           },
-        })
+        });
         resetModal();
         dispatch(fetchIssueType({ token }));
-      }
-      else {
+      } else {
         setWarningOpen(true);
         setWarningMessage('Issues Type already exists');
       }
-    }
-
-    catch (error) {
+    } catch (error) {
       console.log(error);
       setWarningOpen(true);
       setWarningMessage(error.message);
     }
   }, [type, warningOpen, dispatch, editMode, existingData, resetModal, description]);
 
-
-
   if (!openModal) return null;
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-30 z-50">
       <div className="w-[560px] h-[350px] bg-white absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 border border-[#C0C0C0]">
-
         {/* Close Icon */}
         <div className="flex justify-end p-4">
           <CloseIcon className="cursor-pointer" onClick={resetModal} />
@@ -134,7 +128,6 @@ const Modal = ({ openModal, setOpenModal, editMode = false, existingData = {} })
         </div>
       </div>
     </div>
-
   );
 };
 

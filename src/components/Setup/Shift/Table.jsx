@@ -10,30 +10,25 @@ import {
   getPaginationRowModel,
 } from '@tanstack/react-table';
 import { useDispatch, useSelector } from 'react-redux';
-import {
-  fetchShift,
-  updateShift,
-  deleteShift,
-} from '../../../redux/slices/shiftSlice';
+import { fetchShift, updateShift, deleteShift } from '../../../redux/slices/shiftSlice';
 import AddShiftModel from './Modal';
 import toast from 'react-hot-toast';
 import { DeleteConfirmationModal } from '../../DeleteConfirmationModal';
 
 const defaultData = [
   {
-    userName: "Rajkumar",
-    organisation: "Panchshil Realty",
-    emailId: "rajkumar.sharma@panchshil.com",
-    role: "Project IT Head",
-    invitationStatus: "Accepted",
-  }
-
+    userName: 'Rajkumar',
+    organisation: 'Panchshil Realty',
+    emailId: 'rajkumar.sharma@panchshil.com',
+    role: 'Project IT Head',
+    invitationStatus: 'Accepted',
+  },
 ];
 
 const ShiftTable = ({ openModal, setOpenModal, editMode, setEditMode }) => {
   const token = localStorage.getItem('token');
   const dispatch = useDispatch();
-  const { fetchShift: shifts } = useSelector(state => state.fetchShift);
+  const { fetchShift: shifts } = useSelector((state) => state.fetchShift);
 
   const [data, setData] = useState([]);
   const [selectedData, setSelectedData] = useState(null);
@@ -96,11 +91,13 @@ const ShiftTable = ({ openModal, setOpenModal, editMode, setEditMode }) => {
       const updatedValue = !row.original.active;
       setIsActive(updatedValue);
       try {
-        await dispatch(updateShift({
-          token,
-          id: row.original.id,
-          payload: { active: updatedValue },
-        })).unwrap();
+        await dispatch(
+          updateShift({
+            token,
+            id: row.original.id,
+            payload: { active: updatedValue },
+          })
+        ).unwrap();
 
         toast.dismiss();
         toast.success(`Status ${updatedValue ? 'activated' : 'deactivated'} successfully`, {
@@ -221,8 +218,7 @@ const ShiftTable = ({ openModal, setOpenModal, editMode, setEditMode }) => {
   const rowHeight = 40;
 
   const headerHeight = 48;
-  const desiredTableHeight = (fixedRowsPerPage * rowHeight) + headerHeight;
-
+  const desiredTableHeight = fixedRowsPerPage * rowHeight + headerHeight;
 
   return (
     <>
@@ -233,9 +229,9 @@ const ShiftTable = ({ openModal, setOpenModal, editMode, setEditMode }) => {
         >
           <table className="w-full">
             <thead>
-              {table.getHeaderGroups().map(headerGroup => (
+              {table.getHeaderGroups().map((headerGroup) => (
                 <tr key={headerGroup.id}>
-                  {headerGroup.headers.map(header => (
+                  {headerGroup.headers.map((header) => (
                     <th
                       key={header.id}
                       colSpan={header.colSpan}
@@ -243,12 +239,7 @@ const ShiftTable = ({ openModal, setOpenModal, editMode, setEditMode }) => {
                       className="bg-[#D5DBDB] px-3 py-3.5 text-center font-[500] border-r-2 border-[#FFFFFF]"
                     >
                       {header.isPlaceholder ? null : (
-                        <div>
-                          {flexRender(
-                            header.column.columnDef.header,
-                            header.getContext()
-                          )}
-                        </div>
+                        <div>{flexRender(header.column.columnDef.header, header.getContext())}</div>
                       )}
                     </th>
                   ))}
@@ -256,8 +247,9 @@ const ShiftTable = ({ openModal, setOpenModal, editMode, setEditMode }) => {
               ))}
             </thead>
             <tbody className="divide-y" style={{ height: `${fixedRowsPerPage * rowHeight}px` }}>
-              {pageRows.map(row => {
-                const isDataRowConsideredEmpty = !row.original || Object.values(row.original).every(v => v === null || v === '');
+              {pageRows.map((row) => {
+                const isDataRowConsideredEmpty =
+                  !row.original || Object.values(row.original).every((v) => v === null || v === '');
 
                 return (
                   <tr
@@ -265,12 +257,13 @@ const ShiftTable = ({ openModal, setOpenModal, editMode, setEditMode }) => {
                     className={`hover:bg-gray-50 even:bg-[#D5DBDB4D] ${isDataRowConsideredEmpty ? 'pointer-events-none text-transparent' : ''}`}
                     style={{ height: `${rowHeight}px` }}
                   >
-                    {row.getVisibleCells().map(cell => (
+                    {row.getVisibleCells().map((cell) => (
                       <td
                         key={cell.id}
                         style={{ width: cell.column.getSize() }}
-                        className={`${cell.column.columnDef.meta?.cellClassName || ''
-                          } whitespace-nowrap px-3 py-2 border-r-2
+                        className={`${
+                          cell.column.columnDef.meta?.cellClassName || ''
+                        } whitespace-nowrap px-3 py-2 border-r-2
                         }`}
                       >
                         {!isDataRowConsideredEmpty
@@ -287,7 +280,7 @@ const ShiftTable = ({ openModal, setOpenModal, editMode, setEditMode }) => {
                   style={{ height: `${rowHeight}px` }}
                   className="even:bg-[#D5DBDB4D] pointer-events-none"
                 >
-                  {table.getAllLeafColumns().map(column => (
+                  {table.getAllLeafColumns().map((column) => (
                     <td
                       key={`empty-cell-${index}-${column.id}`}
                       style={{ width: column.getSize() }}
@@ -309,7 +302,7 @@ const ShiftTable = ({ openModal, setOpenModal, editMode, setEditMode }) => {
             disabled={!table.getCanPreviousPage()}
             className="text-red-600 disabled:opacity-30"
           >
-            {"<"}
+            {'<'}
           </button>
 
           {/* Page Numbers (Sliding Window of 3) */}
@@ -318,10 +311,7 @@ const ShiftTable = ({ openModal, setOpenModal, editMode, setEditMode }) => {
             const currentPage = table.getState().pagination.pageIndex;
             const visiblePages = 3;
 
-            let start = Math.max(
-              0,
-              currentPage - Math.floor(visiblePages / 2)
-            );
+            let start = Math.max(0, currentPage - Math.floor(visiblePages / 2));
             let end = start + visiblePages;
 
             // Ensure end does not exceed total pages
@@ -338,7 +328,7 @@ const ShiftTable = ({ openModal, setOpenModal, editMode, setEditMode }) => {
                 <button
                   key={page}
                   onClick={() => table.setPageIndex(page)}
-                  className={`px-3 py-1 ${isActive ? "bg-gray-200 font-bold" : ""}`}
+                  className={`px-3 py-1 ${isActive ? 'bg-gray-200 font-bold' : ''}`}
                 >
                   {page + 1}
                 </button>
@@ -352,7 +342,7 @@ const ShiftTable = ({ openModal, setOpenModal, editMode, setEditMode }) => {
             disabled={!table.getCanNextPage()}
             className="text-red-600 disabled:opacity-30"
           >
-            {">"}
+            {'>'}
           </button>
         </div>
       </div>

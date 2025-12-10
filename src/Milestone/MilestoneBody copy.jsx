@@ -1,6 +1,7 @@
-import React, { useEffect, useRef } from "react";
-import "dhtmlx-gantt";
-import "dhtmlx-gantt/codebase/dhtmlxgantt.css";
+/* eslint-disable no-undef */
+import { useEffect, useRef } from 'react';
+import 'dhtmlx-gantt';
+import 'dhtmlx-gantt/codebase/dhtmlxgantt.css';
 
 const GanttChart1 = () => {
     const ganttContainer = useRef(null);
@@ -9,34 +10,34 @@ const GanttChart1 = () => {
         // Columns
         gantt.config.columns = [
             {
-                name: "text",
-                label: "Milestone / Task Title",
+                name: 'text',
+                label: 'Milestone / Task Title',
                 tree: true,
                 width: 250,
                 resize: true,
             },
             {
-                name: "progress",
-                label: "%",
-                align: "center",
+                name: 'progress',
+                label: '%',
+                align: 'center',
                 width: 70,
                 template: function (task) {
-                    return Math.round(task.progress) + " %";
+                    return Math.round(task.progress) + ' %';
                 },
             },
             {
-                name: "status",
-                label: "Status",
-                align: "center",
+                name: 'status',
+                label: 'Status',
+                align: 'center',
                 width: 100,
                 template: function (task) {
-                    return task.status || "Open";
+                    return task.status || 'Open';
                 },
             },
             {
-                name: "actions",
-                label: "Actions",
-                align: "center",
+                name: 'actions',
+                label: 'Actions',
+                align: 'center',
                 width: 130,
                 resize: true,
                 template: function (task) {
@@ -74,25 +75,24 @@ const GanttChart1 = () => {
         gantt.config.end_date = endDate;
 
         // Formatter to display "23 Jan - 29 Jan"
-        const weekDateFormatter = gantt.date.date_to_str("%d %M");
+        const weekDateFormatter = gantt.date.date_to_str('%d %M');
 
         // Custom scales
         gantt.config.scales = [
-
             {
-                unit: "week",
+                unit: 'week',
                 step: 1,
                 format: function (date) {
                     const start = gantt.date.week_start(new Date(date));
-                    const end = gantt.date.add(start, 7, "day");
+                    const end = gantt.date.add(start, 7, 'day');
                     return `${weekDateFormatter(start)} - ${weekDateFormatter(end)} , ${start.getFullYear()}`;
                 },
             },
             {
-                unit: "day",
+                unit: 'day',
                 step: 1,
                 format: function (date) {
-                    const day = gantt.date.date_to_str("%j")(date); // Day of the month
+                    const day = gantt.date.date_to_str('%j')(date); // Day of the month
                     return day; // Show all days
                 },
             },
@@ -104,19 +104,19 @@ const GanttChart1 = () => {
         gantt.config.grid_width = 500;
         gantt.config.show_task_cells = true;
         gantt.config.show_progress = true;
-        gantt.config.grid_resize = true;       // 👈 Enables resizing grid panel
-        gantt.config.autofit_columns = true;   // 👈 Auto-adjust columns
+        gantt.config.grid_resize = true; // 👈 Enables resizing grid panel
+        gantt.config.autofit_columns = true; // 👈 Auto-adjust columns
         // Task label inside bars
         gantt.templates.task_text = function (start, end, task) {
-            return `${task.text} | ${gantt.templates.date_grid(start)} [${task.owner || "N/A"}]`;
+            return `${task.text} | ${gantt.templates.date_grid(start)} [${task.owner || 'N/A'}]`;
         };
 
         // Custom class for styling
         gantt.templates.task_class = function (start, end, task) {
             if (task.type === gantt.config.types.milestone) {
-                return "milestone-task";
+                return 'milestone-task';
             }
-            return "custom-task";
+            return 'custom-task';
         };
 
         // Initialize
@@ -126,151 +126,151 @@ const GanttChart1 = () => {
         const nestedData = {
             milestone: [
                 {
-                    id: "1",
-                    text: "Milestone 1",
-                    start_date: "01-05-2025",
+                    id: '1',
+                    text: 'Milestone 1',
+                    start_date: '01-05-2025',
                     duration: 13,
                     progress: 9,
                     open: true,
-                    status: "Open",
-                    owner: "Kshitij Rosai",
+                    status: 'Open',
+                    owner: 'Kshitij Rosai',
                     tasks: [
                         {
-                            id: "1.1",
-                            text: "Task 1.1",
-                            start_date: "02-05-2025",
+                            id: '1.1',
+                            text: 'Task 1.1',
+                            start_date: '02-05-2025',
                             duration: 6,
                             progress: 0,
-                            status: "Open",
-                            owner: "Akshay",
+                            status: 'Open',
+                            owner: 'Akshay',
                             subtasks: [
                                 {
-                                    id: "1.1.1",
-                                    text: "Subtask 1.1.1",
-                                    start_date: "03-05-2025",
+                                    id: '1.1.1',
+                                    text: 'Subtask 1.1.1',
+                                    start_date: '03-05-2025',
                                     duration: 4,
                                     progress: 0,
-                                    status: "Open",
+                                    status: 'Open',
                                 },
                             ],
                         },
                     ],
                 },
                 {
-                    id: "2",
-                    text: "Milestone 2",
-                    start_date: "16-05-2025",
+                    id: '2',
+                    text: 'Milestone 2',
+                    start_date: '16-05-2025',
                     duration: 8,
                     progress: 0,
-                    status: "Open",
-                    owner: "Kshitij Rosai",
+                    status: 'Open',
+                    owner: 'Kshitij Rosai',
                     tasks: [
                         {
-                            id: "2.1",
-                            text: "Task 2.1",
-                            start_date: "17-05-2025",
+                            id: '2.1',
+                            text: 'Task 2.1',
+                            start_date: '17-05-2025',
                             duration: 5,
                             progress: 0,
-                            status: "Open",
-                            owner: "Akshay",
+                            status: 'Open',
+                            owner: 'Akshay',
                             subtasks: [
                                 {
-                                    id: "2.1.1",
-                                    text: "Subtask 2.1.1",
-                                    start_date: "18-05-2025",
+                                    id: '2.1.1',
+                                    text: 'Subtask 2.1.1',
+                                    start_date: '18-05-2025',
                                     duration: 3,
                                     progress: 0,
-                                    status: "Open",
+                                    status: 'Open',
                                 },
                             ],
                         },
                     ],
                 },
                 {
-                    id: "3",
-                    text: "Milestone 3",
-                    start_date: "25-05-2025",
+                    id: '3',
+                    text: 'Milestone 3',
+                    start_date: '25-05-2025',
                     duration: 10,
                     progress: 0,
-                    status: "Open",
-                    owner: "Kshitij Rosai",
+                    status: 'Open',
+                    owner: 'Kshitij Rosai',
                     tasks: [
                         {
-                            id: "3.1",
-                            text: "Task 3.1",
-                            start_date: "26-05-2025",
+                            id: '3.1',
+                            text: 'Task 3.1',
+                            start_date: '26-05-2025',
                             duration: 7,
                             progress: 0,
-                            status: "Open",
-                            owner: "Akshay",
+                            status: 'Open',
+                            owner: 'Akshay',
                             subtasks: [
                                 {
-                                    id: "3.1.1",
-                                    text: "Subtask 3.1.1",
-                                    start_date: "27-05-2025",
+                                    id: '3.1.1',
+                                    text: 'Subtask 3.1.1',
+                                    start_date: '27-05-2025',
                                     duration: 4,
                                     progress: 0,
-                                    status: "Open",
+                                    status: 'Open',
                                 },
                             ],
                         },
                     ],
                 },
                 {
-                    id: "4",
-                    text: "Milestone 4",
-                    start_date: "05-06-2025",
+                    id: '4',
+                    text: 'Milestone 4',
+                    start_date: '05-06-2025',
                     duration: 12,
                     progress: 0,
-                    status: "Open",
-                    owner: "Kshitij Rosai",
+                    status: 'Open',
+                    owner: 'Kshitij Rosai',
                     tasks: [
                         {
-                            id: "4.1",
-                            text: "Task 4.1",
-                            start_date: "06-06-2025",
+                            id: '4.1',
+                            text: 'Task 4.1',
+                            start_date: '06-06-2025',
                             duration: 8,
                             progress: 0,
-                            status: "Open",
-                            owner: "Akshay",
+                            status: 'Open',
+                            owner: 'Akshay',
                             subtasks: [
                                 {
-                                    id: "4.1.1",
-                                    text: "Subtask 4.1.1",
-                                    start_date: "07-06-2025",
+                                    id: '4.1.1',
+                                    text: 'Subtask 4.1.1',
+                                    start_date: '07-06-2025',
                                     duration: 5,
                                     progress: 0,
-                                    status: "Open",
+                                    status: 'Open',
                                 },
                             ],
                         },
                     ],
                 },
                 {
-                    id: "5",
-                    text: "Milestone 5",
-                    start_date: "18-06-2025",
+                    id: '5',
+                    text: 'Milestone 5',
+                    start_date: '18-06-2025',
                     duration: 9,
                     progress: 0,
-                    status: "Open",
-                    owner: "Kshitij Rosai",
+                    status: 'Open',
+                    owner: 'Kshitij Rosai',
                     tasks: [
                         {
-                            id: "5.1",
-                            text: "Task 5.1",
-                            start_date: "19-06-2025",
+                            id: '5.1',
+                            text: 'Task 5.1',
+                            start_date: '19-06-2025',
                             duration: 6,
                             progress: 0,
-                            status: "Open",
-                            owner: "Akshay",
+                            status: 'Open',
+                            owner: 'Akshay',
                             subtasks: [
                                 {
-                                    id: "5.1.1",
-                                    text: "Subtask 56.1.1",
-                                    start_date: "20-06-2025",
+                                    id: '5.1.1',
+                                    text: 'Subtask 56.1.1',
+                                    start_date: '20-06-2025',
                                     duration: 4,
                                     progress: 0,
-                                    status: "Open",
+                                    status: 'Open',
                                 },
                             ],
                         },
@@ -278,7 +278,6 @@ const GanttChart1 = () => {
                 },
             ],
         };
-
 
         // Function to flatten nested structure
         function flattenNestedData(nestedData) {
@@ -295,11 +294,11 @@ const GanttChart1 = () => {
                     open: milestone.open,
                     status: milestone.status,
                     owner: milestone.owner,
-                    parent: 0
+                    parent: 0,
                 });
 
                 if (milestone.tasks && milestone.tasks.length) {
-                    milestone.tasks.forEach(task => processTask(task, milestone.id));
+                    milestone.tasks.forEach((task) => processTask(task, milestone.id));
                 }
             }
 
@@ -312,11 +311,11 @@ const GanttChart1 = () => {
                     progress: task.progress,
                     status: task.status,
                     owner: task.owner,
-                    parent: parentId
+                    parent: parentId,
                 });
 
                 if (task.subtasks && task.subtasks.length) {
-                    task.subtasks.forEach(subtask => processSubtask(subtask, task.id));
+                    task.subtasks.forEach((subtask) => processSubtask(subtask, task.id));
                 }
             }
 
@@ -328,11 +327,11 @@ const GanttChart1 = () => {
                     duration: subtask.duration,
                     progress: subtask.progress,
                     status: subtask.status,
-                    parent: parentId
+                    parent: parentId,
                 });
             }
 
-            nestedData.milestone.forEach(milestone => processMilestone(milestone));
+            nestedData.milestone.forEach((milestone) => processMilestone(milestone));
 
             return flat;
         }
@@ -340,50 +339,45 @@ const GanttChart1 = () => {
         // Flatten your nested data
         const flatData = flattenNestedData(nestedData);
 
-        console.log("Flat Data:", flatData);
+        console.log('Flat Data:', flatData);
 
         // Sample links — you can build your own based on dependencies
         const links = [
             // Milestone 1 links
-            { id: 1, source: "1", target: "1.1", type: "0" },       // Milestone 1 -> Task 1.1
-            { id: 2, source: "1.1", target: "2", type: "0" },   // Task 1.1 -> Subtask 1.1.1
+            { id: 1, source: '1', target: '1.1', type: '0' }, // Milestone 1 -> Task 1.1
+            { id: 2, source: '1.1', target: '2', type: '0' }, // Task 1.1 -> Subtask 1.1.1
 
             // Milestone 2 links
-            { id: 3, source: "2", target: "2.1", type: "0" },       // Milestone 2 -> Task 2.1
-            { id: 4, source: "2.1", target: "3", type: "0" },   // Task 2.1 -> Subtask 2.1.1
+            { id: 3, source: '2', target: '2.1', type: '0' }, // Milestone 2 -> Task 2.1
+            { id: 4, source: '2.1', target: '3', type: '0' }, // Task 2.1 -> Subtask 2.1.1
 
             // Milestone 3 links
-            { id: 5, source: "3", target: "3.1", type: "0" },       // Milestone 3 -> Task 3.1
-            { id: 6, source: "3.1", target: "4", type: "0" },   // Task 3.1 -> Subtask 3.1.1
+            { id: 5, source: '3', target: '3.1', type: '0' }, // Milestone 3 -> Task 3.1
+            { id: 6, source: '3.1', target: '4', type: '0' }, // Task 3.1 -> Subtask 3.1.1
 
             // Milestone 4 links
-            { id: 7, source: "4", target: "4.1", type: "0" },       // Milestone 4 -> Task 4.1
-            { id: 8, source: "4.1", target: "5", type: "0" },   // Task 4.1 -> Subtask 4.1.1
+            { id: 7, source: '4', target: '4.1', type: '0' }, // Milestone 4 -> Task 4.1
+            { id: 8, source: '4.1', target: '5', type: '0' }, // Task 4.1 -> Subtask 4.1.1
 
             // Milestone 5 links
-            { id: 9, source: "5", target: "5.1", type: "0" },       // Milestone 5 -> Task 5.1
-            { id: 10, source: "5.1", target: "6", type: "0" },  // Task 5.1 -> Subtask 5.1.1
+            { id: 9, source: '5', target: '5.1', type: '0' }, // Milestone 5 -> Task 5.1
+            { id: 10, source: '5.1', target: '6', type: '0' }, // Task 5.1 -> Subtask 5.1.1
 
             // Milestone 6 links
-            { id: 11, source: "6", target: "6.1", type: "0" },      // Milestone 6 -> Task 6.1
-            { id: 12, source: "6.1", target: "6.1.1", type: "0" }   // Task 6.1 -> Subtask 6.1.1
+            { id: 11, source: '6', target: '6.1', type: '0' }, // Milestone 6 -> Task 6.1
+            { id: 12, source: '6.1', target: '6.1.1', type: '0' }, // Task 6.1 -> Subtask 6.1.1
         ];
-
 
         // Now parse data to gantt
         gantt.parse({
             data: flatData,
-            links: links
+            links: links,
         });
-        console.log("Link updated:", links);
+        console.log('Link updated:', links);
 
-
-
-
-
-        gantt.attachEvent("onAfterTaskUpdate", function (id, task) {
-            console.log("Task updated:", task);
-            console.log("Updated duration:", task.duration);
+        gantt.attachEvent('onAfterTaskUpdate', function (id, task) {
+            console.log('Task updated:', task);
+            console.log('Updated duration:', task.duration);
 
             //   axios.put(`https://reqres.in/api/tasks/${id}`, {
             //     task_id: id,
@@ -400,9 +394,8 @@ const GanttChart1 = () => {
             //   });
         });
 
-
-        gantt.attachEvent("onAfterLinkAdd", function (id, links) {
-            console.log("Link updated:", links);
+        gantt.attachEvent('onAfterLinkAdd', function (id, links) {
+            console.log('Link updated:', links);
 
             // axios.put(`https://reqres.in/api/links/${id}`, {
             //     link_id: id,
@@ -418,9 +411,7 @@ const GanttChart1 = () => {
             //     });
         });
 
-
         // Sample data
-
 
         return () => {
             gantt.clearAll();
@@ -428,10 +419,10 @@ const GanttChart1 = () => {
     }, []);
 
     return (
-        <div style={{ overflowX: "auto", width: "100%" }}>
+        <div style={{ overflowX: 'auto', width: '100%' }}>
             <div
                 ref={ganttContainer}
-                style={{ minWidth: "1200px", height: "600px" }} // Increase minWidth as needed
+                style={{ minWidth: '1200px', height: '600px' }} // Increase minWidth as needed
             />
         </div>
     );

@@ -1,10 +1,14 @@
-import { useEffect, useState } from "react";
-import CloseIcon from "@mui/icons-material/Close";
-import SelectBox from "../../SelectBox";
-import { useDispatch, useSelector } from "react-redux";
-import { fetchInternalUser, fetchInternalUserDetails, reassignProjects } from "../../../redux/slices/userSlice";
-import { useParams } from "react-router-dom";
-import toast from "react-hot-toast";
+import { useEffect, useState } from 'react';
+import CloseIcon from '@mui/icons-material/Close';
+import SelectBox from '../../SelectBox';
+import { useDispatch, useSelector } from 'react-redux';
+import {
+  fetchInternalUser,
+  fetchInternalUserDetails,
+  reassignProjects,
+} from '../../../redux/slices/userSlice';
+import { useParams } from 'react-router-dom';
+import toast from 'react-hot-toast';
 
 const Warning = ({ message, setWarningOpen, onConfirm }) => {
   return (
@@ -18,14 +22,13 @@ const Warning = ({ message, setWarningOpen, onConfirm }) => {
           <p>{message}</p>
 
           <div className="absolute bottom-0 left-0 right-0 bg-[#D5DBDB] h-[90px] flex justify-center items-center gap-4">
-            <button
-              className="border border-[#C72030] text-sm px-8 py-2"
-              onClick={onConfirm}>
+            <button className="border border-[#C72030] text-sm px-8 py-2" onClick={onConfirm}>
               Yes
             </button>
             <button
               className="border border-[#C72030] text-sm px-8 py-2"
-              onClick={() => setWarningOpen(false)}>
+              onClick={() => setWarningOpen(false)}
+            >
               No
             </button>
           </div>
@@ -61,12 +64,14 @@ const Assign = ({ setOpenModal, setWarningOpen, users, setSelectedUserId, select
               onClick={() => {
                 setWarningOpen(true);
                 setOpenModal(false);
-              }}>
+              }}
+            >
               Save
             </button>
             <button
               className="border border-[#C72030] text-sm px-8 py-2"
-              onClick={() => setOpenModal(false)}>
+              onClick={() => setOpenModal(false)}
+            >
               Cancel
             </button>
           </div>
@@ -77,7 +82,7 @@ const Assign = ({ setOpenModal, setWarningOpen, users, setSelectedUserId, select
 };
 
 const Modal = ({ setOpenModal, openModal, name }) => {
-  const token = localStorage.getItem("token");
+  const token = localStorage.getItem('token');
   const dispatch = useDispatch();
   const { id } = useParams();
 
@@ -87,25 +92,25 @@ const Modal = ({ setOpenModal, openModal, name }) => {
   const [selectedUserId, setSelectedUserId] = useState(null);
 
   const message =
-    name === "Clone"
-      ? "Are you sure you want to clone and assign all the projects to the selected user?\nYou can view the associated projects by tapping on user details."
-      : "Are you sure you want to reassign selected projects to this user?";
+    name === 'Clone'
+      ? 'Are you sure you want to clone and assign all the projects to the selected user?\nYou can view the associated projects by tapping on user details.'
+      : 'Are you sure you want to reassign selected projects to this user?';
 
   useEffect(() => {
     dispatch(fetchInternalUser({ token }));
   }, [dispatch]);
 
   const handleConfirm = async () => {
-    if (name === "Reasign To" && selectedUserId) {
+    if (name === 'Reasign To' && selectedUserId) {
       try {
         const payload = { user_id: selectedUserId };
         await dispatch(reassignProjects({ token, id, payload })).unwrap();
         await dispatch(fetchInternalUserDetails({ token, id }));
-        toast.success("Projects reassigned successfully");
+        toast.success('Projects reassigned successfully');
         setSelectedUserId(null); // ✅ clear dropdown on success
       } catch (err) {
         console.error(err);
-        toast.error("Failed to reassign projects");
+        toast.error('Failed to reassign projects');
       }
     }
     setWarningOpen(false);
@@ -124,11 +129,7 @@ const Modal = ({ setOpenModal, openModal, name }) => {
         />
       )}
       {warningOpen && (
-        <Warning
-          setWarningOpen={setWarningOpen}
-          message={message}
-          onConfirm={handleConfirm}
-        />
+        <Warning setWarningOpen={setWarningOpen} message={message} onConfirm={handleConfirm} />
       )}
     </>
   );

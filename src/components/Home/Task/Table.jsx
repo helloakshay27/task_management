@@ -1,25 +1,16 @@
-import {
-  useState,
-  useEffect,
-  useRef,
-  Fragment,
-  useCallback,
-} from "react";
+import { useState, useEffect, useRef, Fragment, useCallback } from 'react';
 import {
   useReactTable,
   getCoreRowModel,
   flexRender,
   getExpandedRowModel,
-} from "@tanstack/react-table";
-import { useDispatch, useSelector } from "react-redux";
-import StatusBadge from "../Projects/statusBadge";
-import {
-  ChevronDownIcon,
-  ChevronRightIcon,
-} from "@heroicons/react/20/solid";
-import { Link, useParams } from "react-router-dom";
-import "../../Home/Sprints/Table.css";
-import { getTaskPaths, useIsCloudRoute } from "../../../utils/navigationUtils";
+} from '@tanstack/react-table';
+import { useDispatch, useSelector } from 'react-redux';
+import StatusBadge from '../Projects/statusBadge';
+import { ChevronDownIcon, ChevronRightIcon } from '@heroicons/react/20/solid';
+import { Link, useParams } from 'react-router-dom';
+import '../../Home/Sprints/Table.css';
+import { getTaskPaths, useIsCloudRoute } from '../../../utils/navigationUtils';
 import {
   fetchTasks,
   createTask,
@@ -27,22 +18,23 @@ import {
   updateTask,
   filterTask,
   fetchMyTasks,
-} from "../../../redux/slices/taskSlice";
-import { fetchUsers } from "../../../redux/slices/userSlice";
-import SelectBox from "../../SelectBox";
-import Loader from "../../Loader";
-import { useLocation } from "react-router-dom";
-import qs from "qs";
-import { fetchProjectTeamMembers } from "../../../redux/slices/projectSlice";
-import axios from "axios";
-import toast from "react-hot-toast";
-import { baseURL } from "../../../../apiDomain";
-import { X, Play } from "lucide-react";
-import { useDrag, useDrop, DndProvider } from "react-dnd";
-import { HTML5Backend } from "react-dnd-html5-backend";
+  createTaskComment,
+} from '../../../redux/slices/taskSlice';
+import { fetchUsers } from '../../../redux/slices/userSlice';
+import SelectBox from '../../SelectBox';
+import Loader from '../../Loader';
+import { useLocation } from 'react-router-dom';
+import qs from 'qs';
+import { fetchProjectTeamMembers } from '../../../redux/slices/projectSlice';
+import axios from 'axios';
+import toast from 'react-hot-toast';
+import { baseURL } from '../../../../apiDomain';
+import { X, Play, Pause } from 'lucide-react';
+import { useDrag, useDrop, DndProvider } from 'react-dnd';
+import { HTML5Backend } from 'react-dnd-html5-backend';
 
-const globalPriorityOptions = ["None", "Low", "Medium", "High", "Urgent"];
-const globalStatusOptions = ["open", "in_progress", "completed", "on_hold", "overdue"];
+const globalPriorityOptions = ['None', 'Low', 'Medium', 'High', 'Urgent'];
+const globalStatusOptions = ['open', 'in_progress', 'completed', 'on_hold', 'overdue'];
 
 const EditableTextField = ({
   value,
@@ -57,10 +49,10 @@ const EditableTextField = ({
   const [localValue, setLocalValue] = useState(value);
   useEffect(() => setLocalValue(value), [value]);
   useEffect(() => {
-    if (localValue) onUpdate(localValue)
-  }, [localValue])
+    if (localValue) onUpdate(localValue);
+  }, [localValue]);
   const handleKeyDown = (event) => {
-    if (event.key === "Enter") {
+    if (event.key === 'Enter') {
       event.preventDefault();
       onEnterPress();
     }
@@ -70,21 +62,21 @@ const EditableTextField = ({
     <input
       ref={inputRef}
       type="text"
-      value={localValue || ""}
+      value={localValue || ''}
       onChange={(e) => setLocalValue(e.target.value)}
       onBlur={handleBlur}
       onKeyDown={handleKeyDown}
       data-task-id={taskId}
       data-field-name={fieldName}
-      className={`${validator ? "border border-red-600" : "border-none"} focus:outline-none w-full h-full p-1 rounded text-[12px] bg-transparent`}
+      className={`${validator ? 'border border-red-600' : 'border-none'} focus:outline-none w-full h-full p-1 rounded text-[12px] bg-transparent`}
     />
   );
 };
 
 const formatDate = (input) => {
-  if (!input) return "";
+  if (!input) return '';
   const d = new Date(input);
-  return d.toISOString().split("T")[0];
+  return d.toISOString().split('T')[0];
 };
 
 const DateEditor = ({
@@ -93,7 +85,7 @@ const DateEditor = ({
   isNewRow,
   onEnterPress,
   className,
-  placeholder = "Select date",
+  placeholder = 'Select date',
   validator,
   min,
   max,
@@ -108,7 +100,7 @@ const DateEditor = ({
     performUpdate(newDate);
   };
   const handleKeyDown = (event) => {
-    if (event.key === "Enter") {
+    if (event.key === 'Enter') {
       event.preventDefault();
       performUpdate(date);
       if (onEnterPress) onEnterPress();
@@ -116,15 +108,15 @@ const DateEditor = ({
   };
   const handleBlur = () => performUpdate(date);
   const handleInputClick = () => {
-    if (inputRef.current && typeof inputRef.current.showPicker === "function") {
+    if (inputRef.current && typeof inputRef.current.showPicker === 'function') {
       try {
         inputRef.current.showPicker();
       } catch (error) {
-        console.error("Error showing picker:", error);
+        console.error('Error showing picker:', error);
       }
     }
   };
-  const isInvalid = typeof validator === "function" ? !validator(date) : false;
+  const isInvalid = typeof validator === 'function' ? !validator(date) : false;
   return (
     <input
       ref={inputRef}
@@ -134,7 +126,7 @@ const DateEditor = ({
       onBlur={handleBlur}
       onKeyDown={handleKeyDown}
       onClick={handleInputClick}
-      className={`${isInvalid ? "border border-red-400" : "border-none"} w-full focus:outline-none bg-transparent rounded text-[12px] p-1 ${className || ""}`}
+      className={`${isInvalid ? 'border border-red-400' : 'border-none'} w-full focus:outline-none bg-transparent rounded text-[12px] p-1 ${className || ''}`}
       placeholder={placeholder}
       min={min}
       max={max}
@@ -152,7 +144,7 @@ const calculateDuration = (start, end) => {
 
   // Check if task hasn't started yet
   if (now < startDate) {
-    return { text: "Not started", isOverdue: false };
+    return { text: 'Not started', isOverdue: false };
   }
 
   // Calculate time differences (use absolute value to show overdue time)
@@ -170,7 +162,7 @@ const calculateDuration = (start, end) => {
   const remainingMinutes = minutes % 60;
   const remainingSeconds = seconds % 60;
 
-  const timeStr = `${days > 0 ? days + "d " : "0d "}${remainingHours > 0 ? remainingHours + "h " : "0h "}${remainingMinutes > 0 ? remainingMinutes + "m " : "0m"}`;
+  const timeStr = `${days > 0 ? days + 'd ' : '0d '}${remainingHours > 0 ? remainingHours + 'h ' : '0h '}${remainingMinutes > 0 ? remainingMinutes + 'm ' : '0m'}`;
 
   return {
     text: isOverdue ? `${timeStr}` : timeStr,
@@ -191,8 +183,67 @@ const CountdownTimer = ({ startDate, targetDate }) => {
   }, [targetDate]);
 
   return (
-    <div className={`text-left text-[12px] ${countdown.isOverdue ? "text-red-600 font-medium" : ""}`}>
+    <div
+      className={`text-left text-[12px] ${countdown.isOverdue ? 'text-red-600 font-medium' : ''}`}
+    >
       {countdown.text}
+    </div>
+  );
+};
+
+// Pause Reason Modal Component
+const PauseReasonModal = ({ isOpen, onClose, onSubmit, isLoading, taskId }) => {
+  const [reason, setReason] = useState('');
+
+  useEffect(() => {
+    if (!isOpen) {
+      setReason('');
+    }
+  }, [isOpen]);
+
+  const handleSubmit = () => {
+    if (!reason.trim()) {
+      toast.error('Please enter a reason for pausing the task');
+      return;
+    }
+    onSubmit(reason, taskId);
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white rounded-lg shadow-lg p-6 w-[30rem]">
+        <h2 className="text-lg font-semibold mb-4 text-gray-800">Reason for Pause</h2>
+
+        <div className="mb-6">
+          <textarea
+            value={reason}
+            onChange={(e) => setReason(e.target.value)}
+            placeholder="Enter reason for pausing this task..."
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 resize-none"
+            rows="4"
+            disabled={isLoading}
+          />
+        </div>
+
+        <div className="flex gap-3 justify-end">
+          <button
+            onClick={onClose}
+            disabled={isLoading}
+            className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={handleSubmit}
+            disabled={isLoading}
+            className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 disabled:opacity-50"
+          >
+            {isLoading ? 'Submitting...' : 'Pause Task'}
+          </button>
+        </div>
+      </div>
     </div>
   );
 };
@@ -201,7 +252,7 @@ const CountdownTimer = ({ startDate, targetDate }) => {
 const DraggableColumnHeader = ({ header, onReorderColumns, columnOrder }) => {
   const [{ isDragging }, dragRef] = useDrag(
     () => ({
-      type: "column",
+      type: 'column',
       item: { id: header.id },
       collect: (monitor) => ({
         isDragging: monitor.isDragging(),
@@ -212,7 +263,7 @@ const DraggableColumnHeader = ({ header, onReorderColumns, columnOrder }) => {
 
   const [{ isOver }, dropRef] = useDrop(
     () => ({
-      accept: "column",
+      accept: 'column',
       hover: (item) => {
         if (item.id !== header.id) {
           onReorderColumns(item.id, header.id);
@@ -236,14 +287,16 @@ const DraggableColumnHeader = ({ header, onReorderColumns, columnOrder }) => {
       style={{
         width: `${header.getSize()}px`,
         opacity: isDragging ? 0.5 : 1,
-        backgroundColor: isOver ? "bg-gray-300" : "bg-gray-300",
-        transition: "all 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
-        transform: isOver ? "scale(1.02)" : "scale(1)",
+        backgroundColor: isOver ? 'bg-gray-300' : 'bg-gray-300',
+        transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+        transform: isOver ? 'scale(1.02)' : 'scale(1)',
       }}
-      className={`border-r-2 p-2 text-center text-gray-600 bg-gray-300 font-semibold break-words cursor-move select-none ${isDragging ? "shadow-lg" : ""
-        } ${isOver ? "bg-gray-300" : ""}`}
+      className={`border-r-2 p-2 text-center text-gray-600 bg-gray-300 font-semibold break-words cursor-move select-none ${isDragging ? 'shadow-lg' : ''
+        } ${isOver ? 'bg-gray-300' : ''}`}
     >
-      {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
+      {header.isPlaceholder
+        ? null
+        : flexRender(header.column.columnDef.header, header.getContext())}
     </th>
   );
 };
@@ -255,34 +308,34 @@ const calculateTaskStatus = (task) => {
   }
 
   const subtasks = task.sub_tasks_managements;
-  const statuses = subtasks.map(st => st.status?.toLowerCase() || "open");
+  const statuses = subtasks.map((st) => st.status?.toLowerCase() || 'open');
 
   // Priority 1: If any subtask is on_hold, task is on_hold
-  if (statuses.some(status => status === "on_hold" || status === "hold")) {
-    return "on_hold";
+  if (statuses.some((status) => status === 'on_hold' || status === 'hold')) {
+    return 'on_hold';
   }
 
   // Priority 2: If all subtasks are completed, task is completed
-  if (statuses.every(status => status === "completed")) {
-    return "completed";
+  if (statuses.every((status) => status === 'completed')) {
+    return 'completed';
   }
 
   // Priority 3: If any subtask is in_progress, task is in_progress
-  if (statuses.some(status => status === "in_progress" || status === "progress")) {
-    return "in_progress";
+  if (statuses.some((status) => status === 'in_progress' || status === 'progress')) {
+    return 'in_progress';
   }
 
   // Default: task is open
-  return "open";
+  return 'open';
 };
 
 const processTaskData = (task) => {
-  if (typeof task !== "object" || task === null) {
-    console.warn("Invalid task data encountered in processTaskData:", task);
+  if (typeof task !== 'object' || task === null) {
+    console.warn('Invalid task data encountered in processTaskData:', task);
     return {
       id: `invalid-${Math.random()}`,
-      taskTitle: "Invalid Task Data",
-      status: "error",
+      taskTitle: 'Invalid Task Data',
+      status: 'error',
       hasSubtasks: false,
       subRows: [],
       subRowsLoaded: true,
@@ -299,27 +352,59 @@ const processTaskData = (task) => {
 
   return {
     id: task.id,
-    taskTitle: task.title || task.name || "Unnamed Task",
+    taskTitle: task.title || task.name || 'Unnamed Task',
     status: calculatedStatus,
     originalStatus: task.status, // Keep original for comparison
-    responsiblePerson: task.responsible_person?.name || "Unassigned",
+    responsiblePerson: task.responsible_person?.name || 'Unassigned',
     responsiblePersonId: task.responsible_person?.id || null,
     projectManagementId: task.project_management_id || 2,
-    startDate: task.expected_start_date?.split("T")[0],
-    endDate: task.target_date?.split("T")[0],
+    startDate: task.expected_start_date?.split('T')[0],
+    endDate: task.target_date?.split('T')[0],
     priority: task.priority,
     duration: calculateDuration(task.expected_start_date, task.target_date),
+    total_allocated_hours: `${task.total_allocated_hours} hours` || 0,
+    estimated_hours: `${task.estimated_hour} hours` || 0,
     predecessor: task.predecessor_task.length || 0,
     successor: task.successor_task.length || 0,
+    is_started: task.is_started || false,
+    is_Subtask: task.parent_id ? true : false,
+    total_sub_task_count: Number(task.total_sub_tasks || 0),
+    completed_sub_task_count: Number(task.completed_sub_tasks || 0),
+    subTasks: (() => {
+      const totalCount = Number(task.total_sub_tasks);
+      const completedCount = Number(task.completed_sub_tasks);
+      if (!totalCount || totalCount === 0) return 0;
+      const percentage = Math.round((completedCount / totalCount) * 100);
+      return percentage;
+    })(),
     hasSubtasks,
     subRows,
     subRowsLoaded: true,
-    isStarted: task.is_started || false,
   };
 };
 
+const ProgressBar = ({ progressString, total = 0, completed = 0 }) => {
+  const numericValue = parseInt(progressString, 10);
+  const isValidPercentage = !isNaN(numericValue) && numericValue >= 0 && numericValue <= 100;
+  return (
+    <div className="progress-bar-container gap-1">
+      {completed}
+      <div className="progress-bar">
+        <div
+          className="progress-bar-fill"
+          style={{ width: `${isValidPercentage ? numericValue : 0}%` }}
+        ></div>
+        <div className="progress-bar-label">
+          {isValidPercentage ? `${numericValue}%` : 'Invalid Percentage'}
+        </div>
+      </div>
+      {total}
+    </div>
+  );
+};
+
 const TaskTable = ({ isModalOpen, searchQuery, selectedColumns }) => {
-  const token = localStorage.getItem("token");
+  const token = localStorage.getItem('token');
   const { id, mid } = useParams();
   const dispatch = useDispatch();
   const location = useLocation();
@@ -329,7 +414,9 @@ const TaskTable = ({ isModalOpen, searchQuery, selectedColumns }) => {
     error: tasksError,
     fetchTasks: tasksFromStore,
   } = useSelector((state) => state.fetchTasks);
-  const { fetchProjectTeamMembers: projectTeamMembers } = useSelector((state) => state.fetchProjectTeamMembers);
+  const { fetchProjectTeamMembers: projectTeamMembers } = useSelector(
+    (state) => state.fetchProjectTeamMembers
+  );
   const {
     fetchMyTasks: myTasksFromStore,
     loading: loadingMyTasks,
@@ -357,12 +444,12 @@ const TaskTable = ({ isModalOpen, searchQuery, selectedColumns }) => {
   const [data, setData] = useState([]);
   const [expanded, setExpanded] = useState({});
   const [isAddingNewTask, setIsAddingNewTask] = useState(false);
-  const [newTaskTitle, setNewTaskTitle] = useState("");
-  const [newTaskStatus, setNewTaskStatus] = useState("open");
+  const [newTaskTitle, setNewTaskTitle] = useState('');
+  const [newTaskStatus, setNewTaskStatus] = useState('open');
   const [newTaskResponsiblePersonId, setNewTaskResponsiblePersonId] = useState(null);
-  const [newTaskStartDate, setNewTaskStartDate] = useState("");
-  const [newTaskEndDate, setNewTaskEndDate] = useState("");
-  const [newTaskPriority, setNewTaskPriority] = useState("None");
+  const [newTaskStartDate, setNewTaskStartDate] = useState('');
+  const [newTaskEndDate, setNewTaskEndDate] = useState('');
+  const [newTaskPriority, setNewTaskPriority] = useState('None');
   const [validator, setValidator] = useState(false);
   const [isFiltered, setIsFiltered] = useState(false);
   const newTaskTitleInputRef = useRef(null);
@@ -370,13 +457,30 @@ const TaskTable = ({ isModalOpen, searchQuery, selectedColumns }) => {
   const [localError, setLocalError] = useState(null);
   const [isCreatingTask, setIsCreatingTask] = useState(false);
   const [isUpdatingTask, setIsUpdatingTask] = useState(false);
-  const [members, setMembers] = useState([])
+  const [members, setMembers] = useState([]);
+  const [isPauseModalOpen, setIsPauseModalOpen] = useState(false);
+  const [pauseTaskId, setPauseTaskId] = useState(null);
+  const [isPauseLoading, setIsPauseLoading] = useState(false);
   const [columnOrder, setColumnOrder] = useState(() => {
     // Load column order from local storage or use default
-    const savedOrder = localStorage.getItem("taskTableColumnOrder");
+    const savedOrder = localStorage.getItem('taskTableColumnOrder');
     return savedOrder
       ? JSON.parse(savedOrder)
-      : ["expander", "id", "taskTitle", "status", "responsiblePersonId", "startDate", "endDate", "duration", "priority", "predecessor", "successor"];
+      : [
+        'expander',
+        'id',
+        'taskTitle',
+        'status',
+        'responsiblePersonId',
+        'startDate',
+        'endDate',
+        'duration',
+        'estimated_hour',
+        'subTasks',
+        'priority',
+        'predecessor',
+        'successor',
+      ];
   });
   const [pagination, setPagination] = useState({
     pageIndex: 0,
@@ -385,32 +489,31 @@ const TaskTable = ({ isModalOpen, searchQuery, selectedColumns }) => {
     totalRecords: 0,
     currentPage: 1,
   });
-  const [startingTaskId, setStartingTaskId] = useState(null);
   const MIN_DISPLAY_ROWS = 10;
   const ROW_HEIGHT = 40;
   const HEADER_HEIGHT = 40;
 
   useEffect(() => {
     if (!Array.isArray(projectTeamMembers)) {
-      const members = []
+      const members = [];
 
       projectTeamMembers?.project_team_members?.map((member) => {
-        members.push(member.user)
-      })
-      members.push(projectTeamMembers?.team_lead)
+        members.push(member.user);
+      });
+      members.push(projectTeamMembers?.team_lead);
 
-      setMembers(members)
+      setMembers(members);
     }
-  }, [projectTeamMembers])
+  }, [projectTeamMembers]);
 
   const createNewTaskDefaults = useCallback(
     () => ({
-      taskTitle: "",
-      status: "open",
+      taskTitle: '',
+      status: 'open',
       responsiblePersonId: null,
-      startDate: "",
-      endDate: "",
-      priority: "None",
+      startDate: '',
+      endDate: '',
+      priority: 'None',
     }),
     []
   );
@@ -428,47 +531,80 @@ const TaskTable = ({ isModalOpen, searchQuery, selectedColumns }) => {
       newOrder.splice(targetIndex, 0, draggedId);
 
       // Save to local storage
-      localStorage.setItem("taskTableColumnOrder", JSON.stringify(newOrder));
+      localStorage.setItem('taskTableColumnOrder', JSON.stringify(newOrder));
 
       return newOrder;
     });
   }, []);
 
   const handleFetchTasks = async () => {
-    const myTasks = localStorage.getItem("myTasks");
+    const myTasks = localStorage.getItem('myTasks');
     const page = pagination.pageIndex + 1;
-    if (localStorage.getItem("taskFilters")) {
-      const saved = JSON.parse(localStorage.getItem("taskFilters"));
+    const searchParams = new URLSearchParams(location.search);
+    const projectId = searchParams.get('project_id');
+    if (localStorage.getItem('taskFilters')) {
+      const saved = JSON.parse(localStorage.getItem('taskFilters'));
       const newFilter = {
-        "q[status_in][]": saved.selectedStatuses.length > 0 ? saved.selectedStatuses : [],
-        "q[created_by_id_eq]": saved.selectedCreators.length > 0 ? saved.selectedCreators : [],
-        "q[start_date_eq]": saved.dates["Start Date"],
-        "q[end_date_eq]": saved.dates["End Date"],
-        "q[responsible_person_id_in][]": saved.selectedResponsible.length > 0 ? saved.selectedResponsible : [],
-        "q[milestone_id_eq]": mid,
+        'q[status_in][]': saved.selectedStatuses.length > 0 ? saved.selectedStatuses : [],
+        'q[created_by_id_eq]': saved.selectedCreators.length > 0 ? saved.selectedCreators : [],
+        'q[start_date_eq]': saved.dates['Start Date'],
+        'q[end_date_eq]': saved.dates['End Date'],
+        'q[responsible_person_id_in][]':
+          saved.selectedResponsible.length > 0 ? saved.selectedResponsible : [],
+        'q[milestone_id_eq]': mid,
         page,
+        ...(projectId && { 'q[project_management_id_eq]': projectId }),
       };
-      const queryString = qs.stringify(newFilter, { arrayFormat: "repeat" });
+      const queryString = qs.stringify(newFilter, { arrayFormat: 'repeat' });
       await dispatch(filterTask({ token, filter: queryString })).unwrap();
       return;
     }
-    if (localStorage.getItem("taskStatus")) {
-      const saved = localStorage.getItem("taskStatus");
+    if (localStorage.getItem('taskStatus')) {
+      const saved = localStorage.getItem('taskStatus');
       const filter = {
-        "q[status_eq]": saved,
+        'q[status_eq]': saved,
         page,
+        ...(projectId && { 'q[project_management_id_eq]': projectId }),
       };
       await dispatch(filterTask({ token, filter })).unwrap();
       return;
     }
     if (mid != undefined && mid != null) {
-      await dispatch(fetchTasks({ token, id: mid, page, search: searchQuery })).unwrap();
-    } else {
-      if (myTasks === "false") {
-        await dispatch(fetchTasks({ token, id: "", page, search: searchQuery })).unwrap();
+      if (projectId || searchQuery) {
+        const filter = {
+          'q[milestone_id_eq]': mid,
+          page,
+          ...(searchQuery && { 'q[title_cont]': searchQuery }),
+          ...(projectId && { 'q[project_management_id_eq]': projectId }),
+        };
+        await dispatch(filterTask({ token, filter })).unwrap();
       } else {
-        // Include searchQuery when fetching "My Tasks" so user search works for their tasks
-        await dispatch(fetchMyTasks({ token, page, search: searchQuery })).unwrap();
+        await dispatch(fetchTasks({ token, id: mid, page, search: searchQuery })).unwrap();
+      }
+    } else {
+      if (myTasks === 'false') {
+        if (projectId || searchQuery) {
+          const filter = {
+            page,
+            ...(searchQuery && { 'q[title_cont]': searchQuery }),
+            ...(projectId && { 'q[project_management_id_eq]': projectId }),
+          };
+          await dispatch(filterTask({ token, filter })).unwrap();
+        } else {
+          await dispatch(fetchTasks({ token, id: '', page, search: searchQuery })).unwrap();
+        }
+      } else {
+        if (projectId || searchQuery) {
+          const filter = {
+            page,
+            ...(searchQuery && { 'q[title_cont]': searchQuery }),
+            ...(projectId && { 'q[project_management_id_eq]': projectId }),
+          };
+          await dispatch(filterTask({ token, filter })).unwrap();
+        } else {
+          // Include searchQuery when fetching "My Tasks" so user search works for their tasks
+          await dispatch(fetchMyTasks({ token, page, search: searchQuery })).unwrap();
+        }
       }
     }
   };
@@ -480,7 +616,7 @@ const TaskTable = ({ isModalOpen, searchQuery, selectedColumns }) => {
       setIsUpdatingTask(true);
       setLocalError(null);
       try {
-        if (fieldName === "status") {
+        if (fieldName === 'status') {
           await dispatch(changeTaskStatus({ token, id: taskId, payload })).unwrap();
 
           // If this is a subtask, check and update parent task status
@@ -499,12 +635,57 @@ const TaskTable = ({ isModalOpen, searchQuery, selectedColumns }) => {
         await handleFetchTasks();
       } catch (error) {
         console.error(`Task field update failed for ${taskId} (${fieldName}):`, error);
-        setLocalError(`Update failed: ${error?.response?.data?.errors || error?.message || "Server error"}`);
+        setLocalError(
+          `Update failed: ${error?.response?.data?.errors || error?.message || 'Server error'}`
+        );
       } finally {
         setIsUpdatingTask(false);
       }
     },
     [dispatch, isUpdatingTask, token, handleFetchTasks]
+  );
+
+  const handlePauseTaskSubmit = useCallback(
+    async (reason, tid) => {
+      if (!tid) return;
+
+      setIsPauseLoading(true);
+      try {
+        // Step 1: Update task status to "on_hold" (paused)
+        const statusPayload = {
+          status: 'stopped',
+        };
+        await dispatch(changeTaskStatus({ token, id: tid, payload: statusPayload })).unwrap();
+
+        // Step 2: Create a comment with the pause reason for record keeping
+        const commentPayload = {
+          comment: {
+            body: `Paused with reason: ${reason}`,
+            commentable_id: tid,
+            commentable_type: 'TaskManagement',
+            commentor_id: JSON.parse(localStorage.getItem('user'))?.id,
+            active: true,
+          },
+        };
+        dispatch(createTaskComment({ token, payload: commentPayload }));
+
+        toast.success('Task paused successfully with reason');
+        setIsPauseModalOpen(false);
+        setPauseTaskId(null);
+
+        // Refresh task list
+        lastFetchedPageRef.current = null;
+        await handleFetchTasks();
+      } catch (error) {
+        console.error('Failed to pause task:', error);
+        toast.error(
+          `Failed to pause task: ${error?.response?.data?.errors || error?.message || 'Server error'}`
+        );
+      } finally {
+        setIsPauseLoading(false);
+      }
+    },
+    [token, dispatch, handleFetchTasks]
   );
 
   // Add this new hook near the top of the TaskTable component
@@ -538,85 +719,62 @@ const TaskTable = ({ isModalOpen, searchQuery, selectedColumns }) => {
   }, [handleUpdateTaskFieldCell]);
 
   // Function to update parent task status based on subtasks via API
-  const updateParentTaskStatus = useCallback(async (taskId, newStatus) => {
-    try {
-      const payload = {
-        status: newStatus,
-      };
+  const updateParentTaskStatus = useCallback(
+    async (taskId, newStatus) => {
+      try {
+        const payload = {
+          status: newStatus,
+        };
 
-      await axios.put(
-        `${baseURL}/task_managements/${taskId}.json`,
-        { task_management: payload },
-        {
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+        await axios.put(
+          `${baseURL}/task_managements/${taskId}.json`,
+          { task_management: payload },
+          {
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
 
-      console.log(`Task ${taskId} status updated to ${newStatus}`);
-    } catch (error) {
-      console.error(`Error updating task ${taskId} status:`, error);
-      toast.error('Failed to update task status.');
-    }
-  }, [token]);
+        console.log(`Task ${taskId} status updated to ${newStatus}`);
+      } catch (error) {
+        console.error(`Error updating task ${taskId} status:`, error);
+        toast.error('Failed to update task status.');
+      }
+    },
+    [token]
+  );
 
   // Function to check and update task statuses based on subtasks
-  const checkAndUpdateTaskStatuses = useCallback(async (tasksData) => {
-    const tasksToUpdate = [];
+  const checkAndUpdateTaskStatuses = useCallback(
+    async (tasksData) => {
+      const tasksToUpdate = [];
 
-    tasksData.forEach(task => {
-      if (task.hasSubtasks && task.originalStatus !== task.status) {
-        tasksToUpdate.push({
-          id: task.id,
-          oldStatus: task.originalStatus,
-          newStatus: task.status
-        });
-      }
-    });
-
-    // Update tasks via API if their status changed
-    for (const task of tasksToUpdate) {
-      await updateParentTaskStatus(task.id, task.newStatus);
-    }
-  }, [updateParentTaskStatus]);
-
-  // Start task API call
-  const handleStartTask = useCallback(async (taskId, isStarted, e) => {
-    e.stopPropagation();
-    setStartingTaskId(taskId);
-    try {
-      const payload = { status: isStarted ? "stopped" : "started" };
-      const response = await axios.put(
-        `${baseURL}/task_managements/${taskId}/update_status.json`,
-        payload,
-        {
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`,
-          },
+      tasksData.forEach((task) => {
+        if (task.hasSubtasks && task.originalStatus !== task.status) {
+          tasksToUpdate.push({
+            id: task.id,
+            oldStatus: task.originalStatus,
+            newStatus: task.status,
+          });
         }
-      );
-      const successMessage = isStarted ? "Task paused successfully!" : "Task started successfully!";
-      toast.success(successMessage);
-      lastFetchedPageRef.current = null;
-      await handleFetchTasks();
-    } catch (error) {
-      console.error("Error updating task:", error);
-      const errorMessage = isStarted ? "Failed to pause task. Please try again." : "Failed to start task. Please try again.";
-      toast.error(errorMessage);
-    } finally {
-      setStartingTaskId(null);
-    }
-  }, [token, handleFetchTasks]);
+      });
+
+      // Update tasks via API if their status changed
+      for (const task of tasksToUpdate) {
+        await updateParentTaskStatus(task.id, task.newStatus);
+      }
+    },
+    [updateParentTaskStatus]
+  );
 
   useEffect(() => {
     const fetchMembers = async () => {
       try {
         await dispatch(fetchProjectTeamMembers({ token, id })).unwrap();
       } catch (error) {
-        console.error("Failed to fetch team members:", error);
+        console.error('Failed to fetch team members:', error);
       }
     };
     fetchMembers();
@@ -624,10 +782,10 @@ const TaskTable = ({ isModalOpen, searchQuery, selectedColumns }) => {
 
   useEffect(() => {
     const handleBeforeUnload = () => {
-      localStorage.removeItem("taskFilters");
+      localStorage.removeItem('taskFilters');
     };
-    window.addEventListener("beforeunload", handleBeforeUnload);
-    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
   }, []);
 
   useEffect(() => {
@@ -640,20 +798,20 @@ const TaskTable = ({ isModalOpen, searchQuery, selectedColumns }) => {
 
       // Reset pagination when route changes or search query changes
       if (location.pathname !== lastFetchedPathRef.current) {
-        setPagination(prev => ({
+        setPagination((prev) => ({
           ...prev,
           pageIndex: 0,
-          currentPage: 1
+          currentPage: 1,
         }));
         lastFetchedPathRef.current = location.pathname;
         lastFetchedPageRef.current = null;
         lastSearchRef.current = searchQuery;
       } else if (searchQuery !== lastSearchRef.current) {
         // New search term, reset to first page
-        setPagination(prev => ({
+        setPagination((prev) => ({
           ...prev,
           pageIndex: 0,
-          currentPage: 1
+          currentPage: 1,
         }));
         lastFetchedPageRef.current = null;
         lastSearchRef.current = searchQuery;
@@ -661,15 +819,18 @@ const TaskTable = ({ isModalOpen, searchQuery, selectedColumns }) => {
 
       const pageToFetch = pagination.pageIndex + 1;
 
-      if (lastFetchedPageRef.current === pageToFetch &&
-        lastFetchedPathRef.current === location.pathname) return;
+      if (
+        lastFetchedPageRef.current === pageToFetch &&
+        lastFetchedPathRef.current === location.pathname
+      )
+        return;
 
       try {
         isFetchingRef.current = true;
         lastFetchedPageRef.current = pageToFetch;
         await handleFetchTasks();
       } catch (error) {
-        console.error("Error fetching tasks:", error);
+        console.error('Error fetching tasks:', error);
       } finally {
         isFetchingRef.current = false;
       }
@@ -683,11 +844,18 @@ const TaskTable = ({ isModalOpen, searchQuery, selectedColumns }) => {
     mid,
     token,
     pagination.pageIndex,
-    handleFetchTasks
+    handleFetchTasks,
   ]);
 
   useEffect(() => {
-    if (!loadingUsers && Array.isArray(users) && users.length === 0 && !usersFetchError && !isCreatingTask && !isUpdatingTask) {
+    if (
+      !loadingUsers &&
+      Array.isArray(users) &&
+      users.length === 0 &&
+      !usersFetchError &&
+      !isCreatingTask &&
+      !isUpdatingTask
+    ) {
       if (!userFetchInitiatedRef.current) {
         dispatch(fetchUsers({ token }));
         userFetchInitiatedRef.current = true;
@@ -703,13 +871,13 @@ const TaskTable = ({ isModalOpen, searchQuery, selectedColumns }) => {
     let totalPages = 1;
     let totalRecords = 0;
     let currentPage = 1;
-    const myTasks = localStorage.getItem("myTasks");
+    const myTasks = localStorage.getItem('myTasks');
 
-    if (myTasks === "false") {
+    if (myTasks === 'false') {
       if (
         filterSuccess &&
         Array.isArray(filterTasks.task_managements) &&
-        (localStorage.getItem("taskFilters") || localStorage.getItem("taskStatus"))
+        (localStorage.getItem('taskFilters') || localStorage.getItem('taskStatus'))
       ) {
         newProcessedData = filterTasks.task_managements.map((task) => processTaskData(task));
         totalPages = filterTasks.pagination?.total_pages || 1;
@@ -729,7 +897,7 @@ const TaskTable = ({ isModalOpen, searchQuery, selectedColumns }) => {
       if (
         filterSuccess &&
         Array.isArray(filterTasks) &&
-        (localStorage.getItem("taskFilters") || localStorage.getItem("taskStatus"))
+        (localStorage.getItem('taskFilters') || localStorage.getItem('taskStatus'))
       ) {
         newProcessedData = filterTasks.map((task) => processTaskData(task));
         totalPages = filterTasks.pagination?.total_pages || 1;
@@ -801,18 +969,18 @@ const TaskTable = ({ isModalOpen, searchQuery, selectedColumns }) => {
   };
 
   const handleSaveNewTask = useCallback(() => {
-    if (!newTaskTitle || newTaskTitle.trim() === "") {
-      setLocalError("Task title is required");
+    if (!newTaskTitle || newTaskTitle.trim() === '') {
+      setLocalError('Task title is required');
       setValidator(true);
       return;
     }
     if (!newTaskStartDate) {
-      setLocalError("Start date is required");
+      setLocalError('Start date is required');
       setValidator(true);
       return;
     }
     if (!newTaskEndDate) {
-      setLocalError("End date is required");
+      setLocalError('End date is required');
       setValidator(true);
       return;
     }
@@ -831,7 +999,7 @@ const TaskTable = ({ isModalOpen, searchQuery, selectedColumns }) => {
     //   return;
     // }
     if (end < start) {
-      setLocalError("End date cannot be before start date");
+      setLocalError('End date cannot be before start date');
       setValidator(true);
       return;
     }
@@ -859,12 +1027,14 @@ const TaskTable = ({ isModalOpen, searchQuery, selectedColumns }) => {
       .then(() => {
         resetNewTaskForm();
         lastFetchedPageRef.current = null;
-        setPagination(prev => ({ ...prev, pageIndex: 0, currentPage: 1 }));
+        setPagination((prev) => ({ ...prev, pageIndex: 0, currentPage: 1 }));
         return handleFetchTasks();
       })
       .catch((error) => {
-        console.error("Task creation failed:", error);
-        setLocalError(`Task creation failed: ${error?.response?.data?.errors || error?.message || "Server error"}`);
+        console.error('Task creation failed:', error);
+        setLocalError(
+          `Task creation failed: ${error?.response?.data?.errors || error?.message || 'Server error'}`
+        );
         setIsAddingNewTask(true);
       })
       .finally(() => setIsCreatingTask(false));
@@ -885,29 +1055,33 @@ const TaskTable = ({ isModalOpen, searchQuery, selectedColumns }) => {
 
   useEffect(() => {
     const handleClickOutsideNewTaskRow = (event) => {
-      if (!isAddingNewTask || !newTaskFormRowRef.current || newTaskFormRowRef.current.contains(event.target)) {
+      if (
+        !isAddingNewTask ||
+        !newTaskFormRowRef.current ||
+        newTaskFormRowRef.current.contains(event.target)
+      ) {
         return;
       }
       handleSaveNewTask();
     };
     if (isAddingNewTask) {
-      document.addEventListener("mousedown", handleClickOutsideNewTaskRow);
+      document.addEventListener('mousedown', handleClickOutsideNewTaskRow);
     }
-    return () => document.removeEventListener("mousedown", handleClickOutsideNewTaskRow);
+    return () => document.removeEventListener('mousedown', handleClickOutsideNewTaskRow);
   }, [isAddingNewTask, isCreatingTask, newTaskTitle, handleSaveNewTask, resetNewTaskForm]);
 
   useEffect(() => {
     const handleEscape = (event) => {
       if (!isAddingNewTask) return;
-      if (event.key === "Escape") handleCancelNewTask();
+      if (event.key === 'Escape') handleCancelNewTask();
     };
-    window.addEventListener("keydown", handleEscape);
-    return () => window.removeEventListener("keydown", handleEscape);
+    window.addEventListener('keydown', handleEscape);
+    return () => window.removeEventListener('keydown', handleEscape);
   }, [isAddingNewTask, handleCancelNewTask]);
 
   const mainTableColumns = [
     {
-      id: "expander",
+      id: 'expander',
       header: () => null,
       size: 40,
       cell: ({ row }) => {
@@ -915,25 +1089,35 @@ const TaskTable = ({ isModalOpen, searchQuery, selectedColumns }) => {
         return canExpand ? (
           <button
             onClick={row.getToggleExpandedHandler()}
-            style={{ cursor: "pointer", paddingLeft: `${row.depth * 1}rem` }}
+            style={{ cursor: 'pointer', paddingLeft: `${row.depth * 1}rem` }}
             className="flex items-center justify-center w-full h-full"
-            aria-label={row.getIsExpanded() ? "Collapse" : "Expand"}
+            aria-label={row.getIsExpanded() ? 'Collapse' : 'Expand'}
           >
-            {row.getIsExpanded() ? <ChevronDownIcon className="h-4 w-4" /> : <ChevronRightIcon className="h-4 w-4" />}
+            {row.getIsExpanded() ? (
+              <ChevronDownIcon className="h-4 w-4" />
+            ) : (
+              <ChevronRightIcon className="h-4 w-4" />
+            )}
           </button>
         ) : (
-          <span style={{ paddingLeft: `${row.depth * 1 + 0.5}rem` }} className="flex items-center justify-center w-full h-full"></span>
+          <span
+            style={{ paddingLeft: `${row.depth * 1 + 0.5}rem` }}
+            className="flex items-center justify-center w-full h-full"
+          ></span>
         );
       },
     },
     {
-      accessorKey: "id",
-      header: "Task Id",
+      accessorKey: 'id',
+      header: 'Task Id',
       size: 100,
       cell: ({ getValue, row }) => {
-        let originalId = String(getValue() || "");
-        let displayId = originalId.startsWith("T-") ? originalId : `T-${originalId}`;
-        let linkIdPart = originalId.startsWith("T-") ? originalId.substring(2) : originalId;
+        let originalId = String(getValue() || '');
+        const isSubtask = row.original.is_Subtask;
+        let displayId = originalId.startsWith('T-')
+          ? originalId
+          : `${isSubtask ? `S-${originalId}` : `T-${originalId}`}`;
+        let linkIdPart = originalId.startsWith('T-') ? originalId.substring(2) : originalId;
         const taskPaths = getTaskPaths(id, mid, linkIdPart, isCloudRoute);
         const navigationPath = mid ? taskPaths.taskDetail : taskPaths.taskDetailSimple;
         return (
@@ -948,82 +1132,115 @@ const TaskTable = ({ isModalOpen, searchQuery, selectedColumns }) => {
       },
     },
     {
-      accessorKey: "taskTitle",
-      header: "Task Title",
+      accessorKey: 'taskTitle',
+      header: 'Task Title',
       size: 200,
       cell: ({ getValue, row }) => {
         const [editTitle, setEditTitle] = useState(getValue());
-        const [isHovering, setIsHovering] = useState(false);
-        const isStarting = startingTaskId === row.original.id;
-        const canStart = row.original.status !== "in_progress" && row.original.status !== "completed";
-        const isTaskStarted = row.original.isStarted;
+        const [isPlayPauseLoading, setIsPlayPauseLoading] = useState(false);
+        const isCompleted = row.original.status === 'completed';
+
+        const handlePlayPauseClick = async (action) => {
+          if (action === 'pause') {
+            setPauseTaskId(row.original.id);
+            setIsPauseModalOpen(true);
+          } else {
+            setIsPlayPauseLoading(true);
+            try {
+              const newStatus = action === 'play' ? 'started' : 'stopped';
+              await handleUpdateTaskFieldCell(row.original.id, 'status', newStatus, row);
+            } catch (error) {
+              console.error(`Failed to ${action} task:`, error);
+              toast.error(`Failed to ${action} task`);
+            } finally {
+              setIsPlayPauseLoading(false);
+            }
+          }
+        };
+
+        const isTaskStarted = row.original.is_started;
+        const hasSubtasks = row.original.hasSubtasks;
 
         return (
-          <div
-            className="flex items-center gap-2 group"
-            onMouseEnter={() => setIsHovering(true)}
-            onMouseLeave={() => setIsHovering(false)}
-          >
+          <div className="flex items-center gap-2 w-full">
             <EditableTextField
               value={editTitle}
               onUpdate={(title) => setEditTitle(title)}
-              onEnterPress={() => handleUpdateTaskFieldCell(row.original.id, "title", editTitle, row)}
+              onEnterPress={() =>
+                handleUpdateTaskFieldCell(row.original.id, 'title', editTitle, row)
+              }
               data-task-id={row.original.id}
               data-field-name="title"
             />
-            {isHovering && (canStart || isTaskStarted) && (
-              <button
-                onClick={(e) => handleStartTask(row.original.id, isTaskStarted, e)}
-                disabled={isStarting}
-                className={`ml-2 px-2 py-1 text-white rounded flex items-center gap-1 text-xs whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed transition-all ${isTaskStarted ? "bg-orange-500" : "bg-green-500"
-                  }`}
-                title={isTaskStarted ? "Pause this task" : "Start this task"}
-              >
-                {isStarting ? (isTaskStarted ? "Pausing..." : "Starting...") : isTaskStarted ? "Pause" : "Start"}
-              </button>
-            )}
+            {!hasSubtasks &&
+              (isTaskStarted ? (
+                <button
+                  onClick={() => handlePlayPauseClick('pause')}
+                  disabled={isPlayPauseLoading || isCompleted}
+                  className="p-1 hover:bg-gray-200 rounded transition disabled:opacity-50"
+                  title="Pause task"
+                >
+                  <Pause size={13} className="text-orange-500" />
+                </button>
+              ) : (
+                <button
+                  onClick={() => handlePlayPauseClick('play')}
+                  disabled={isPlayPauseLoading || isCompleted}
+                  className="p-1 hover:bg-gray-200 rounded transition disabled:opacity-50"
+                  title="Play task"
+                >
+                  <Play size={13} className="text-green-500" />
+                </button>
+              ))}
           </div>
         );
       },
     },
     {
-      accessorKey: "status",
-      header: "Status",
+      accessorKey: 'status',
+      header: 'Status',
       size: 150,
       cell: ({ getValue, row }) => (
         <StatusBadge
           status={getValue()}
           statusOptions={globalStatusOptions}
-          onStatusChange={(newStatus) => handleUpdateTaskFieldCell(row.original.id, "status", newStatus, row)}
+          onStatusChange={(newStatus) =>
+            handleUpdateTaskFieldCell(row.original.id, 'status', newStatus, row)
+          }
         />
       ),
     },
     {
-      accessorKey: "responsiblePersonId",
-      header: "Responsible Person",
+      accessorKey: 'responsiblePersonId',
+      header: 'Responsible Person',
       size: 150,
       cell: ({ getValue, row }) => (
         <SelectBox
-          options={(members?.filter(Boolean).length > 0 ? members.filter(Boolean) : users)
-            ?.map((user) => ({
+          options={(members?.filter(Boolean).length > 0 ? members.filter(Boolean) : users)?.map(
+            (user) => ({
               value: user?.id,
               label: user?.name || `${user?.firstname} ${user?.lastname}`,
-            }))}
+            })
+          )}
           value={getValue()}
-          onChange={(newValue) => handleUpdateTaskFieldCell(row.original.id, "responsible_person_id", newValue, row)}
+          onChange={(newValue) =>
+            handleUpdateTaskFieldCell(row.original.id, 'responsible_person_id', newValue, row)
+          }
           table={true}
           className="w-full"
         />
       ),
     },
     {
-      accessorKey: "startDate",
-      header: "Start Date",
+      accessorKey: 'startDate',
+      header: 'Start Date',
       size: 130,
       cell: ({ getValue, row }) => (
         <DateEditor
           value={getValue()}
-          onUpdate={(date) => handleUpdateTaskFieldCell(row.original.id, "expected_start_date", date, row)}
+          onUpdate={(date) =>
+            handleUpdateTaskFieldCell(row.original.id, 'expected_start_date', date, row)
+          }
           className="text-[12px]"
           min={row.original.startDate}
           max={row.original.endDate}
@@ -1031,45 +1248,70 @@ const TaskTable = ({ isModalOpen, searchQuery, selectedColumns }) => {
       ),
     },
     {
-      accessorKey: "endDate",
-      header: "End Date",
+      accessorKey: 'endDate',
+      header: 'End Date',
       size: 130,
       cell: ({ getValue, row }) => (
         <DateEditor
           value={getValue()}
-          onUpdate={(date) => handleUpdateTaskFieldCell(row.original.id, "target_date", date, row)}
+          onUpdate={(date) => handleUpdateTaskFieldCell(row.original.id, 'target_date', date, row)}
           className="text-[12px]"
           min={row.original.startDate}
         />
       ),
     },
     {
-      accessorKey: "duration",
-      header: "Duration",
+      accessorKey: 'estimated_hour',
+      header: 'Efforts Duration',
       size: 120,
-      cell: ({ row }) => <CountdownTimer startDate={row.original.startDate} targetDate={row.original.endDate} />,
+      cell: ({ row }) => {
+        console.log(row)
+        return row.original.estimated_hours;
+      },
     },
     {
-      accessorKey: "priority",
-      header: "Priority",
+      accessorKey: 'duration',
+      header: 'Time Left',
+      size: 120,
+      cell: ({ row }) => (
+        <CountdownTimer startDate={row.original.startDate} targetDate={row.original.endDate} />
+      ),
+    },
+    {
+      accessorKey: 'subTasks',
+      header: 'Subtasks',
+      size: 140,
+      cell: (info) => (
+        <ProgressBar
+          progressString={info.getValue()}
+          total={info.row.original.total_sub_task_count}
+          completed={info.row.original.completed_sub_task_count}
+        />
+      ),
+    },
+    {
+      accessorKey: 'priority',
+      header: 'Priority',
       size: 110,
       cell: ({ getValue, row }) => (
         <StatusBadge
           status={getValue()}
           statusOptions={globalPriorityOptions}
-          onStatusChange={(newPriority) => handleUpdateTaskFieldCell(row.original.id, "priority", newPriority, row)}
+          onStatusChange={(newPriority) =>
+            handleUpdateTaskFieldCell(row.original.id, 'priority', newPriority, row)
+          }
         />
       ),
     },
     {
-      accessorKey: "predecessor",
-      header: "Predecessor",
+      accessorKey: 'predecessor',
+      header: 'Predecessor',
       size: 100,
       cell: ({ getValue }) => <span className="text-xs">{getValue()}</span>,
     },
     {
-      accessorKey: "successor",
-      header: "Successor",
+      accessorKey: 'successor',
+      header: 'Successor',
       size: 100,
       cell: ({ getValue }) => <span className="text-xs">{getValue()}</span>,
     },
@@ -1077,7 +1319,9 @@ const TaskTable = ({ isModalOpen, searchQuery, selectedColumns }) => {
 
   // Reorder columns based on columnOrder state
   const orderedColumns = columnOrder
-    .map((columnId) => mainTableColumns.find((col) => col.id === columnId || col.accessorKey === columnId))
+    .map((columnId) =>
+      mainTableColumns.find((col) => col.id === columnId || col.accessorKey === columnId)
+    )
     .filter(Boolean)
     .filter((col) => {
       // If selectedColumns is empty or not provided, show all columns
@@ -1110,7 +1354,7 @@ const TaskTable = ({ isModalOpen, searchQuery, selectedColumns }) => {
             inputRef={newTaskTitleInputRef}
             isNewRow={true}
             onEnterPress={handleSaveNewTask}
-            validator={!newTaskTitle || newTaskTitle.trim() === ""}
+            validator={!newTaskTitle || newTaskTitle.trim() === ''}
           />
         </td>
       ),
@@ -1126,11 +1370,12 @@ const TaskTable = ({ isModalOpen, searchQuery, selectedColumns }) => {
       responsiblePersonId: (
         <td key="responsiblePersonId" className="p-0 align-middle border-r-2">
           <SelectBox
-            options={(members?.filter(Boolean).length > 0 ? members.filter(Boolean) : users)
-              ?.map((user) => ({
+            options={(members?.filter(Boolean).length > 0 ? members.filter(Boolean) : users)?.map(
+              (user) => ({
                 value: user?.id,
                 label: user?.name || `${user?.firstname} ${user?.lastname}`,
-              }))}
+              })
+            )}
             value={newTaskResponsiblePersonId}
             onChange={(selectedId) => setNewTaskResponsiblePersonId(selectedId)}
             placeholder="Select Person..."
@@ -1148,7 +1393,9 @@ const TaskTable = ({ isModalOpen, searchQuery, selectedColumns }) => {
             validator={(date) => {
               if (!date) return false;
               const start = new Date(date);
-              const milestoneStart = milestone?.start_date ? new Date(milestone.start_date) : new Date();
+              const milestoneStart = milestone?.start_date
+                ? new Date(milestone.start_date)
+                : new Date();
               const milestoneEnd = milestone?.end_date ? new Date(milestone.end_date) : null;
               return (
                 start >= milestoneStart &&
@@ -1156,8 +1403,12 @@ const TaskTable = ({ isModalOpen, searchQuery, selectedColumns }) => {
                 (!newTaskEndDate || start <= new Date(newTaskEndDate))
               );
             }}
-            min={milestone?.start_date ? milestone.start_date.split("T")[0] : new Date().toISOString().split("T")[0]}
-            max={milestone?.end_date?.split("T")[0] || undefined}
+            min={
+              milestone?.start_date
+                ? milestone.start_date.split('T')[0]
+                : new Date().toISOString().split('T')[0]
+            }
+            max={milestone?.end_date?.split('T')[0] || undefined}
           />
         </td>
       ),
@@ -1176,8 +1427,8 @@ const TaskTable = ({ isModalOpen, searchQuery, selectedColumns }) => {
               const milestoneEnd = milestone?.end_date ? new Date(milestone.end_date) : null;
               return (!start || end >= start) && (!milestoneEnd || end <= milestoneEnd);
             }}
-            min={newTaskStartDate || milestone?.start_date?.split("T")[0]}
-            max={milestone?.end_date?.split("T")[0] || undefined}
+            min={newTaskStartDate || milestone?.start_date?.split('T')[0]}
+            max={milestone?.end_date?.split('T')[0] || undefined}
           />
         </td>
       ),
@@ -1197,12 +1448,8 @@ const TaskTable = ({ isModalOpen, searchQuery, selectedColumns }) => {
           />
         </td>
       ),
-      predecessor: (
-        <td key="predecessor" className="p-0 align-middle border-r-2"></td>
-      ),
-      successor: (
-        <td key="successor" className="p-0 align-middle border-r-2"></td>
-      ),
+      predecessor: <td key="predecessor" className="p-0 align-middle border-r-2"></td>,
+      successor: <td key="successor" className="p-0 align-middle border-r-2"></td>,
     };
 
     return columnOrder.map((colId) => newTaskFields[colId] || null);
@@ -1221,7 +1468,7 @@ const TaskTable = ({ isModalOpen, searchQuery, selectedColumns }) => {
             lastFetchedPageRef.current = null;
             table.setPageIndex(i);
           }}
-          className={`px-2 py-1 ${i === currentPage ? "bg-gray-200 font-bold" : ""}`}
+          className={`px-2 py-1 ${i === currentPage ? 'bg-gray-200 font-bold' : ''}`}
         >
           {i + 1}
         </button>
@@ -1231,7 +1478,8 @@ const TaskTable = ({ isModalOpen, searchQuery, selectedColumns }) => {
     const pages = [];
     const startPage = Math.max(0, currentPage - Math.floor(maxButtons / 2));
     const endPage = Math.min(totalPages - 1, startPage + maxButtons - 1);
-    const adjustedStartPage = endPage === totalPages - 1 ? Math.max(0, totalPages - maxButtons) : startPage;
+    const adjustedStartPage =
+      endPage === totalPages - 1 ? Math.max(0, totalPages - maxButtons) : startPage;
 
     pages.push(
       <button
@@ -1240,17 +1488,25 @@ const TaskTable = ({ isModalOpen, searchQuery, selectedColumns }) => {
           lastFetchedPageRef.current = null;
           table.setPageIndex(0);
         }}
-        className={`px-2 py-1 ${currentPage === 0 ? "bg-gray-200 font-bold" : ""}`}
+        className={`px-2 py-1 ${currentPage === 0 ? 'bg-gray-200 font-bold' : ''}`}
       >
         1
       </button>
     );
 
     if (adjustedStartPage > 1) {
-      pages.push(<span key="start-ellipsis" className="px-1">...</span>);
+      pages.push(
+        <span key="start-ellipsis" className="px-1">
+          ...
+        </span>
+      );
     }
 
-    for (let i = Math.max(1, adjustedStartPage); i < Math.min(totalPages - 1, adjustedStartPage + maxButtons); i++) {
+    for (
+      let i = Math.max(1, adjustedStartPage);
+      i < Math.min(totalPages - 1, adjustedStartPage + maxButtons);
+      i++
+    ) {
       pages.push(
         <button
           key={i}
@@ -1258,7 +1514,7 @@ const TaskTable = ({ isModalOpen, searchQuery, selectedColumns }) => {
             lastFetchedPageRef.current = null;
             table.setPageIndex(i);
           }}
-          className={`px-2 py-1 ${i === currentPage ? "bg-gray-200 font-bold" : ""}`}
+          className={`px-2 py-1 ${i === currentPage ? 'bg-gray-200 font-bold' : ''}`}
         >
           {i + 1}
         </button>
@@ -1266,7 +1522,11 @@ const TaskTable = ({ isModalOpen, searchQuery, selectedColumns }) => {
     }
 
     if (adjustedStartPage + maxButtons < totalPages - 1) {
-      pages.push(<span key="end-ellipsis" className="px-1">...</span>);
+      pages.push(
+        <span key="end-ellipsis" className="px-1">
+          ...
+        </span>
+      );
     }
 
     if (totalPages > 1) {
@@ -1277,7 +1537,7 @@ const TaskTable = ({ isModalOpen, searchQuery, selectedColumns }) => {
             lastFetchedPageRef.current = null;
             table.setPageIndex(totalPages - 1);
           }}
-          className={`px-2 py-1 ${currentPage === totalPages - 1 ? "bg-gray-200 font-bold" : ""}`}
+          className={`px-2 py-1 ${currentPage === totalPages - 1 ? 'bg-gray-200 font-bold' : ''}`}
         >
           {totalPages}
         </button>
@@ -1300,7 +1560,8 @@ const TaskTable = ({ isModalOpen, searchQuery, selectedColumns }) => {
     pageCount: pagination.totalPages,
   });
 
-  const showTopLevelAddTaskButton = !isAddingNewTask && !isCreatingTask && !isUpdatingTask && !loadingTasks && !tasksError;
+  const showTopLevelAddTaskButton =
+    !isAddingNewTask && !isCreatingTask && !isUpdatingTask && !loadingTasks && !tasksError;
   const actualDataRows = table.getRowModel().rows;
   let displayedRowCount = actualDataRows.length + (isAddingNewTask ? 1 : 0);
   if (showTopLevelAddTaskButton && !isAddingNewTask) displayedRowCount++;
@@ -1309,7 +1570,7 @@ const TaskTable = ({ isModalOpen, searchQuery, selectedColumns }) => {
   const desiredTableHeight = totalRowsForHeightCalc * ROW_HEIGHT + HEADER_HEIGHT;
 
   const newTskEnterKeyHandler = (event) => {
-    if (event.key === "Enter") {
+    if (event.key === 'Enter') {
       event.preventDefault();
       handleSaveNewTask();
     }
@@ -1317,17 +1578,17 @@ const TaskTable = ({ isModalOpen, searchQuery, selectedColumns }) => {
 
   let content;
   if (isCreatingTask || isUpdatingTask || loadingFilterTasks || loadingMyTasks || loadingTasks) {
-    let loadingMessage = "Loading tasks...";
-    if (isCreatingTask) loadingMessage = "Creating task...";
-    if (isUpdatingTask) loadingMessage = "Updating task...";
-    if (loadingFilterTasks) loadingMessage = "Filtering tasks...";
+    let loadingMessage = 'Loading tasks...';
+    if (isCreatingTask) loadingMessage = 'Creating task...';
+    if (isUpdatingTask) loadingMessage = 'Updating task...';
+    if (loadingFilterTasks) loadingMessage = 'Filtering tasks...';
     content = <Loader message={loadingMessage} error={tasksError} />;
   } else {
     content = (
       <>
         <div
           className="table-wrapper border-none overflow-x-auto"
-          style={{ maxHeight: "80vh", overflowY: "auto" }}
+          style={{ maxHeight: '80vh', overflowY: 'auto' }}
         >
           <table className="w-full text-sm table-fixed">
             <thead className="sticky top-0 bg-gray-300 z-30">
@@ -1345,18 +1606,23 @@ const TaskTable = ({ isModalOpen, searchQuery, selectedColumns }) => {
               ))}
             </thead>
             <tbody className="!bg-white">
-              {data.length === 0 && !isAddingNewTask && !loadingTasks && !isCreatingTask && !isUpdatingTask && !loadingFilterTasks && (
-                <tr style={{ height: `${ROW_HEIGHT * 2}px` }}>
-                  <td colSpan={mainTableColumns.length} className="text-center text-gray-500 p-4">
-                    {isFiltered ? "Try adjusting Filters" : ""} "No tasks available"
-                  </td>
-                </tr>
-              )}
+              {data.length === 0 &&
+                !isAddingNewTask &&
+                !loadingTasks &&
+                !isCreatingTask &&
+                !isUpdatingTask &&
+                !loadingFilterTasks && (
+                  <tr style={{ height: `${ROW_HEIGHT * 2}px` }}>
+                    <td colSpan={mainTableColumns.length} className="text-center text-gray-500 p-4">
+                      {isFiltered ? 'Try adjusting Filters' : ''} "No tasks available"
+                    </td>
+                  </tr>
+                )}
               {table.getRowModel().rows.map((row) => (
                 <Fragment key={row.id}>
                   <tr
                     data-task-id={row.original.id}
-                    className={`hover:bg-gray-50 ${row.getIsExpanded() ? "bg-gray-100" : "even:bg-[#D5DBDB4D]"} font-[300] relative z-1`}
+                    className={`hover:bg-gray-50 ${row.getIsExpanded() ? 'bg-gray-100' : 'even:bg-[#D5DBDB4D]'} font-[300] relative z-1`}
                     style={{ height: `${ROW_HEIGHT}px` }}
                   >
                     {row.getVisibleCells().map((cell) => (
@@ -1365,7 +1631,7 @@ const TaskTable = ({ isModalOpen, searchQuery, selectedColumns }) => {
                         style={{ width: `${cell.column.getSize()}px` }}
                         className="border-r-2 text-left pl-2 align-middle p-0"
                       >
-                        <div className="h-full w-full flex items-center">
+                        <div className="h-full w-full flex items-center justify-center">
                           {flexRender(cell.column.columnDef.cell, cell.getContext())}
                         </div>
                       </td>
@@ -1411,10 +1677,10 @@ const TaskTable = ({ isModalOpen, searchQuery, selectedColumns }) => {
   ) : null;
 
   if (usersFetchError && (!Array.isArray(users) || users.length === 0)) {
-    console.error("Error fetching users for dropdown:", usersFetchError);
+    console.error('Error fetching users for dropdown:', usersFetchError);
   }
   if (loadingUsers && (!Array.isArray(users) || users.length === 0)) {
-    console.log("Loading users for dropdown...");
+    console.log('Loading users for dropdown...');
   }
 
   return (
@@ -1432,7 +1698,7 @@ const TaskTable = ({ isModalOpen, searchQuery, selectedColumns }) => {
               disabled={!table.getCanPreviousPage()}
               className="text-red-600 disabled:opacity-30"
             >
-              {"<"}
+              {'<'}
             </button>
             {renderPagination()}
             <button
@@ -1443,14 +1709,25 @@ const TaskTable = ({ isModalOpen, searchQuery, selectedColumns }) => {
               disabled={!table.getCanNextPage()}
               className="text-red-600 disabled:opacity-30"
             >
-              {">"}
+              {'>'}
             </button>
             <span className="ml-4">
-              Page {pagination.currentPage} of {pagination.totalPages} | Total Records: {pagination.totalRecords}
+              Page {pagination.currentPage} of {pagination.totalPages} | Total Records:{' '}
+              {pagination.totalRecords}
             </span>
           </div>
         )}
       </div>
+      <PauseReasonModal
+        isOpen={isPauseModalOpen}
+        onClose={() => {
+          setIsPauseModalOpen(false);
+          setPauseTaskId(null);
+        }}
+        onSubmit={handlePauseTaskSubmit}
+        isLoading={isPauseLoading}
+        taskId={pauseTaskId}
+      />
     </DndProvider>
   );
 };

@@ -1,28 +1,22 @@
-/* eslint-disable react/prop-types */
-import CloseIcon from "@mui/icons-material/Close";
-import SelectBox from "../../SelectBox";
-import { useEffect, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
-import { updateZone, createZone } from "../../../redux/slices/zoneSlice";
-import toast from "react-hot-toast";
+import CloseIcon from '@mui/icons-material/Close';
+import SelectBox from '../../SelectBox';
+import { useEffect, useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { updateZone, createZone } from '../../../redux/slices/zoneSlice';
+import toast from 'react-hot-toast';
 
-const AddZoneModel = ({
-  setOpenModal,
-  isEditMode = false,
-  initialData = null,
-  onSuccess,
-}) => {
-  const token = localStorage.getItem("token");
+const AddZoneModel = ({ setOpenModal, isEditMode = false, initialData = null, onSuccess }) => {
+  const token = localStorage.getItem('token');
   const dispatch = useDispatch();
 
   const { fetchRegion: region } = useSelector((state) => state.fetchRegion);
   const { loading } = useSelector((state) => state.createZone);
   const { loading: editLoading } = useSelector((state) => state.updateZone);
-  const [error, setError] = useState("");
+  const [error, setError] = useState('');
 
   const [formData, setFormData] = useState({
-    name: "",
-    region: "",
+    name: '',
+    region: '',
     // country: "",
   });
 
@@ -35,8 +29,8 @@ const AddZoneModel = ({
       });
     } else {
       setFormData({
-        name: "",
-        region: "",
+        name: '',
+        region: '',
         // country: "",
       });
     }
@@ -44,18 +38,18 @@ const AddZoneModel = ({
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (formData.name === "") {
-      setError("Please enter name");
+    if (formData.name === '') {
+      setError('Please enter name');
       return;
-    } else if (formData.region === "") {
-      setError("Please select region");
+    } else if (formData.region === '') {
+      setError('Please select region');
       return;
     }
 
     const payload = {
       zone: {
         name: formData.name,
-        region_id: formData.region || "",
+        region_id: formData.region || '',
         // country_id: formData.country || "",
         active: true,
       },
@@ -74,10 +68,10 @@ const AddZoneModel = ({
         response = await dispatch(createZone({ token, payload })).unwrap();
       }
       console.log(response);
-      toast.success(`Zone ${isEditMode ? "updated" : "created"} successfully`, {
+      toast.success(`Zone ${isEditMode ? 'updated' : 'created'} successfully`, {
         iconTheme: {
-          primary: "green", // This might directly change the color of the success icon
-          secondary: "white", // The circle background
+          primary: 'green', // This might directly change the color of the success icon
+          secondary: 'white', // The circle background
         },
       });
       handleSuccess();
@@ -89,21 +83,21 @@ const AddZoneModel = ({
 
   const handleSuccess = () => {
     setFormData({
-      name: "",
-      region: "",
+      name: '',
+      region: '',
       // country: "",
     });
-    setError("");
+    setError('');
     onSuccess();
   };
 
   const handleClose = () => {
     setFormData({
-      name: "",
-      region: "",
+      name: '',
+      region: '',
       // country: "",
     });
-    setError("");
+    setError('');
     setOpenModal(false);
   };
 
@@ -126,9 +120,7 @@ const AddZoneModel = ({
               placeholder="Enter name here"
               className="border border-[#C0C0C0] w-full py-2 px-3 text-[#1B1B1B] text-[13px] focus:outline-none"
               value={formData.name}
-              onChange={(e) =>
-                setFormData({ ...formData, name: e.target.value })
-              }
+              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
             />
           </div>
 
@@ -140,9 +132,9 @@ const AddZoneModel = ({
               options={
                 region
                   ? region.map((region) => ({
-                    value: region.id,
-                    label: region.name,
-                  }))
+                      value: region.id,
+                      label: region.name,
+                    }))
                   : []
               }
               className="w-full"
@@ -183,11 +175,7 @@ const AddZoneModel = ({
             onClick={handleSubmit}
             disabled={loading || editLoading}
           >
-            {loading || editLoading
-              ? "Submitting..."
-              : isEditMode
-                ? "Update"
-                : "Save"}
+            {loading || editLoading ? 'Submitting...' : isEditMode ? 'Update' : 'Save'}
           </button>
           <button
             className="border border-[#C72030] text-[#1B1B1B] text-[13px] px-8 py-2"
