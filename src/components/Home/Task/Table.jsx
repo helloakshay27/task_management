@@ -69,6 +69,7 @@ const EditableTextField = ({
       onKeyDown={handleKeyDown}
       data-task-id={taskId}
       data-field-name={fieldName}
+      title={localValue || ''}
       className={`${validator ? 'border border-red-600' : 'border-none'} focus:outline-none w-full h-full p-1 rounded text-[12px] bg-transparent`}
     />
   );
@@ -287,6 +288,8 @@ const DraggableColumnHeader = ({ header, onReorderColumns, columnOrder }) => {
       ref={combinedRef}
       style={{
         width: `${header.getSize()}px`,
+        minWidth: `${header.getSize()}px`,
+        maxWidth: `${header.getSize()}px`,
         opacity: isDragging ? 0.5 : 1,
         backgroundColor: isOver ? 'bg-gray-300' : 'bg-gray-300',
         transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
@@ -1719,10 +1722,14 @@ const TaskTable = ({ isModalOpen, searchQuery, selectedColumns }) => {
                     {row.getVisibleCells().map((cell) => (
                       <td
                         key={cell.id}
-                        style={{ width: `${cell.column.getSize()}px` }}
+                        style={{
+                          width: `${cell.column.getSize()}px`,
+                          minWidth: `${cell.column.getSize()}px`,
+                          maxWidth: `${cell.column.getSize()}px`
+                        }}
                         className="border-r-2 text-left pl-2 align-middle p-0"
                       >
-                        <div className="h-full w-full flex items-center justify-center">
+                        <div className="h-full w-full flex items-center justify-center overflow-hidden">
                           {flexRender(cell.column.columnDef.cell, cell.getContext())}
                         </div>
                       </td>

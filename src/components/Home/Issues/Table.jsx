@@ -231,6 +231,8 @@ const DraggableColumnHeader = ({ header, onReorderColumns, columnOrder }) => {
       ref={combinedRef}
       style={{
         width: header.getSize() ? `${header.getSize()}px` : undefined,
+        minWidth: header.getSize() ? `${header.getSize()}px` : undefined,
+        maxWidth: header.getSize() ? `${header.getSize()}px` : undefined,
         opacity: isDragging ? 0.5 : 1,
         backgroundColor: isOver ? 'bg-gray-300' : 'bg-gray-300',
         transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
@@ -1104,7 +1106,7 @@ const IssuesTable = ({ selectedColumns, projectId, searchQuery = '' }) => {
       {
         accessorKey: 'id',
         header: 'Issue ID',
-        size: 80,
+        size: 100,
         cell: ({ getValue }) => {
           const issueId = getValue();
           const issuePath = isCloudRoute ? `/cloud-issues/${issueId}` : `/issues/${issueId}`;
@@ -1120,36 +1122,71 @@ const IssuesTable = ({ selectedColumns, projectId, searchQuery = '' }) => {
         accessorKey: 'projectName',
         header: 'Project Name',
         size: 150,
-        cell: ({ getValue }) => getValue() || 'Not selected',
+        cell: ({ getValue }) => {
+          const value = getValue() || 'Not selected';
+          return (
+            <div className="truncate" title={value}>
+              {value}
+            </div>
+          );
+        },
       },
       {
         accessorKey: 'milestoneName',
         header: 'Milestone Name',
         size: 150,
-        cell: ({ getValue }) => getValue() || 'Not selected',
+        cell: ({ getValue }) => {
+          const value = getValue() || 'Not selected';
+          return (
+            <div className="truncate" title={value}>
+              {value}
+            </div>
+          );
+        },
       },
       {
         accessorKey: 'taskName',
         header: 'Task Name',
         size: 150,
-        cell: ({ getValue }) => getValue() || 'Not selected',
+        cell: ({ getValue }) => {
+          const value = getValue() || 'Not selected';
+          return (
+            <div className="truncate" title={value}>
+              {value}
+            </div>
+          );
+        },
       },
       {
         accessorKey: 'subtaskName',
         header: 'Subtask Name',
         size: 150,
-        cell: ({ getValue }) => getValue() || 'Not selected',
+        cell: ({ getValue }) => {
+          const value = getValue() || 'Not selected';
+          return (
+            <div className="truncate" title={value}>
+              {value}
+            </div>
+          );
+        },
       },
       {
         accessorKey: 'issueTitle',
         header: 'Issues Title',
-        size: 120,
-        cell: (info) => info.getValue(),
+        size: 200,
+        cell: (info) => {
+          const value = info.getValue();
+          return (
+            <div className="truncate" title={value}>
+              {value}
+            </div>
+          );
+        },
       },
       {
         accessorKey: 'attachments',
         header: 'Attachments',
-        size: 120,
+        size: 100,
         cell: ({ getValue }) => (
           <div className="flex justify-center items-center w-full h-full">
             <span>{getValue().length}</span>
@@ -1159,7 +1196,7 @@ const IssuesTable = ({ selectedColumns, projectId, searchQuery = '' }) => {
       {
         accessorKey: 'status',
         header: 'Status',
-        size: 100,
+        size: 120,
         cell: ({ row }) => (
           <StatusBadge
             status={row.original.status}
@@ -1171,7 +1208,7 @@ const IssuesTable = ({ selectedColumns, projectId, searchQuery = '' }) => {
       {
         accessorKey: 'responsiblePerson',
         header: 'Responsible Person',
-        size: 200,
+        size: 180,
         cell: ({ row }) => (
           <SelectBox
             table={true}
@@ -1187,7 +1224,7 @@ const IssuesTable = ({ selectedColumns, projectId, searchQuery = '' }) => {
       {
         accessorKey: 'issueType',
         header: 'Type',
-        size: 150,
+        size: 120,
         cell: ({ row }) => (
           <SelectBox
             options={issueType.map((i) => ({
@@ -1206,7 +1243,7 @@ const IssuesTable = ({ selectedColumns, projectId, searchQuery = '' }) => {
       {
         accessorKey: 'startDate',
         header: 'Start Date',
-        size: 100,
+        size: 120,
         cell: ({ row }) => (
           <NewIssuesDateEditor
             value={row.original.startDate || ''}
@@ -1220,7 +1257,7 @@ const IssuesTable = ({ selectedColumns, projectId, searchQuery = '' }) => {
       {
         accessorKey: 'endDate',
         header: 'End Date',
-        size: 100,
+        size: 120,
         cell: ({ row }) => (
           <NewIssuesDateEditor
             value={row.original.endDate || ''}
@@ -1249,7 +1286,7 @@ const IssuesTable = ({ selectedColumns, projectId, searchQuery = '' }) => {
       {
         accessorKey: 'comments',
         header: 'Comments',
-        size: 360,
+        size: 250,
         cell: ({ row }) => (
           <CommentCell
             key={`comment-${row.original.id}-${row.original.comments}`}
@@ -1533,8 +1570,13 @@ const IssuesTable = ({ selectedColumns, projectId, searchQuery = '' }) => {
                         key={cell.id}
                         className={`border p-1 align-middle ${cell.column.id === 'actions' ? 'text-center' : 'text-left'
                           }`}
+                        style={{
+                          width: cell.column.getSize() ? `${cell.column.getSize()}px` : undefined,
+                          maxWidth: cell.column.getSize() ? `${cell.column.getSize()}px` : undefined,
+                          minWidth: cell.column.getSize() ? `${cell.column.getSize()}px` : undefined
+                        }}
                       >
-                        <div className="p-1 h-full flex items-center">
+                        <div className="p-1 h-full flex items-center overflow-hidden">
                           {flexRender(cell.column.columnDef.cell, cell.getContext())}
                         </div>
                       </td>
