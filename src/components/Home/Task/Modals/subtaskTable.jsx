@@ -15,6 +15,7 @@ import {
 } from '../../../../redux/slices/taskSlice';
 import { fetchUsers } from '../../../../redux/slices/userSlice';
 import { fetchTags } from '../../../../redux/slices/tagsSlice';
+import { fetchStatus } from '../../../../redux/slices/statusSlice';
 import toast from 'react-hot-toast';
 import { ProgressBar } from '../Table';
 
@@ -303,6 +304,8 @@ const SubtaskTable = ({ projectId }) => {
     error: tagsError,
   } = useSelector((state) => state.fetchTags || { tagList: [], loading: false, error: null });
 
+  const { fetchStatus: statuses } = useSelector((state) => state.fetchStatus);
+
   const [data, setData] = useState([]);
   const [parentTaskForSubtasks, setParentTaskForSubtasks] = useState(null);
   const [parentTaskLookupStatus, setParentTaskLookupStatus] = useState('idle');
@@ -399,6 +402,20 @@ const SubtaskTable = ({ projectId }) => {
     [dispatch, isUpdatingTask, token, mid, tagList]
   );
 
+  const handleWorkflowStatusChange = useCallback(
+    async (subtaskId, statusOption) => {
+      try {
+        const payload = { project_status_id: statusOption.id };
+        await dispatch(updateTask({ token, id: subtaskId, payload })).unwrap();
+        await dispatch(fetchKanbanTasks({ token, id: mid })).unwrap();
+      } catch (error) {
+        console.error('Failed to update workflow status:', error);
+        toast.error(`Failed to update status: ${error?.message || 'Server error'}`);
+      }
+    },
+    [dispatch, token, mid]
+  );
+
   useEffect(() => {
     if (
       !loadingAllTasks &&
@@ -442,6 +459,10 @@ const SubtaskTable = ({ projectId }) => {
   }, [dispatch, tagList, loadingTags, tagsError, token]);
 
   useEffect(() => {
+    dispatch(fetchStatus({ token }));
+  }, [dispatch, token]);
+
+  useEffect(() => {
     if (loadingAllTasks) {
       setParentTaskLookupStatus('loading');
       return;
@@ -463,29 +484,38 @@ const SubtaskTable = ({ projectId }) => {
         setParentTaskLookupStatus('found');
         console.log(foundTask)
         if (foundTask.sub_tasks_managements && Array.isArray(foundTask.sub_tasks_managements)) {
-          const processedSubtasks = foundTask.sub_tasks_managements.map((sub) => ({
-            id: sub.id,
-            taskTitle: sub.title || 'Unnamed Subtask',
-            status: sub.status || 'open',
-            responsiblePerson: sub?.responsible_person_name || 'Unassigned',
-            responsiblePersonId: sub?.responsible_person_id || null,
-            startDate: sub.expected_start_date
-              ? new Date(sub.expected_start_date).toLocaleDateString('en-CA')
-              : null,
-            endDate: sub.target_date ? new Date(sub.target_date).toLocaleDateString('en-CA') : null,
-            totalIssuesCount: sub.total_issues,
-            completedIssuesCount: sub.completed_issues,
-            issues: (() => {
-              const totalCount = Number(sub.total_issues);
-              const completedCount = Number(sub.completed_issues);
-              if (!totalCount || totalCount === 0) return 0;
-              const percentage = Math.round((completedCount / totalCount) * 100);
-              return percentage;
-            })(),
-            effortDuration: sub.estimated_hour + ' hours',
-            priority: sub.priority || 'None',
-            tags: (sub.task_tags || []).map((tag) => tag.company_tag.name),
-          }));
+          const processedSubtasks = foundTask.sub_tasks_managements.map((sub) => {
+            // Debug: log the raw subtask data to see what's available
+            console.log('Subtask data:', sub);
+            console.log('Subtask project_status:', sub.project_status);
+
+            return {
+              id: sub.id,
+              taskTitle: sub.title || 'Unnamed Subtask',
+              status: sub.status || 'open',
+              workflowStatus: sub.project_status?.status || 'Open',
+              workflowStatusId: sub.project_status?.id || null,
+              workflowStatusColor: sub.project_status?.color_code || '#c72030',
+              responsiblePerson: sub?.responsible_person_name || 'Unassigned',
+              responsiblePersonId: sub?.responsible_person_id || null,
+              startDate: sub.expected_start_date
+                ? new Date(sub.expected_start_date).toLocaleDateString('en-CA')
+                : null,
+              endDate: sub.target_date ? new Date(sub.target_date).toLocaleDateString('en-CA') : null,
+              totalIssuesCount: sub.total_issues,
+              completedIssuesCount: sub.completed_issues,
+              issues: (() => {
+                const totalCount = Number(sub.total_issues);
+                const completedCount = Number(sub.completed_issues);
+                if (!totalCount || totalCount === 0) return 0;
+                const percentage = Math.round((completedCount / totalCount) * 100);
+                return percentage;
+              })(),
+              effortDuration: sub.estimated_hour + ' hours',
+              priority: sub.priority || 'None',
+              tags: (sub.task_tags || []).map((tag) => tag.company_tag.name),
+            };
+          });
           console.log(processedSubtasks);
           setData(processedSubtasks);
         } else {
@@ -748,6 +778,35 @@ const SubtaskTable = ({ projectId }) => {
         },
       },
       {
+        id: 'workflowStatus',
+        accessorKey: 'workflowStatus',
+        header: 'Workflow Status',
+        size: 150,
+        cell: ({ getValue, row }) => {
+          // Create a color map from statuses
+          const statusColorMap = {};
+          if (Array.isArray(statuses)) {
+            statuses.forEach((s) => {
+              statusColorMap[s.status] = s.color_code;
+            });
+          }
+
+          return (
+            <StatusBadge
+              statusOptions={statuses?.map((s) => s.status) || []}
+              status={getValue()}
+              statusColors={statusColorMap}
+              onStatusChange={(newStatus) => {
+                const selectedStatus = statuses?.find((s) => s.status === newStatus);
+                if (selectedStatus) {
+                  handleWorkflowStatusChange(row.original.id, selectedStatus);
+                }
+              }}
+            />
+          );
+        },
+      },
+      {
         accessorKey: 'responsiblePersonId',
         header: 'Responsible Person',
         size: 180,
@@ -871,7 +930,7 @@ const SubtaskTable = ({ projectId }) => {
         ),
       },
     ],
-    [handleOnChange, parentTaskForSubtasks, userOptionsForSelectBox, tagNamesForDropdown]
+    [handleOnChange, handleWorkflowStatusChange, parentTaskForSubtasks, userOptionsForSelectBox, tagNamesForDropdown, statuses]
   );
 
   const table = useReactTable({
