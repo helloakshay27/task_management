@@ -48,9 +48,8 @@ const NewMilestoneTextField = ({
       value={value || ''}
       onChange={onChange}
       onKeyDown={handleKeyDown}
-      className={`${
-        validator ? 'border border-red-500' : 'border-none'
-      } w-full p-1 focus:outline-none rounded text-[13px] bg-none`}
+      className={`${validator ? 'border border-red-500' : 'border-none'
+        } w-full p-1 focus:outline-none rounded text-[13px] bg-none`}
     />
   );
 };
@@ -69,9 +68,8 @@ const NewMilestoneDateEditor = ({ value, onChange, onEnterPress, placeholder, va
       value={value || ''}
       onChange={onChange}
       onKeyDown={handleKeyDown}
-      className={`${
-        validator ? 'border border-red-500' : 'border-none'
-      } w-full p-1 focus:outline-none rounded text-[13px]`}
+      className={`${validator ? 'border border-red-500' : 'border-none'
+        } w-full p-1 focus:outline-none rounded text-[13px]`}
       min={min || null}
     />
   );
@@ -228,9 +226,8 @@ const DraggableColumnHeader = ({ header, onReorderColumns, columnOrder }) => {
         transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
         transform: isOver ? 'scale(1.02)' : 'scale(1)',
       }}
-      className={`bg-gray-300 px-3 py-3.5 text-gray-800 text-center font-[500] border-r-2 border-[#FFFFFF] sticky top-0 z-10 cursor-move select-none ${
-        isDragging ? 'shadow-lg' : ''
-      } ${isOver ? 'bg-gray-300' : ''}`}
+      className={`bg-gray-300 px-3 py-3.5 text-gray-800 text-center font-[500] border-r-2 border-[#FFFFFF] sticky top-0 z-10 cursor-move select-none ${isDragging ? 'shadow-lg' : ''
+        } ${isOver ? 'bg-gray-300' : ''}`}
     >
       {header.isPlaceholder
         ? null
@@ -280,7 +277,7 @@ const MilestoneList = ({ searchQuery, selectedColumns }) => {
     const savedOrder = localStorage.getItem('milestoneTableColumnOrder');
     return savedOrder
       ? JSON.parse(savedOrder)
-      : ['id', 'title', 'status', 'owner', 'tasks', 'startDate', 'endDate', 'actions'];
+      : ['id', 'title', 'status', 'owner', 'tasks', 'issues', 'startDate', 'endDate', 'actions'];
   });
 
   const transformedData = useMemo(() => {
@@ -318,6 +315,17 @@ const MilestoneList = ({ searchQuery, selectedColumns }) => {
           tasks: (() => {
             const totalCount = Number(milestone.total_tasks);
             const completedCount = Number(milestone.completed_tasks);
+
+            if (!totalCount || totalCount === 0) return 0;
+
+            const percentage = Math.round((completedCount / totalCount) * 100);
+            return percentage;
+          })(),
+          total_issue_count: Number(milestone.total_issues || 0),
+          completed_issue_count: Number(milestone.completed_issues || 0),
+          issues: (() => {
+            const totalCount = Number(milestone.total_issues);
+            const completedCount = Number(milestone.completed_issues);
 
             if (!totalCount || totalCount === 0) return 0;
 
@@ -570,9 +578,9 @@ const MilestoneList = ({ searchQuery, selectedColumns }) => {
       { value: '', label: 'Unassigned' },
       ...(Array.isArray(users)
         ? users.map((u) => ({
-            value: u.id,
-            label: `${u.firstname || ''} ${u.lastname || ''}`.trim(),
-          }))
+          value: u.id,
+          label: `${u.firstname || ''} ${u.lastname || ''}`.trim(),
+        }))
         : []),
     ],
     [users]
@@ -654,6 +662,18 @@ const MilestoneList = ({ searchQuery, selectedColumns }) => {
             progressString={info.getValue()}
             total={info.row.original.total_task_count}
             completed={info.row.original.completed_task_count}
+          />
+        ),
+      },
+      {
+        accessorKey: 'issues',
+        header: 'Issues',
+        size: 130,
+        cell: (info) => (
+          <ProgressBar
+            progressString={info.getValue()}
+            total={info.row.original.total_issue_count}
+            completed={info.row.original.completed_issue_count}
           />
         ),
       },
@@ -834,9 +854,8 @@ const MilestoneList = ({ searchQuery, selectedColumns }) => {
                       <td
                         key={cell.id}
                         style={{ width: cell.column.getSize() }}
-                        className={`${
-                          cell.column.columnDef.meta?.cellClassName || ''
-                        } whitespace-nowrap border-r-2 p-2 align-middle`}
+                        className={`${cell.column.columnDef.meta?.cellClassName || ''
+                          } whitespace-nowrap border-r-2 p-2 align-middle`}
                       >
                         {flexRender(cell.column.columnDef.cell, cell.getContext())}
                       </td>

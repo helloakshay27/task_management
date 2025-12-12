@@ -16,6 +16,7 @@ import {
 import { fetchUsers } from '../../../../redux/slices/userSlice';
 import { fetchTags } from '../../../../redux/slices/tagsSlice';
 import toast from 'react-hot-toast';
+import { ProgressBar } from '../Table';
 
 const UserCustomDropdownMultiple = ({
   options = [],
@@ -472,6 +473,15 @@ const SubtaskTable = ({ projectId }) => {
               ? new Date(sub.expected_start_date).toLocaleDateString('en-CA')
               : null,
             endDate: sub.target_date ? new Date(sub.target_date).toLocaleDateString('en-CA') : null,
+            totalIssuesCount: sub.total_issues,
+            completedIssuesCount: sub.completed_issues,
+            issues: (() => {
+              const totalCount = Number(sub.total_issues);
+              const completedCount = Number(sub.completed_issues);
+              if (!totalCount || totalCount === 0) return 0;
+              const percentage = Math.round((completedCount / totalCount) * 100);
+              return percentage;
+            })(),
             effortDuration: sub.estimated_hour + ' hours',
             priority: sub.priority || 'None',
             tags: (sub.task_tags || []).map((tag) => tag.company_tag.name),
@@ -789,6 +799,18 @@ const SubtaskTable = ({ projectId }) => {
                 ? new Date(parentTaskForSubtasks.target_date).toISOString().split('T')[0]
                 : undefined
             }
+          />
+        ),
+      },
+      {
+        accessorKey: 'issues',
+        header: 'Issues',
+        size: 140,
+        cell: (info) => (
+          <ProgressBar
+            progressString={info.getValue()}
+            total={info.row.original.totalIssuesCount}
+            completed={info.row.original.completedIssuesCount}
           />
         ),
       },

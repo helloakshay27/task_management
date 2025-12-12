@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 
-const StatusBadge = ({ status: initialStatus, statusOptions, onStatusChange }) => {
+const StatusBadge = ({ status: initialStatus, statusOptions, onStatusChange, statusColors }) => {
   const [currentStatus, setCurrentStatus] = useState(initialStatus);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0 });
@@ -80,9 +80,8 @@ const StatusBadge = ({ status: initialStatus, statusOptions, onStatusChange }) =
         onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && toggleDropdown()}
       >
         <span
-          className={`status-${currentStatus
-            ?.toLowerCase()
-            .replace('_', '-')} rounded-full w-[5px] h-[5px]`}
+          className={`rounded-full w-[5px] h-[5px] ${!statusColors ? `status-${currentStatus?.toLowerCase().replace('_', '-')}` : ''}`}
+          style={statusColors && currentStatus ? { backgroundColor: statusColors[currentStatus] || '#c72030' } : {}}
         ></span>
         <span>
           {currentStatus &&
@@ -114,19 +113,18 @@ const StatusBadge = ({ status: initialStatus, statusOptions, onStatusChange }) =
                 <span
                   key={option}
                   onClick={(e) => handleDropdownItemClick(e, option)}
-                  className={`dropdown-item ${
-                    option?.toLowerCase().replace(' ', '-') ===
-                    currentStatus?.toLowerCase().replace(' ', '-')
+                  className={`dropdown-item ${option?.toLowerCase().replace(' ', '-') ===
+                      currentStatus?.toLowerCase().replace(' ', '-')
                       ? 'selected'
                       : ''
-                  }`}
+                    }`}
                   style={{
                     display: 'block',
                     padding: '8px 12px',
                     cursor: 'pointer',
                     backgroundColor:
                       option?.toLowerCase().replace(' ', '-') ===
-                      currentStatus?.toLowerCase().replace(' ', '-')
+                        currentStatus?.toLowerCase().replace(' ', '-')
                         ? '#D3D3D3'
                         : 'transparent',
                     fontSize: '12px',

@@ -7,7 +7,10 @@ import MilestoneList from '../components/MilestoneList';
 const MileStoneMain = () => {
   const [selectedType, setSelectedType] = useState('Gantt');
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedColumns, setSelectedColumns] = useState({});
+  const [selectedColumns, setSelectedColumns] = useState(() => {
+    const saved = localStorage.getItem('MilestoneTableColumns');
+    return saved ? JSON.parse(saved) : {};
+  });
 
   const handleColumnsChange = (columns) => {
     setSelectedColumns(columns);

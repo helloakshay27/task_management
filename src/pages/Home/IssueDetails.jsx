@@ -200,16 +200,16 @@ const Comments = ({ comments, getIssue }) => {
 
   const mentionData = name
     ? name.map((user) => ({
-        id: user.id.toString(),
-        display: `${user.firstname} ${user.lastname}` || 'Unknown User',
-      }))
+      id: user.id.toString(),
+      display: `${user.firstname} ${user.lastname}` || 'Unknown User',
+    }))
     : [];
 
   const tagData = tags
     ? tags.map((tag) => ({
-        id: tag.id.toString(),
-        display: tag.name,
-      }))
+      id: tag.id.toString(),
+      display: tag.name,
+    }))
     : [];
 
   const handleAddComment = async (e) => {
@@ -511,7 +511,7 @@ const IssueDetails = () => {
   const navigate = useNavigate();
 
   const [isFirstCollapsed, setIsFirstCollapsed] = useState(false);
-  const [isSecondCollapsed, setIsSecondCollapsed] = useState(false);
+  const [isSecondCollapsed, setIsSecondCollapsed] = useState(true);
   const [tab, setTab] = useState('Comments');
 
   const firstContentRef = useRef(null);
@@ -581,7 +581,7 @@ const IssueDetails = () => {
 
   useGSAP(() => {
     gsap.set(firstContentRef.current, { height: 'auto' });
-    gsap.set(secondContentRef.current, { height: 'auto' });
+    gsap.set(secondContentRef.current, { height: '0px' });
   }, []);
 
   const toggleFirstCollapse = () => {
@@ -677,9 +677,8 @@ const IssueDetails = () => {
                   {dropdownOptions.map((option, idx) => (
                     <li key={idx} role="menuitem">
                       <button
-                        className={`dropdown-item w-full text-left px-4 py-2 text-[13px] text-gray-700 hover:bg-gray-100 ${
-                          selectedOption === option ? 'bg-gray-100 font-semibold' : ''
-                        }`}
+                        className={`dropdown-item w-full text-left px-4 py-2 text-[13px] text-gray-700 hover:bg-gray-100 ${selectedOption === option ? 'bg-gray-100 font-semibold' : ''
+                          }`}
                         onClick={() => handleOptionSelect(option)}
                       >
                         {option}
@@ -700,9 +699,8 @@ const IssueDetails = () => {
             <ChevronDownCircle
               color="#E95420"
               size={30}
-              className={`${
-                isFirstCollapsed ? 'rotate-180' : 'rotate-0'
-              } transition-transform cursor-pointer`}
+              className={`${isFirstCollapsed ? 'rotate-180' : 'rotate-0'
+                } transition-transform cursor-pointer`}
               onClick={toggleFirstCollapse}
             />{' '}
             Description
@@ -713,19 +711,42 @@ const IssueDetails = () => {
         </div>
 
         <div className="border rounded-md shadow-custom p-5 mb-4">
-          <div
-            className="font-[600] text-[16px] flex items-center gap-4"
-            onClick={toggleSecondCollapse}
-          >
-            <ChevronDownCircle
-              color="#E95420"
-              size={30}
-              className={`${isSecondCollapsed ? 'rotate-180' : 'rotate-0'} transition-transform`}
-            />{' '}
-            Details
+          <div className="font-[600] text-[16px] flex items-center gap-10">
+            <div className="flex items-center gap-4">
+              <ChevronDownCircle
+                color="#E95420"
+                size={30}
+                className={`${isSecondCollapsed ? 'rotate-180' : 'rotate-0'} transition-transform cursor-pointer`}
+                onClick={toggleSecondCollapse}
+              />{' '}
+              Details
+            </div>
+            {isSecondCollapsed && (
+              <div className="flex items-center gap-6">
+                <div className="flex items-center justify-start gap-3">
+                  <div className="text-right text-[12px] font-[500]">Responsible Person:</div>
+                  <div className="text-left text-[12px]">
+                    {issueDetails?.responsible_person?.name}
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-start gap-3">
+                  <div className="text-right text-[12px] font-[500]">Priority:</div>
+                  <div className="text-left text-[12px]">
+                    {issueDetails?.priority?.charAt(0).toUpperCase() +
+                      issueDetails?.priority?.slice(1).toLowerCase() || ''}
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-start gap-3">
+                  <div className="text-right text-[12px] font-[500]">End Date:</div>
+                  <div className="text-left text-[12px]">{issueDetails?.end_date?.split('T')[0]}</div>
+                </div>
+              </div>
+            )}
           </div>
 
-          <div className="mt-3 overflow-hidden " ref={secondContentRef}>
+          <div className={`mt-3 ${isSecondCollapsed ? 'overflow-hidden' : ''}`} ref={secondContentRef}>
             <div className="flex flex-col">
               <div className="flex items-center ml-36">
                 <div className="w-1/2 flex items-center justify-start gap-3">
@@ -766,7 +787,7 @@ const IssueDetails = () => {
                   </div>
                 </div>
                 <div className="w-1/2 flex items-center justify-start gap-3">
-                  <div className="text-right text-[12px] font-semibold">Task :</div>
+                  <div className="text-right text-[12px] font-semibold]">Task :</div>
                   <div className="text-left text-[12px]">
                     {issueDetails?.task_management_name || ''}
                   </div>
@@ -799,9 +820,8 @@ const IssueDetails = () => {
                 <div
                   key={item}
                   id={idx + 1}
-                  className={`text-[14px] font-[400] ${
-                    tab === item ? 'selected' : 'cursor-pointer'
-                  }`}
+                  className={`text-[14px] font-[400] ${tab === item ? 'selected' : 'cursor-pointer'
+                    }`}
                   onClick={() => setTab(item)}
                 >
                   {item}

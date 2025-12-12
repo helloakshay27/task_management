@@ -466,8 +466,8 @@ const GanttChart = ({ selectedColumns = {} }) => {
                                     .replace(/#\[(.*?)\]\(\d+\)/g, '#$1')}</span>`;
                     }
                     if (task.type === 'task') {
-                        return `<span class="gantt-milestone-link" data-id="${task.parent.split('-')[1]
-                            }" style="cursor: pointer; font-size: 14px;" title="${task.text
+                        return `<span class="gantt-subtask-link" data-id="${task.navigationid
+                            }" data-parent="${task.parent.split('-')[1]}" style="cursor: pointer; font-size: 14px;" title="${task.text
                                 .replace(/@\[(.*?)\]\(\d+\)/g, '@$1')
                                 .replace(/#\[(.*?)\]\(\d+\)/g, '#$1')}">${task.text
                                     .replace(/@\[(.*?)\]\(\d+\)/g, '@$1')

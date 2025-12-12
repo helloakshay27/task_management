@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useParams, useLocation } from 'react-router-dom';
 import { useIsCloudRoute } from '../../../utils/navigationUtils';
 import { useDispatch, useSelector } from 'react-redux';
 import { useReactTable, getCoreRowModel, flexRender } from '@tanstack/react-table';
@@ -245,6 +245,9 @@ const DraggableColumnHeader = ({ header, onReorderColumns, columnOrder }) => {
 };
 
 const IssuesTable = ({ selectedColumns, projectId, searchQuery = '' }) => {
+  const location = useLocation();
+  const searchParams = new URLSearchParams(location.search);
+  const projectIdParam = searchParams.get('project_id');
   const { id: parentId } = useParams();
   const dispatch = useDispatch();
   const token = localStorage.getItem('token');
@@ -401,7 +404,6 @@ const IssuesTable = ({ selectedColumns, projectId, searchQuery = '' }) => {
     }
   }, [dispatch, loadingIssueType, issueType, issueTypeFetchError, token]);
 
-  console.log(issueType);
 
   // Handle search with pagination
   useEffect(() => {
@@ -418,6 +420,7 @@ const IssuesTable = ({ selectedColumns, projectId, searchQuery = '' }) => {
         page,
         per_page: 10,
         ...(projectId && { 'q[project_management_id_eq]': projectId }),
+        ...(projectIdParam && { 'q[project_management_id_eq]': projectIdParam })
       };
 
       const queryString = qs.stringify(filter);
@@ -431,7 +434,7 @@ const IssuesTable = ({ selectedColumns, projectId, searchQuery = '' }) => {
       // If search is cleared, reset to initial fetch
       allIssuesFetchInitiatedRef.current = false;
     }
-  }, [searchQuery, dispatch, token, projectId]);
+  }, [searchQuery, dispatch, token, projectId, projectIdParam]);
 
   // Fetch issues - only for initial load if no search
   useEffect(() => {
@@ -444,10 +447,10 @@ const IssuesTable = ({ selectedColumns, projectId, searchQuery = '' }) => {
       !allIssuesFetchInitiatedRef.current &&
       !searchQuery.trim()
     ) {
-      // If projectId is provided, use filter to get issues for that project
-      if (projectId) {
+      // If projectId from prop or URL param is provided, use filter to get issues for that project
+      if (projectId || projectIdParam) {
         const filter = {
-          'q[project_management_id_eq]': projectId,
+          'q[project_management_id_eq]': projectId || projectIdParam,
           page: pagination.pageIndex + 1,
           per_page: pagination.pageSize,
         };
@@ -478,6 +481,7 @@ const IssuesTable = ({ selectedColumns, projectId, searchQuery = '' }) => {
     pagination.pageIndex,
     pagination.pageSize,
     projectId,
+    projectIdParam,
     searchQuery,
   ]);
 
@@ -497,6 +501,7 @@ const IssuesTable = ({ selectedColumns, projectId, searchQuery = '' }) => {
         page,
         per_page: 10,
         ...(projectId && { 'q[project_management_id_eq]': projectId }),
+        ...(projectIdParam && { 'q[project_management_id_eq]': projectIdParam }),
       };
 
       const queryString = qs.stringify(filter);
@@ -507,7 +512,7 @@ const IssuesTable = ({ selectedColumns, projectId, searchQuery = '' }) => {
         })
       );
     }
-  }, [pagination.pageIndex, searchQuery, dispatch, token, projectId]);
+  }, [pagination.pageIndex, searchQuery, dispatch, token, projectId, projectIdParam]);
 
   useEffect(() => {
     const loadTasks = async () => {
@@ -679,8 +684,8 @@ const IssuesTable = ({ selectedColumns, projectId, searchQuery = '' }) => {
       allIssues =
         filterSuccess && filteredIssues && Array.isArray(filteredIssues) ? filteredIssues : [];
     }
-    // If projectId prop is provided, use filtered issues
-    else if (projectId) {
+    // If projectId from prop or URL param is provided, use filtered issues
+    else if (projectId || projectIdParam) {
       allIssues =
         filterSuccess && filteredIssues && Array.isArray(filteredIssues) ? filteredIssues : [];
     } else if (parentId !== null && parentId !== undefined) {
@@ -720,7 +725,7 @@ const IssuesTable = ({ selectedColumns, projectId, searchQuery = '' }) => {
       setLocalError('Failed to load issues.');
       setData([]);
     }
-  }, [allIssuesFromStore, allIssuesError, parentId, filteredIssues, filterSuccess, projectId, searchQuery]);
+  }, [allIssuesFromStore, allIssuesError, parentId, filteredIssues, filterSuccess, projectId, projectIdParam, searchQuery]);
 
   // Focus new issue title input
   useEffect(() => {

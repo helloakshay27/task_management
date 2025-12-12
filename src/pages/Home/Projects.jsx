@@ -31,7 +31,10 @@ const Projects = ({ setIsSidebarOpen }) => {
   const [selectedType, setSelectedType] = useState('List');
   const [filters, setFilters] = useState({});
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedColumns, setSelectedColumns] = useState({});
+  const [selectedColumns, setSelectedColumns] = useState(() => {
+    const saved = localStorage.getItem('ProjectTableColumns');
+    return saved ? JSON.parse(saved) : {};
+  });
 
   const tabRefs = useRef({});
   const underlineRef = useRef(null);
@@ -61,9 +64,8 @@ const Projects = ({ setIsSidebarOpen }) => {
           <div
             key={tab.id}
             ref={(el) => (tabRefs.current[tab.id] = el)}
-            className={`relative cursor-pointer text-[12px] pb-3 ${
-              activeTab === tab.id ? 'text-[#C72030]' : 'text-gray-600'
-            }`}
+            className={`relative cursor-pointer text-[12px] pb-3 ${activeTab === tab.id ? 'text-[#C72030]' : 'text-gray-600'
+              }`}
             onClick={() => {
               setActiveTab(tab.id);
               setActiveTabLabel(tab.id);

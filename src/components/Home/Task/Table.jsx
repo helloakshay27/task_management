@@ -21,6 +21,7 @@ import {
   createTaskComment,
 } from '../../../redux/slices/taskSlice';
 import { fetchUsers } from '../../../redux/slices/userSlice';
+import { fetchStatus } from '../../../redux/slices/statusSlice';
 import SelectBox from '../../SelectBox';
 import Loader from '../../Loader';
 import { useLocation } from 'react-router-dom';
@@ -29,7 +30,7 @@ import { fetchProjectTeamMembers } from '../../../redux/slices/projectSlice';
 import axios from 'axios';
 import toast from 'react-hot-toast';
 import { baseURL } from '../../../../apiDomain';
-import { X, Play, Pause } from 'lucide-react';
+import { X, Play, Pause, ChevronDown } from 'lucide-react';
 import { useDrag, useDrop, DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 
@@ -370,9 +371,21 @@ const processTaskData = (task) => {
     is_Subtask: task.parent_id ? true : false,
     total_sub_task_count: Number(task.total_sub_tasks || 0),
     completed_sub_task_count: Number(task.completed_sub_tasks || 0),
+    workflowStatus: task.project_status?.status || 'Open',
+    workflowStatusId: task.project_status?.id || null,
+    workflowStatusColor: task.project_status?.color_code || '#c72030',
     subTasks: (() => {
       const totalCount = Number(task.total_sub_tasks);
       const completedCount = Number(task.completed_sub_tasks);
+      if (!totalCount || totalCount === 0) return 0;
+      const percentage = Math.round((completedCount / totalCount) * 100);
+      return percentage;
+    })(),
+    total_issues_count: Number(task.total_issues || 0),
+    completed_issues_count: Number(task.completed_issues || 0),
+    issues: (() => {
+      const totalCount = Number(task.total_issues);
+      const completedCount = Number(task.completed_issues);
       if (!totalCount || totalCount === 0) return 0;
       const percentage = Math.round((completedCount / totalCount) * 100);
       return percentage;
@@ -383,7 +396,7 @@ const processTaskData = (task) => {
   };
 };
 
-const ProgressBar = ({ progressString, total = 0, completed = 0 }) => {
+export const ProgressBar = ({ progressString, total = 0, completed = 0 }) => {
   const numericValue = parseInt(progressString, 10);
   const isValidPercentage = !isNaN(numericValue) && numericValue >= 0 && numericValue <= 100;
   return (
@@ -435,6 +448,7 @@ const TaskTable = ({ isModalOpen, searchQuery, selectedColumns }) => {
     success: filterSuccess,
   } = useSelector((state) => state.filterTask);
   const { fetchMilestoneById: milestone } = useSelector((state) => state.fetchMilestoneById);
+  const { fetchStatus: statuses } = useSelector((state) => state.fetchStatus);
 
   const userFetchInitiatedRef = useRef(false);
   const isFetchingRef = useRef(false);
@@ -461,26 +475,41 @@ const TaskTable = ({ isModalOpen, searchQuery, selectedColumns }) => {
   const [isPauseModalOpen, setIsPauseModalOpen] = useState(false);
   const [pauseTaskId, setPauseTaskId] = useState(null);
   const [isPauseLoading, setIsPauseLoading] = useState(false);
+
+  useEffect(() => {
+    dispatch(fetchStatus({ token }));
+  }, [dispatch, token]);
   const [columnOrder, setColumnOrder] = useState(() => {
     // Load column order from local storage or use default
+    const defaultOrder = [
+      'expander',
+      'id',
+      'taskTitle',
+      'status',
+      'workflowStatus',
+      'responsiblePersonId',
+      'startDate',
+      'endDate',
+      'duration',
+      'estimated_hour',
+      'subTasks',
+      'issues',
+      'priority',
+      'predecessor',
+      'successor',
+    ];
     const savedOrder = localStorage.getItem('taskTableColumnOrder');
-    return savedOrder
-      ? JSON.parse(savedOrder)
-      : [
-        'expander',
-        'id',
-        'taskTitle',
-        'status',
-        'responsiblePersonId',
-        'startDate',
-        'endDate',
-        'duration',
-        'estimated_hour',
-        'subTasks',
-        'priority',
-        'predecessor',
-        'successor',
-      ];
+    if (savedOrder) {
+      try {
+        const parsed = JSON.parse(savedOrder);
+        // Add any new columns from defaultOrder that aren't in saved order
+        const newColumns = defaultOrder.filter((col) => !parsed.includes(col));
+        return [...parsed, ...newColumns];
+      } catch (error) {
+        return defaultOrder;
+      }
+    }
+    return defaultOrder;
   });
   const [pagination, setPagination] = useState({
     pageIndex: 0,
@@ -688,6 +717,26 @@ const TaskTable = ({ isModalOpen, searchQuery, selectedColumns }) => {
     [token, dispatch, handleFetchTasks]
   );
 
+  const handleWorkflowStatusChange = useCallback(
+    async (taskId, statusOption, row) => {
+      try {
+        const payload = { project_status_id: statusOption.id };
+
+        await dispatch(updateTask({ token, id: taskId, payload })).unwrap();
+
+        // toast.success('Workflow status updated successfully');
+
+        // Refresh tasks
+        lastFetchedPageRef.current = null;
+        await handleFetchTasks();
+      } catch (error) {
+        console.error('Failed to update workflow status:', error);
+        toast.error(`Failed to update status: ${error?.message || 'Server error'}`);
+      }
+    },
+    [dispatch, token, handleFetchTasks]
+  );
+
   // Add this new hook near the top of the TaskTable component
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -877,7 +926,7 @@ const TaskTable = ({ isModalOpen, searchQuery, selectedColumns }) => {
       if (
         filterSuccess &&
         Array.isArray(filterTasks.task_managements) &&
-        (localStorage.getItem('taskFilters') || localStorage.getItem('taskStatus'))
+        filterTasks.task_managements.length > 0
       ) {
         newProcessedData = filterTasks.task_managements.map((task) => processTaskData(task));
         totalPages = filterTasks.pagination?.total_pages || 1;
@@ -896,10 +945,10 @@ const TaskTable = ({ isModalOpen, searchQuery, selectedColumns }) => {
     } else {
       if (
         filterSuccess &&
-        Array.isArray(filterTasks) &&
-        (localStorage.getItem('taskFilters') || localStorage.getItem('taskStatus'))
+        Array.isArray(filterTasks.task_managements) &&
+        filterTasks.task_managements.length > 0
       ) {
-        newProcessedData = filterTasks.map((task) => processTaskData(task));
+        newProcessedData = filterTasks.task_managements.map((task) => processTaskData(task));
         totalPages = filterTasks.pagination?.total_pages || 1;
         totalRecords = filterTasks.pagination?.total_count || newProcessedData.length;
         currentPage = filterTasks.pagination?.current_page || 1;
@@ -1211,6 +1260,35 @@ const TaskTable = ({ isModalOpen, searchQuery, selectedColumns }) => {
       ),
     },
     {
+      id: 'workflowStatus',
+      accessorKey: 'workflowStatus',
+      header: 'Workflow Status',
+      size: 150,
+      cell: ({ getValue, row }) => {
+        // Create a color map from statuses
+        const statusColorMap = {};
+        if (Array.isArray(statuses)) {
+          statuses.forEach((s) => {
+            statusColorMap[s.status] = s.color_code;
+          });
+        }
+
+        return (
+          <StatusBadge
+            statusOptions={statuses?.map((s) => s.status) || []}
+            status={getValue() || 'Open'}
+            statusColors={statusColorMap}
+            onStatusChange={(newStatus) => {
+              const selectedStatus = statuses?.find((s) => s.status === newStatus);
+              if (selectedStatus) {
+                handleWorkflowStatusChange(row.original.id, selectedStatus, row);
+              }
+            }}
+          />
+        );
+      },
+    },
+    {
       accessorKey: 'responsiblePersonId',
       header: 'Responsible Person',
       size: 150,
@@ -1290,6 +1368,18 @@ const TaskTable = ({ isModalOpen, searchQuery, selectedColumns }) => {
       ),
     },
     {
+      accessorKey: 'issues',
+      header: 'Issues',
+      size: 140,
+      cell: (info) => (
+        <ProgressBar
+          progressString={info.getValue()}
+          total={info.row.original.total_issues_count}
+          completed={info.row.original.completed_issues_count}
+        />
+      ),
+    },
+    {
       accessorKey: 'priority',
       header: 'Priority',
       size: 110,
@@ -1329,6 +1419,7 @@ const TaskTable = ({ isModalOpen, searchQuery, selectedColumns }) => {
         return true;
       }
       const columnId = col.id || col.accessorKey;
+      // Show column if it's explicitly true, or if it's not defined (new columns default to visible)
       return selectedColumns[columnId] !== false;
     });
 

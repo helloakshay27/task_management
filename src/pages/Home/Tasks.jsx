@@ -13,12 +13,14 @@ const TASK_TABLE_COLUMNS = [
   { id: 'id', label: 'Task Id', key: 'id' },
   { id: 'taskTitle', label: 'Task Title', key: 'taskTitle' },
   { id: 'status', label: 'Status', key: 'status' },
+  { id: 'workflowStatus', label: 'Workflow Status', key: 'workflowStatus' },
   { id: 'responsiblePersonId', label: 'Responsible Person', key: 'responsiblePersonId' },
   { id: 'startDate', label: 'Start Date', key: 'startDate' },
   { id: 'endDate', label: 'End Date', key: 'endDate' },
   { id: 'duration', label: 'Duration', key: 'duration' },
   { id: 'total_allocated_hours', label: 'Effort Duration', key: 'total_allocated_hours' },
   { id: 'subTasks', label: 'Subtasks', key: 'subTasks' },
+  { id: 'issues', label: 'Issues', key: 'issues' },
   { id: 'priority', label: 'Priority', key: 'priority' },
   { id: 'predecessor', label: 'Predecessor', key: 'predecessor' },
   { id: 'successor', label: 'Successor', key: 'successor' },
@@ -36,7 +38,10 @@ const Tasks = ({ setIsSidebarOpen }) => {
   const [searchQuery, setSearchQuery] = useState('');
   // debouncedSearchQuery updates after a short delay to avoid firing API calls on every keystroke
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState(searchQuery);
-  const [selectedColumns, setSelectedColumns] = useState({});
+  const [selectedColumns, setSelectedColumns] = useState(() => {
+    const saved = localStorage.getItem('TaskTableColumns');
+    return saved ? JSON.parse(saved) : {};
+  });
 
   useEffect(() => {
     const handler = setTimeout(() => setDebouncedSearchQuery(searchQuery), 300);

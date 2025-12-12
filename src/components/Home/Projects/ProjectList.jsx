@@ -55,9 +55,8 @@ const NewProjectTextField = ({
       value={value || ''}
       onChange={onChange}
       onKeyDown={handleKeyDown}
-      className={`${
-        validator ? 'border border-red-500' : 'border-none'
-      } w-full p-1 focus:outline-none rounded text-[13px] bg-none`}
+      className={`${validator ? 'border border-red-500' : 'border-none'
+        } w-full p-1 focus:outline-none rounded text-[13px] bg-none`}
     />
   );
 };
@@ -84,9 +83,8 @@ const NewProjectDateEditor = ({
       value={value || ''}
       onChange={onChange}
       onKeyDown={handleKeyDown}
-      className={`${
-        validator ? 'border border-red-500' : 'border-none'
-      } w-full p-1 focus:outline-none rounded text-[13px] ${className || ''}`}
+      className={`${validator ? 'border border-red-500' : 'border-none'
+        } w-full p-1 focus:outline-none rounded text-[13px] ${className || ''}`}
       min={min || null}
     />
   );
@@ -243,9 +241,8 @@ const DraggableColumnHeader = ({ header, onReorderColumns, columnOrder }) => {
         transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
         transform: isOver ? 'scale(1.02)' : 'scale(1)',
       }}
-      className={`bg-gray-300 px-3 py-3.5 text-gray-800 text-center font-[500] border-r-2 border-[#FFFFFF] sticky top-0 z-10 cursor-move select-none ${
-        isDragging ? 'shadow-lg' : ''
-      } ${isOver ? 'bg-gray-300' : ''}`}
+      className={`bg-gray-300 px-3 py-3.5 text-gray-800 text-center font-[500] border-r-2 border-[#FFFFFF] sticky top-0 z-10 cursor-move select-none ${isDragging ? 'shadow-lg' : ''
+        } ${isOver ? 'bg-gray-300' : ''}`}
     >
       {header.isPlaceholder
         ? null
@@ -258,6 +255,7 @@ const ProjectList = ({ searchQuery, selectedColumns }) => {
   const token = localStorage.getItem('token');
   const dispatch = useDispatch();
   const isCloudRoute = useIsCloudRoute();
+  const navigate = useNavigate();
 
   const {
     fetchProjects: initialProjects,
@@ -326,20 +324,20 @@ const ProjectList = ({ searchQuery, selectedColumns }) => {
     return savedOrder
       ? JSON.parse(savedOrder)
       : [
-          'id',
-          'title',
-          'status',
-          'type',
-          'manager',
-          'milestones',
-          'tasks',
-          'subTasks',
-          'issues',
-          'startDate',
-          'endDate',
-          'priority',
-          'actions',
-        ];
+        'id',
+        'title',
+        'status',
+        'type',
+        'manager',
+        'milestones',
+        'tasks',
+        'subTasks',
+        'issues',
+        'startDate',
+        'endDate',
+        'priority',
+        'actions',
+      ];
   });
 
   useEffect(() => {
@@ -792,9 +790,9 @@ const ProjectList = ({ searchQuery, selectedColumns }) => {
       { value: '', label: 'Unassigned' },
       ...(Array.isArray(users)
         ? users.map((u) => ({
-            value: u.id,
-            label: `${u.firstname || ''} ${u.lastname || ''}`.trim(),
-          }))
+          value: u.id,
+          label: `${u.firstname || ''} ${u.lastname || ''}`.trim(),
+        }))
         : []),
     ],
     [users]
@@ -871,11 +869,13 @@ const ProjectList = ({ searchQuery, selectedColumns }) => {
         header: 'Tasks',
         size: 110,
         cell: (info) => (
-          <ProgressBar
-            progressString={info.getValue()}
-            total={info.row.original.total_task_management_count}
-            completed={info.row.original.completed_task_management_count}
-          />
+          <div className='cursor-pointer' onClick={() => navigate(`/tasks?project_id=${info.row.original.id.split('-')[1]}`)}>
+            <ProgressBar
+              progressString={info.getValue()}
+              total={info.row.original.total_task_management_count}
+              completed={info.row.original.completed_task_management_count}
+            />
+          </div>
         ),
       },
       {
@@ -895,11 +895,13 @@ const ProjectList = ({ searchQuery, selectedColumns }) => {
         header: 'Issues',
         size: 100,
         cell: (info) => (
-          <ProgressBar
-            progressString={info.getValue()}
-            total={info.row.original.total_issues_count}
-            completed={info.row.original.completed_issues_count}
-          />
+          <div className='cursor-pointer' onClick={() => navigate(`/issues?project_id=${info.row.original.id.split('-')[1]}`)}>
+            <ProgressBar
+              progressString={info.getValue()}
+              total={info.row.original.total_issues_count}
+              completed={info.row.original.completed_issues_count}
+            />
+          </div>
         ),
       },
       {
@@ -1231,9 +1233,8 @@ const ProjectList = ({ searchQuery, selectedColumns }) => {
                       <td
                         key={cell.id}
                         style={{ width: cell.column.getSize() }}
-                        className={`${
-                          cell.column.columnDef.meta?.cellClassName || ''
-                        } whitespace-nowrap border-r-2 p-2 align-middle`}
+                        className={`${cell.column.columnDef.meta?.cellClassName || ''
+                          } whitespace-nowrap border-r-2 p-2 align-middle`}
                       >
                         {flexRender(cell.column.columnDef.cell, cell.getContext())}
                       </td>

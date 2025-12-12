@@ -11,6 +11,7 @@ const MILESTONE_TABLE_COLUMNS = [
     { id: 'status', label: 'Status', key: 'status' },
     { id: 'owner', label: 'Owner', key: 'owner' },
     { id: 'tasks', label: 'Tasks', key: 'tasks' },
+    { id: 'issues', label: 'Issues', key: 'issues' },
     { id: 'startDate', label: 'Start Date', key: 'startDate' },
     { id: 'endDate', label: 'End Date', key: 'endDate' },
     { id: 'actions', label: 'Actions', key: 'actions' },

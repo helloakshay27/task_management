@@ -22,7 +22,10 @@ const ISSUES_TABLE_COLUMNS = [
 
 const Issues = ({ setIsSidebarOpen }) => {
   const [selectedType, setSelectedType] = useState('List');
-  const [selectedColumns, setSelectedColumns] = useState({});
+  const [selectedColumns, setSelectedColumns] = useState(() => {
+    const saved = localStorage.getItem('IssueTableColumns');
+    return saved ? JSON.parse(saved) : {};
+  });
   const [searchQuery, setSearchQuery] = useState('');
 
   const handleColumnsChange = (columns) => {

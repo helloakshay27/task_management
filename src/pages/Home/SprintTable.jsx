@@ -108,23 +108,26 @@ const SprintTable = (setIsSidebarOpen) => {
   const [selectedType, setSelectedType] = useState(() => {
     return localStorage.getItem('selectedSprintType') || 'List';
   });
-  const [selectedColumns, setSelectedColumns] = useState({});
+  const [selectedColumns, setSelectedColumns] = useState(() => {
+    const saved = localStorage.getItem('SprintTableColumns');
+    return saved ? JSON.parse(saved) : {};
+  });
   const [columnOrder, setColumnOrder] = useState(() => {
     // Load column order from local storage or use default
     const savedOrder = localStorage.getItem('sprintTableColumnOrder');
     return savedOrder
       ? JSON.parse(savedOrder)
       : [
-          'id',
-          'name',
-          'status',
-          'sprint_owner_name',
-          'start_date',
-          'end_date',
-          'duration',
-          'priority',
-          'associated_projects_count',
-        ];
+        'id',
+        'name',
+        'status',
+        'sprint_owner_name',
+        'start_date',
+        'end_date',
+        'duration',
+        'priority',
+        'associated_projects_count',
+      ];
   });
 
   const handleColumnsChange = (columns) => {
