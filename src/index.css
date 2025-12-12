@@ -79,34 +79,40 @@
   background-color: #f3f4f6;
   font-weight: 600;
 }
+
 .gantt_tree_icon {
   cursor: pointer;
 }
+
 /* Brown/tan fill */
 .gantt_task_content {
-  background-color: #bc977c !important; /* Adjust hex as needed */
+  background-color: #bc977c !important;
+  /* Adjust hex as needed */
 }
 
 /* Make Gantt task link lines reddish-brown */
 .gantt_line_wrapper div {
-  background-color: #c72030 !important; /* Reddish-brown color from the image */
+  background-color: #c72030 !important;
+  /* Reddish-brown color from the image */
 }
 
 /* Corners */
 .gantt_task_link .gantt_link_corner {
-  border-color: #c72030 !important; /* Match corner color to line */
+  border-color: #c72030 !important;
+  /* Match corner color to line */
 }
 
 .gantt_task_link div.gantt_link_arrow {
-  color: #c72030 !important; /* Reddish-brown color from the image */
+  color: #c72030 !important;
+  /* Reddish-brown color from the image */
 }
 
 /* Optional: Arrow color */
-.gantt_task_link .gantt_link_arrow {
-}
+.gantt_task_link .gantt_link_arrow {}
 
 gantt_task_link div.gantt_link_arrow:before {
-  color: #c72030 !important; /* Reddish-brown color from the image */
+  color: #c72030 !important;
+  /* Reddish-brown color from the image */
 }
 
 .gantt_cal_ltitle {
@@ -123,10 +129,12 @@ gantt_task_link div.gantt_link_arrow:before {
   border: 1px solid #c72030 !important;
   color: #c72030 !important;
 }
+
 .gantt_duration .gantt_duration_dec,
 .gantt_duration .gantt_duration_inc {
   color: #c72030 !important;
 }
+
 .gantt_link_arrow {
   --dhx-gantt-base-colors-icons: #c72030 !important;
 }
@@ -140,6 +148,7 @@ gantt_task_link div.gantt_link_arrow:before {
 .gantt_task_link .gantt_line_wrapper {
   z-index: 1;
 }
+
 .sidebar-link {
   display: flex;
   align-items: center;
@@ -203,18 +212,21 @@ svg {
 
 /* Target the success icon specifically */
 .react-hot-toast-success-icon path {
-  stroke: red !important; /* Change to your desired color, e.g., #FF0000 */
+  stroke: red !important;
+  /* Change to your desired color, e.g., #FF0000 */
 }
 
 /* Optional: To change the checkmark inside the circle */
 .react-hot-toast-success-icon polyline {
-  stroke: red !important; /* Or whatever color you want for the checkmark itself */
+  stroke: red !important;
+  /* Or whatever color you want for the checkmark itself */
 }
 
 /* Alternatively, if you want to apply this globally to all success toasts */
 .Toastify__toast--success .Toastify__toast-icon svg path {
   stroke: red !important;
 }
+
 .Toastify__toast--success .Toastify__toast-icon svg polyline {
   stroke: red !important;
 }
@@ -253,6 +265,7 @@ input[type='number']::-webkit-outer-spin-button {
     --chart-5: 27 87% 67%;
     --radius: 0.5rem;
   }
+
   .dark {
     --background: 0 0% 3.9%;
     --foreground: 0 0% 98%;
@@ -285,7 +298,33 @@ input[type='number']::-webkit-outer-spin-button {
   * {
     @apply border-border;
   }
+
   body {
     @apply bg-background text-foreground;
   }
+}
+
+.chat-sidebar-scroll {
+  max-height: 150px;
+  overflow-y: scroll;
+  overflow-x: hidden;
+}
+
+/* Chrome, Edge, Safari */
+.chat-sidebar-scroll::-webkit-scrollbar {
+  width: 8px;
+}
+
+.chat-sidebar-scroll::-webkit-scrollbar-track {
+  border-radius: 8px;
+}
+
+.chat-sidebar-scroll::-webkit-scrollbar-thumb {
+  border-radius: 8px;
+}
+
+/* Firefox */
+.chat-sidebar-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: #c72030 #ffacb4;
 }

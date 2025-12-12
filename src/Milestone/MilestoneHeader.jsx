@@ -1,8 +1,9 @@
 import { useEffect } from 'react';
 import TaskActions from '../components/Home/TaskActions';
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchProjectDetails } from '../redux/slices/projectSlice';
+import { ArrowLeft } from 'lucide-react';
 
 // Define available columns for Milestone table - must match allColumns in MilestoneList.jsx
 const MILESTONE_TABLE_COLUMNS = [
@@ -33,6 +34,7 @@ const MilestoneHeader = ({
     setSearchQuery,
     onColumnsChange,
 }) => {
+    const navigate = useNavigate()
     const token = localStorage.getItem('token');
     const { id } = useParams();
     const dispatch = useDispatch();
@@ -55,7 +57,12 @@ const MilestoneHeader = ({
 
     return (
         <div>
-            <h3 className="text-[11px] text-gray-400 mx-6 my-4">{project.title} / Milestones</h3>
+            <div className='flex items-center gap-4 mx-6 my-4'>
+                <button onClick={() => navigate('/projects')}>
+                    <ArrowLeft size={16} />
+                </button>
+                <h3 className="text-[11px] text-gray-400">{project.title} / Milestones</h3>
+            </div>
             <hr className="border border-gray-200" />
 
             <TaskActions

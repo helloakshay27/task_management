@@ -1,6 +1,6 @@
 import gsap from 'gsap';
 import IssuesTable from '../../components/Home/Issues/Table';
-import { ChevronDown, ChevronDownCircle, PencilIcon, Trash2 } from 'lucide-react';
+import { ArrowLeft, ChevronDown, ChevronDownCircle, PencilIcon, Trash2 } from 'lucide-react';
 import { useGSAP } from '@gsap/react';
 import { Fragment, useEffect, useRef, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
@@ -14,6 +14,7 @@ import {
 import AddProjectModal from '../../components/Home/Projects/AddProjectModal';
 import { attachFiles } from '../../redux/slices/projectSlice';
 import toast from 'react-hot-toast';
+import { Button } from '@/components/ui/button';
 
 const Issues = ({ projectId }) => {
   return <IssuesTable projectId={projectId} />;
@@ -411,10 +412,15 @@ const ProjectDetails = () => {
       )}
 
       <div className="px-4 pt-1">
-        <h2 className="text-[15px] p-3 px-0">
-          <span className=" mr-3">Project-{project.id}</span>
-          <span>{project.title}</span>
-        </h2>
+        <div className='flex items-center gap-5'>
+          <button onClick={() => navigate('/projects')}>
+            <ArrowLeft size={16} />
+          </button>
+          <h2 className="text-[15px] p-3 px-0">
+            <span className=" mr-3">Project-{project.id}</span>
+            <span>{project.title}</span>
+          </h2>
+        </div>
 
         <div className="border-b-[3px] border-[rgba(190, 190, 190, 1)]"></div>
         <div className="flex items-center justify-between my-3 text-[12px]">
@@ -451,9 +457,8 @@ const ProjectDetails = () => {
                   />
                 </div>
                 <ul
-                  className={`dropdown-menu absolute right-0 mt-2 bg-white border border-gray-200 rounded-md shadow-lg overflow-hidden ${
-                    openDropdown ? 'block' : 'hidden'
-                  }`}
+                  className={`dropdown-menu absolute right-0 mt-2 bg-white border border-gray-200 rounded-md shadow-lg overflow-hidden ${openDropdown ? 'block' : 'hidden'
+                    }`}
                   role="menu"
                   style={{
                     minWidth: '150px',
@@ -465,9 +470,8 @@ const ProjectDetails = () => {
                   {dropdownOptions.map((option, idx) => (
                     <li key={idx} role="menuitem">
                       <button
-                        className={`dropdown-item w-full text-left px-4 py-2 text-[13px] text-gray-700 hover:bg-gray-100 ${
-                          selectedOption === option ? 'bg-gray-100 font-semibold' : ''
-                        }`}
+                        className={`dropdown-item w-full text-left px-4 py-2 text-[13px] text-gray-700 hover:bg-gray-100 ${selectedOption === option ? 'bg-gray-100 font-semibold' : ''
+                          }`}
                         onClick={() => handleOptionSelect(option)}
                       >
                         {option}
@@ -585,9 +589,8 @@ const ProjectDetails = () => {
                 <div
                   key={item}
                   id={idx + 1}
-                  className={`text-[14px] font-[400] ${
-                    tab === item ? 'selected' : 'cursor-pointer'
-                  }`}
+                  className={`text-[14px] font-[400] ${tab === item ? 'selected' : 'cursor-pointer'
+                    }`}
                   onClick={() => setTab(item)}
                 >
                   {item}

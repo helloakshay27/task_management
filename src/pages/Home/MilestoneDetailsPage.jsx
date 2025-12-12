@@ -1,5 +1,5 @@
 import { useGSAP } from '@gsap/react';
-import { ChevronDown, ChevronDownCircle, PencilIcon, Trash2 } from 'lucide-react';
+import { ArrowLeft, ChevronDown, ChevronDownCircle, PencilIcon, Trash2 } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
@@ -65,9 +65,8 @@ const calculateDuration = (start, end) => {
   const remainingMinutes = minutes % 60;
   const remainingSeconds = seconds % 60;
 
-  return `${days > 0 ? days + 'd ' : ''}${remainingHours > 0 ? remainingHours + 'h ' : ''}${
-    remainingMinutes > 0 ? remainingMinutes + 'm ' : ''
-  }${remainingSeconds}s`;
+  return `${days > 0 ? days + 'd ' : ''}${remainingHours > 0 ? remainingHours + 'h ' : ''}${remainingMinutes > 0 ? remainingMinutes + 'm ' : ''
+    }${remainingSeconds}s`;
 };
 
 const CountdownTimer = ({ startDate, targetDate }) => {
@@ -103,7 +102,7 @@ const MilestoneDetailsPage = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  const { mid } = useParams();
+  const { id, mid } = useParams();
   const { taskDetails: task } = useSelector((state) => state.taskDetails);
 
   const [milestone, setMilestone] = useState({});
@@ -228,10 +227,15 @@ const MilestoneDetailsPage = () => {
       <div className="m-4">
         <Toaster position="top-center" />
         <div className="px-4 pt-1">
-          <h2 className="text-[15px] p-3 px-0">
-            <span className="mr-3">M-0{milestone.id}</span>
-            <span>{milestone.title}</span>
-          </h2>
+          <div className="flex items-center gap-5">
+            <button onClick={() => navigate(`/projects/${id}/milestones`)}>
+              <ArrowLeft size={16} />
+            </button>
+            <h2 className="text-[15px] p-3 px-0">
+              <span className="mr-3">M-0{milestone.id}</span>
+              <span>{milestone.title}</span>
+            </h2>
+          </div>
           <div className="border-b-[3px] border-[rgba(190, 190, 190, 1)]"></div>
           <div className="flex items-center justify-between my-3 text-[12px]">
             <div className="flex items-center gap-3 text-[#323232]">
@@ -255,16 +259,14 @@ const MilestoneDetailsPage = () => {
                     <span className="text-[13px]">{selectedOption}</span>
                     <ChevronDown
                       size={15}
-                      className={`${
-                        milestone.task_managements?.length === 0 && openDropdown ? 'rotate-180' : ''
-                      } transition-transform`}
+                      className={`${milestone.task_managements?.length === 0 && openDropdown ? 'rotate-180' : ''
+                        } transition-transform`}
                     />
                   </div>
                   {milestone.task_managements?.length === 0 && (
                     <ul
-                      className={`dropdown-menu absolute right-0 mt-2 bg-white border border-gray-200 rounded-md shadow-lg overflow-hidden ${
-                        openDropdown ? 'block' : 'hidden'
-                      }`}
+                      className={`dropdown-menu absolute right-0 mt-2 bg-white border border-gray-200 rounded-md shadow-lg overflow-hidden ${openDropdown ? 'block' : 'hidden'
+                        }`}
                       role="menu"
                       style={{
                         minWidth: '150px',
@@ -276,9 +278,8 @@ const MilestoneDetailsPage = () => {
                       {dropdownOptions.map((option, idx) => (
                         <li key={idx} role="menuitem">
                           <button
-                            className={`dropdown-item w-full text-left px-4 py-2 text-[13px] text-gray-700 hover:bg-gray-100 ${
-                              selectedOption === option ? 'bg-gray-100 font-semibold' : ''
-                            }`}
+                            className={`dropdown-item w-full text-left px-4 py-2 text-[13px] text-gray-700 hover:bg-gray-100 ${selectedOption === option ? 'bg-gray-100 font-semibold' : ''
+                              }`}
                             onClick={() => handleOptionSelect(option)}
                           >
                             {option}
@@ -311,9 +312,8 @@ const MilestoneDetailsPage = () => {
               <ChevronDownCircle
                 color="#E95420"
                 size={30}
-                className={`${
-                  isSecondCollapsed ? 'rotate-180' : 'rotate-0'
-                } transition-transform cursor-pointer`}
+                className={`${isSecondCollapsed ? 'rotate-180' : 'rotate-0'
+                  } transition-transform cursor-pointer`}
                 onClick={toggleSecondCollapse}
               />{' '}
               Details
@@ -360,9 +360,8 @@ const MilestoneDetailsPage = () => {
                   <div
                     key={index}
                     id={index + 1}
-                    className={`text-[14px] font-[400] ${
-                      tab === tabName ? 'selected' : 'cursor-pointer'
-                    }`}
+                    className={`text-[14px] font-[400] ${tab === tabName ? 'selected' : 'cursor-pointer'
+                      }`}
                     onClick={() => setTab(tabName)}
                   >
                     {tabName}

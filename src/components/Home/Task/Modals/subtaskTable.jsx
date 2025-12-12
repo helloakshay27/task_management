@@ -615,6 +615,32 @@ const SubtaskTable = ({ projectId }) => {
       })
       .filter((id) => id !== null);
 
+    const generateAllocationDates = (start, end) => {
+      const result = [];
+      let current = new Date(start);
+      const endDate = new Date(end);
+
+      while (current <= endDate) {
+        const formatted = current.toISOString().split("T")[0];
+
+        result.push({
+          date: formatted,
+          hours: 8,
+          minutes: 0,
+        });
+
+        // move to next day
+        current.setDate(current.getDate() + 1);
+      }
+
+      return result;
+    };
+
+    const allocation = generateAllocationDates(
+      newSubtaskStartDate,
+      newSubtaskEndDate
+    );
+
     const subtaskPayload = {
       parent_id: parentId,
       title: newSubtaskTitle.trim(),
@@ -626,6 +652,8 @@ const SubtaskTable = ({ projectId }) => {
       target_date: newSubtaskEndDate || null,
       priority: newSubtaskPriority,
       task_tag_ids: selectedTagIds,
+      estimated_hour: 8 * allocation.length,
+      task_allocation_times_attributes: allocation,
     };
 
     try {

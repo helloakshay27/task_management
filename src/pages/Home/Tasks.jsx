@@ -3,9 +3,10 @@ import TaskActions from '../../components/Home/TaskActions.jsx';
 import BoardsSection from '../../components/Home/BoardsSection.jsx';
 import TasksList from '../../components/Home/Task/TasksList.jsx';
 import { useDispatch, useSelector } from 'react-redux';
-import { useParams } from 'react-router-dom';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { fetchProjectDetails } from '../../redux/slices/projectSlice.js';
 import { fetchMilestoneById } from '../../redux/slices/milestoneSlice.js';
+import { ArrowLeft } from 'lucide-react';
 
 // Define available columns for Task table - must match mainTableColumns in Table.jsx
 const TASK_TABLE_COLUMNS = [
@@ -30,6 +31,11 @@ const Tasks = ({ setIsSidebarOpen }) => {
   const token = localStorage.getItem('token');
   const { id, mid } = useParams();
   const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const pathname = location.pathname;
+
+  console.log(pathname);
 
   const { fetchProjectDetails: project } = useSelector((state) => state.fetchProjectDetails);
   const { fetchMilestoneById: milestone } = useSelector((state) => state.fetchMilestoneById);
@@ -63,11 +69,21 @@ const Tasks = ({ setIsSidebarOpen }) => {
 
   return (
     <div className="h-full overflow-y-auto no-scrollbar">
-      <h3 className="text-[11px] text-gray-400 mx-6 my-4">
-        {project?.title && milestone?.title
-          ? `${project.title} / ${milestone.title} / Tasks`
-          : 'Tasks'}
-      </h3>
+      <div className="flex items-center gap-5 mx-6 my-4">
+        {
+          pathname !== "/tasks" && (
+            <button onClick={() => navigate(`/projects/${id}/milestones`)}>
+              <ArrowLeft size={16} />
+            </button>
+          )
+        }
+
+        <h3 className="text-[11px] text-gray-400">
+          {project?.title && milestone?.title
+            ? `${project.title} / ${milestone.title} / Tasks`
+            : 'Tasks'}
+        </h3>
+      </div>
       <hr className="border border-gray-200" />
 
       <TaskActions

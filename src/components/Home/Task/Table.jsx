@@ -1062,6 +1062,33 @@ const TaskTable = ({ isModalOpen, searchQuery, selectedColumns }) => {
     // }
     setLocalError(null);
     setValidator(false);
+
+    const generateAllocationDates = (start, end) => {
+      const result = [];
+      let current = new Date(start);
+      const endDate = new Date(end);
+
+      while (current <= endDate) {
+        const formatted = current.toISOString().split("T")[0];
+
+        result.push({
+          date: formatted,
+          hours: 8,
+          minutes: 0,
+        });
+
+        // move to next day
+        current.setDate(current.getDate() + 1);
+      }
+
+      return result;
+    };
+
+    const allocation = generateAllocationDates(
+      newTaskStartDate,
+      newTaskEndDate
+    );
+
     const taskAttributes = {
       title: newTaskTitle.trim(),
       status: newTaskStatus,
@@ -1071,6 +1098,8 @@ const TaskTable = ({ isModalOpen, searchQuery, selectedColumns }) => {
       target_date: newTaskEndDate || null,
       priority: newTaskPriority,
       milestone_id: mid,
+      estimated_hour: 8 * allocation.length,
+      task_allocation_times_attributes: allocation,
     };
     setIsCreatingTask(true);
     setIsAddingNewTask(false);

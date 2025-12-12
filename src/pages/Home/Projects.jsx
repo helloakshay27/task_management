@@ -104,7 +104,7 @@ const Projects = ({ setIsSidebarOpen }) => {
       )}
 
       {activeTab === tabs[1].id && <ProjectTemplates />}
-      {activeTab === tabs[2].id && <div>Tempelate</div>}
+      {/* {activeTab === tabs[2].id && <div>Tempelate</div>} */}
       {/* {
                 activeTab === tabs[3].id && selectedType === "List" && (
                     <IssuesTable />

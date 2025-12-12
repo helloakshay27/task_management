@@ -7,10 +7,10 @@ export const tabs = [
     id: 'templates',
     label: 'Templates',
   },
-  {
-    id: 'archived',
-    label: 'Archived',
-  },
+  // {
+  //   id: 'archived',
+  //   label: 'Archived',
+  // },
   // {
   //   id: "Issues",
   //   label: "Issues",

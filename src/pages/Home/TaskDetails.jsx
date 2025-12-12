@@ -1,5 +1,6 @@
 import { useGSAP } from '@gsap/react';
 import {
+  ArrowLeft,
   ChevronDown,
   ChevronDownCircle,
   CircleCheckBigIcon,
@@ -816,7 +817,7 @@ const TaskDetails = () => {
   const token = localStorage.getItem('token');
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { tid } = useParams();
+  const { id, mid, tid } = useParams();
   const { taskDetails: task } = useSelector((state) => state.taskDetails);
   const { fetchStatus: statuses } = useSelector((state) => state.fetchStatus);
   const { success } = useSelector((state) => state.changeTaskStatus);
@@ -1055,10 +1056,15 @@ const TaskDetails = () => {
       <div className="m-4">
         <Toaster position="top-center" />
         <div className="px-4 pt-1">
-          <h2 className="text-[15px] p-3 px-0">
-            <span className="mr-3 text-[#C72030]">T-0{task.id}</span>
-            <span>{task.title}</span>
-          </h2>
+          <div className="flex items-center gap-5">
+            <button onClick={() => navigate(-1)}>
+              <ArrowLeft size={16} />
+            </button>
+            <h2 className="text-[15px] p-3 px-0">
+              <span className="mr-3 text-[#C72030]">T-0{task.id}</span>
+              <span>{task.title}</span>
+            </h2>
+          </div>
           <div className="border-b-[3px] border-[rgba(190, 190, 190, 1)]"></div>
           <div className="flex items-center justify-between my-3 text-[12px]">
             <div className="flex items-center gap-3 text-[#323232]">
