@@ -287,6 +287,9 @@ const GroupConversation = () => {
           toast.success('Real-time group chat connected!', { duration: 2000 });
         },
         onNewMessage: (message) => {
+          if (message.user_id === currentUser.id && message.project_space_id !== id) {
+            return;
+          }
           setMessages((prev) => {
             const exists = prev.some((msg) => msg.id === message.id);
             if (exists) {
@@ -335,25 +338,22 @@ const GroupConversation = () => {
           </div>
           <div className="flex space-x-6 mt-2 ml-1 text-sm font-medium text-gray-500">
             <span
-              className={`cursor-pointer ${
-                activeTab === 'chat' ? 'text-black border-b-2 border-black pb-1' : ''
-              }`}
+              className={`cursor-pointer ${activeTab === 'chat' ? 'text-black border-b-2 border-black pb-1' : ''
+                }`}
               onClick={() => setActiveTab('chat')}
             >
               Chat
             </span>
             <span
-              className={`cursor-pointer ${
-                activeTab === 'task' ? 'text-black border-b-2 border-black pb-1' : ''
-              }`}
+              className={`cursor-pointer ${activeTab === 'task' ? 'text-black border-b-2 border-black pb-1' : ''
+                }`}
               onClick={() => setActiveTab('task')}
             >
               Tasks
             </span>
             <span
-              className={`cursor-pointer ${
-                activeTab === 'attachments' ? 'text-black border-b-2 border-black pb-1' : ''
-              }`}
+              className={`cursor-pointer ${activeTab === 'attachments' ? 'text-black border-b-2 border-black pb-1' : ''
+                }`}
               onClick={() => setActiveTab('attachments')}
             >
               Attachments
@@ -465,9 +465,8 @@ const GroupConversation = () => {
                 {filteredUsers.map((user, index) => (
                   <div
                     key={user.id}
-                    className={`px-4 py-2 cursor-pointer flex items-center space-x-3 ${
-                      index === selectedMentionIndex ? 'bg-gray-100' : 'hover:bg-gray-50'
-                    }`}
+                    className={`px-4 py-2 cursor-pointer flex items-center space-x-3 ${index === selectedMentionIndex ? 'bg-gray-100' : 'hover:bg-gray-50'
+                      }`}
                     onClick={() => insertMention(user)}
                     onMouseEnter={() => setSelectedMentionIndex(index)}
                   >
