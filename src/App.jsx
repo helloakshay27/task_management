@@ -99,9 +99,11 @@ const App = () => {
             return;
           }
 
+          const sender = message?.user?.firstname + ' ' + message?.user?.lastname;
+
           Notification.requestPermission().then((permission) => {
             if (permission === 'granted') {
-              const notification = new Notification('New message', {
+              const notification = new Notification(sender, {
                 body: message.body,
               });
 

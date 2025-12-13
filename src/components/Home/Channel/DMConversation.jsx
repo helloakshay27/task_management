@@ -181,18 +181,6 @@ const DMConversation = () => {
             return;
           }
 
-          Notification.requestPermission().then((permission) => {
-            if (permission === 'granted') {
-              const notification = new Notification('New message', {
-                body: message.body,
-              });
-
-              notification.onclick = () => {
-                window.focus();
-              };
-            }
-          });
-
           isUserInitiatedScroll.current = false;
         },
         onDisconnected: () => {
