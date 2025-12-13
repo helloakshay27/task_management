@@ -1736,7 +1736,7 @@ const TaskTable = ({ isModalOpen, searchQuery, selectedColumns }) => {
                 !isUpdatingTask &&
                 !loadingFilterTasks && (
                   <tr style={{ height: `${ROW_HEIGHT * 2}px` }}>
-                    <td colSpan={mainTableColumns.length} className="text-center text-gray-500 p-4">
+                    <td colSpan={orderedColumns.length} className="text-center text-gray-500 p-4">
                       {isFiltered ? 'Try adjusting Filters' : ''} "No tasks available"
                     </td>
                   </tr>
@@ -1777,7 +1777,7 @@ const TaskTable = ({ isModalOpen, searchQuery, selectedColumns }) => {
               )}
               {showTopLevelAddTaskButton && (
                 <tr style={{ height: `${ROW_HEIGHT}px` }}>
-                  <td colSpan={mainTableColumns.length} className="border text-left text-[12px]">
+                  <td colSpan={orderedColumns.length} className="border text-left text-[12px]">
                     <button
                       onClick={handleShowNewTaskForm}
                       className="text-red-500 hover:underline text-sm px-2 py-1"
@@ -1789,7 +1789,7 @@ const TaskTable = ({ isModalOpen, searchQuery, selectedColumns }) => {
               )}
               {/* {Array.from({ length: numEmptyRowsToFill }).map((_, i) => (
                 <tr key={`empty-${i}`} style={{ height: `${ROW_HEIGHT}px` }}>
-                  <td colSpan={mainTableColumns.length} className="border-r-2 p-2"></td>
+                  <td colSpan={orderedColumns.length} className="border-r-2 p-2"></td>
                 </tr>
               ))} */}
             </tbody>
