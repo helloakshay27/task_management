@@ -521,7 +521,9 @@ const Issues = ({ closeModal }) => {
         toast.success('Issue created successfully!');
       } catch (error) {
         console.error('Error submitting Issue:', error);
-        toast.error(`Issue creation failed: ${error.message || 'Unknown error'}`);
+        Object.keys(error.response.data).forEach((key) => {
+          toast.error(`${key} ${error.response.data[key]}`);
+        })
       } finally {
         setIsSubmitting(false);
       }

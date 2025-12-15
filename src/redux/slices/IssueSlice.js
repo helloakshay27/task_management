@@ -51,20 +51,23 @@ const createApiSlice = (name, fetchThunk) =>
     },
   });
 
-export const createIssue = createAsyncThunk('createIssue', async ({ token, payload }) => {
-  try {
-    const response = await axios.post(`${baseURL}/issues.json`, payload, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        'Content-Type': 'Multipart/form-data',
-      },
-    });
+export const createIssue = createAsyncThunk(
+  'createIssue',
+  async ({ token, payload }, { rejectWithValue }) => {
+    try {
+      const response = await axios.post(`${baseURL}/issues.json`, payload, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'Multipart/form-data',
+        },
+      });
 
-    return response.data;
-  } catch (error) {
-    console.log(error);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error);
+    }
   }
-});
+);
 
 export const fetchIssue = createAsyncThunk(
   'fetchIssue',
