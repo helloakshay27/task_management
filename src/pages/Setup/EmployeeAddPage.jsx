@@ -52,6 +52,7 @@ const EmployeeAddPage = () => {
   const dispatch = useDispatch();
   const token = localStorage.getItem('token');
 
+  const [isSubmitting, setIsSubmitting] = useState(false)
   const [departments, setDepartments] = useState([]);
   const [shifts, setShifts] = useState([]);
   const [company, setCompany] = useState([]);
@@ -216,6 +217,7 @@ const EmployeeAddPage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validateForm()) return;
+    setIsSubmitting(true);
     try {
       const payload = {
         user: {
@@ -260,6 +262,8 @@ const EmployeeAddPage = () => {
       if (Array.isArray(error.response.data.errors) && error.response.data.errors.length > 0) {
         toast.error(error.response.data.errors[0]);
       }
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -528,6 +532,7 @@ const EmployeeAddPage = () => {
           <button
             type="submit"
             className="px-8 py-2 bg-[#C72030] text-white rounded hover:bg-[#a01a25] font-medium"
+            disabled={isSubmitting}
           >
             Save
           </button>
