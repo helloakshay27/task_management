@@ -227,7 +227,14 @@ export const filterIssue = createAsyncThunk(
         },
       });
 
-      return response.data;
+      return {
+        issues: response.data.issues,
+        pagination: {
+          current_page: response.data.meta.current_page || page,
+          total_pages: response.data.meta.total_pages || 1,
+          total_count: response.data.meta.total_count,
+        },
+      };
     } catch (error) {
       return rejectWithValue(error.response?.data || error.message);
     }

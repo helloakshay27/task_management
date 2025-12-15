@@ -1488,10 +1488,13 @@ const IssuesTable = ({ selectedColumns, projectId, searchQuery = '' }) => {
       setPagination((prev) => {
         const newState = typeof updater === 'function' ? updater(prev) : updater;
         dispatch(
-          fetchIssue({
+          filterIssue({
             token,
-            page: newState.pageIndex + 1,
-            per_page: newState.pageSize,
+            filter: {
+              page: newState.pageIndex + 1,
+              per_page: newState.pageSize,
+              ...(projectIdParam && { 'q[project_management_id_eq]': projectIdParam }),
+            }
           })
         );
         return newState;
