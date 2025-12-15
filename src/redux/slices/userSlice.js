@@ -56,7 +56,7 @@ export const createInternalUser = createAsyncThunk(
       const response = await axios.post(`${baseURL}/users.json`, payload, {
         headers: {
           Authorization: `Bearer ${token}`,
-          'Content-Type': 'Multipart/form-data',
+          'Content-Type': 'multipart/form-data',
         },
       });
 
