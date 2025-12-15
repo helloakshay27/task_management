@@ -250,6 +250,7 @@ const IssuesTable = ({ selectedColumns, projectId, searchQuery = '' }) => {
   const location = useLocation();
   const searchParams = new URLSearchParams(location.search);
   const projectIdParam = searchParams.get('project_id');
+  const taskIdParam = searchParams.get('task_id');
   const { id: parentId } = useParams();
   const dispatch = useDispatch();
   const token = localStorage.getItem('token');
@@ -422,7 +423,8 @@ const IssuesTable = ({ selectedColumns, projectId, searchQuery = '' }) => {
         page,
         per_page: 10,
         ...(projectId && { 'q[project_management_id_eq]': projectId }),
-        ...(projectIdParam && { 'q[project_management_id_eq]': projectIdParam })
+        ...(projectIdParam && { 'q[project_management_id_eq]': projectIdParam }),
+        ...(taskIdParam && { 'q[task_management_id_eq]': taskIdParam })
       };
 
       const queryString = qs.stringify(filter);
@@ -436,7 +438,7 @@ const IssuesTable = ({ selectedColumns, projectId, searchQuery = '' }) => {
       // If search is cleared, reset to initial fetch
       allIssuesFetchInitiatedRef.current = false;
     }
-  }, [searchQuery, dispatch, token, projectId, projectIdParam]);
+  }, [searchQuery, dispatch, token, projectId, projectIdParam, taskIdParam]);
 
   // Fetch issues - only for initial load if no search
   useEffect(() => {
@@ -450,9 +452,10 @@ const IssuesTable = ({ selectedColumns, projectId, searchQuery = '' }) => {
       !searchQuery.trim()
     ) {
       // If projectId from prop or URL param is provided, use filter to get issues for that project
-      if (projectId || projectIdParam) {
+      if (projectId || projectIdParam || taskIdParam) {
         const filter = {
-          'q[project_management_id_eq]': projectId || projectIdParam,
+          'q[project_management_id_eq]': projectId || projectIdParam || "",
+          'q[task_management_id_eq]': taskIdParam || "",
           page: pagination.pageIndex + 1,
           per_page: pagination.pageSize,
         };
@@ -484,6 +487,7 @@ const IssuesTable = ({ selectedColumns, projectId, searchQuery = '' }) => {
     pagination.pageSize,
     projectId,
     projectIdParam,
+    taskIdParam,
     searchQuery,
   ]);
 
@@ -504,6 +508,7 @@ const IssuesTable = ({ selectedColumns, projectId, searchQuery = '' }) => {
         per_page: 10,
         ...(projectId && { 'q[project_management_id_eq]': projectId }),
         ...(projectIdParam && { 'q[project_management_id_eq]': projectIdParam }),
+        ...(taskIdParam && { 'q[task_management_id_eq]': taskIdParam })
       };
 
       const queryString = qs.stringify(filter);
@@ -514,7 +519,7 @@ const IssuesTable = ({ selectedColumns, projectId, searchQuery = '' }) => {
         })
       );
     }
-  }, [pagination.pageIndex, searchQuery, dispatch, token, projectId, projectIdParam]);
+  }, [pagination.pageIndex, searchQuery, dispatch, token, projectId, projectIdParam, taskIdParam]);
 
   useEffect(() => {
     const loadTasks = async () => {
@@ -687,7 +692,7 @@ const IssuesTable = ({ selectedColumns, projectId, searchQuery = '' }) => {
         filterSuccess && filteredIssues && Array.isArray(filteredIssues) ? filteredIssues : [];
     }
     // If projectId from prop or URL param is provided, use filtered issues
-    else if (projectId || projectIdParam) {
+    else if (projectId || projectIdParam || taskIdParam) {
       allIssues =
         filterSuccess && filteredIssues && Array.isArray(filteredIssues) ? filteredIssues : [];
     } else if (parentId !== null && parentId !== undefined) {
@@ -727,7 +732,7 @@ const IssuesTable = ({ selectedColumns, projectId, searchQuery = '' }) => {
       setLocalError('Failed to load issues.');
       setData([]);
     }
-  }, [allIssuesFromStore, allIssuesError, parentId, filteredIssues, filterSuccess, projectId, projectIdParam, searchQuery]);
+  }, [allIssuesFromStore, allIssuesError, parentId, filteredIssues, filterSuccess, projectId, projectIdParam, taskIdParam, searchQuery]);
 
   // Focus new issue title input
   useEffect(() => {
@@ -1494,6 +1499,7 @@ const IssuesTable = ({ selectedColumns, projectId, searchQuery = '' }) => {
               page: newState.pageIndex + 1,
               per_page: newState.pageSize,
               ...(projectIdParam && { 'q[project_management_id_eq]': projectIdParam }),
+              ...(taskIdParam && { 'q[task_management_id_eq]': taskIdParam }),
             }
           })
         );

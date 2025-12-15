@@ -894,11 +894,13 @@ const SubtaskTable = ({ projectId }) => {
         header: 'Issues',
         size: 140,
         cell: (info) => (
-          <ProgressBar
-            progressString={info.getValue()}
-            total={info.row.original.totalIssuesCount}
-            completed={info.row.original.completedIssuesCount}
-          />
+          <div className='cursor-pointer' onClick={() => navigate(`/issues?task_id=${info.row.original.id}`)}>
+            <ProgressBar
+              progressString={info.getValue()}
+              total={info.row.original.totalIssuesCount}
+              completed={info.row.original.completedIssuesCount}
+            />
+          </div>
         ),
       },
       {

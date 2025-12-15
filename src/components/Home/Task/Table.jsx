@@ -8,7 +8,7 @@ import {
 import { useDispatch, useSelector } from 'react-redux';
 import StatusBadge from '../Projects/statusBadge';
 import { ChevronDownIcon, ChevronRightIcon } from '@heroicons/react/20/solid';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import '../../Home/Sprints/Table.css';
 import { getTaskPaths, useIsCloudRoute } from '../../../utils/navigationUtils';
 import {
@@ -420,6 +420,7 @@ export const ProgressBar = ({ progressString, total = 0, completed = 0 }) => {
 };
 
 const TaskTable = ({ isModalOpen, searchQuery, selectedColumns }) => {
+  const navigate = useNavigate();
   const token = localStorage.getItem('token');
   const { id, mid } = useParams();
   const dispatch = useDispatch();
@@ -1403,13 +1404,18 @@ const TaskTable = ({ isModalOpen, searchQuery, selectedColumns }) => {
       accessorKey: 'issues',
       header: 'Issues',
       size: 140,
-      cell: (info) => (
-        <ProgressBar
-          progressString={info.getValue()}
-          total={info.row.original.total_issues_count}
-          completed={info.row.original.completed_issues_count}
-        />
-      ),
+      cell: (info) => {
+        console.log(info)
+        return (
+          <div className='cursor-pointer' onClick={() => navigate(`/issues?task_id=${info.row.original.id}`)}>
+            <ProgressBar
+              progressString={info.getValue()}
+              total={info.row.original.total_issues_count}
+              completed={info.row.original.completed_issues_count}
+            />
+          </div>
+        )
+      },
     },
     {
       accessorKey: 'priority',
