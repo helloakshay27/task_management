@@ -10,6 +10,7 @@ import { HTML5Backend } from 'react-dnd-html5-backend';
 import StatusBadge from '../Projects/statusBadge';
 import { ArrowPathIcon } from '@heroicons/react/20/solid';
 import SelectBox from '../../SelectBox';
+import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from '../../ui/tooltip';
 import qs from 'qs';
 
 // Redux Thunks
@@ -703,10 +704,13 @@ const IssuesTable = ({ selectedColumns, projectId, searchQuery = '' }) => {
       (localStorage.getItem('IssueFilters') || localStorage.getItem('issueStatus'))
     ) {
       allIssues = filteredIssues;
-    } else {
+    } else if (filterSuccess) {
+      allIssues = filteredIssues;
+    }
+    else {
       allIssues = allIssuesFromStore;
     }
-
+    console.log(allIssues)
     if (allIssues && Array.isArray(allIssues)) {
       const processedIssues = allIssues.map((issue) => ({
         id: issue.id,
@@ -1182,9 +1186,18 @@ const IssuesTable = ({ selectedColumns, projectId, searchQuery = '' }) => {
         cell: (info) => {
           const value = info.getValue();
           return (
-            <div className="truncate" title={value}>
-              {value}
-            </div>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div className="truncate">
+                    {value}
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent className="w-64">
+                  <p>{value}</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           );
         },
       },
