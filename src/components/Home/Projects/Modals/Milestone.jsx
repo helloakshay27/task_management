@@ -386,9 +386,12 @@ const Milestones = ({ closeModal, opportunityId, prefillData, onSuccess }) => {
       toast.success('Milestone created successfully.');
       await dispatch(fetchMilestone({ token, id })).unwrap();
       dispatch(clearSavedMilestones());
-      // window.location.reload();
-    } catch {
-      toast.error('Error creating milestone.');
+      window.location.reload();
+    } catch (error) {
+      console.log(error)
+      Object.keys(error?.response?.data).forEach((key) => {
+        toast.error(`${key} ${error?.response?.data[key]}`);
+      })
     } finally {
       isSubmittingRef.current = false;
       setIsDelete(false);

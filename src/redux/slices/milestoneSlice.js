@@ -2,19 +2,22 @@ import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import axios from 'axios';
 import { baseURL } from '../../../apiDomain';
 
-export const createMilestone = createAsyncThunk('createMilestone', async ({ token, payload }) => {
-  try {
-    const response = await axios.post(`${baseURL}/milestones.json`, payload, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
-    return response.data;
-  } catch (error) {
-    console.log(error);
-    return error.response.data;
+export const createMilestone = createAsyncThunk(
+  'createMilestone',
+  async ({ token, payload }, { rejectWithValue }) => {
+    try {
+      const response = await axios.post(`${baseURL}/milestones.json`, payload, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      return response.data;
+    } catch (error) {
+      console.log(error);
+      return rejectWithValue(error);
+    }
   }
-});
+);
 
 export const fetchMilestone = createAsyncThunk('fetchMilestone', async ({ token, id }) => {
   try {
