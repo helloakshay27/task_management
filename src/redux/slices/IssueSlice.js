@@ -111,23 +111,27 @@ export const fetchIssueById = createAsyncThunk('fetchIssueById', async ({ token,
   }
 });
 
-export const updateIssue = createAsyncThunk('updateIssue', async ({ token, id, payload }) => {
-  try {
-    const response = await axios.put(
-      `${baseURL}/issues/${id}.json`,
-      { issue: payload },
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
+export const updateIssue = createAsyncThunk(
+  'updateIssue',
+  async ({ token, id, payload }, { rejectWithValue }) => {
+    try {
+      const response = await axios.put(
+        `${baseURL}/issues/${id}.json`,
+        { issue: payload },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
-    return response.data;
-  } catch (error) {
-    console.log(error);
+      return response.data;
+    } catch (error) {
+      console.log(error);
+      return rejectWithValue(error);
+    }
   }
-});
+);
 
 export const attachFile = createAsyncThunk('updateIssue', async ({ token, id, payload }) => {
   try {

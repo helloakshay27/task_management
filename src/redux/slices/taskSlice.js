@@ -350,7 +350,7 @@ export const deleteTaskComment = createAsyncThunk('deleteTaskComment', async ({ 
 
 export const changeTaskStatus = createAsyncThunk(
   'changeTaskStatus',
-  async ({ token, id, payload }) => {
+  async ({ token, id, payload }, { rejectWithValue }) => {
     try {
       const response = await axios.put(
         `${baseURL}/task_managements/${id}/update_status.json`,
@@ -365,7 +365,7 @@ export const changeTaskStatus = createAsyncThunk(
       return response.data;
     } catch (error) {
       console.log(error);
-      return error.response.data;
+      return rejectWithValue(error);
     }
   }
 );

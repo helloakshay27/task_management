@@ -650,16 +650,21 @@ const TaskTable = ({ isModalOpen, searchQuery, selectedColumns }) => {
       setLocalError(null);
       try {
         if (fieldName === 'status') {
-          await dispatch(changeTaskStatus({ token, id: taskId, payload })).unwrap();
+          try {
+            await dispatch(changeTaskStatus({ token, id: taskId, payload })).unwrap();
 
-          // If this is a subtask, check and update parent task status
-          if (taskRow && taskRow.depth > 0) {
-            // This is a subtask, need to update parent task
-            const parentTaskId = taskRow.parentId;
-            if (parentTaskId) {
-              // Fetch parent task data to recalculate status
-              await handleFetchTasks();
+            // If this is a subtask, check and update parent task status
+            if (taskRow && taskRow.depth > 0) {
+              // This is a subtask, need to update parent task
+              const parentTaskId = taskRow.parentId;
+              if (parentTaskId) {
+                // Fetch parent task data to recalculate status
+                await handleFetchTasks();
+              }
             }
+          } catch (error) {
+            console.log(error)
+            toast.error(error.response.data.error);
           }
         } else {
           await dispatch(updateTask({ token, id: taskId, payload })).unwrap();
@@ -1376,7 +1381,6 @@ const TaskTable = ({ isModalOpen, searchQuery, selectedColumns }) => {
       header: 'Efforts Duration',
       size: 120,
       cell: ({ row }) => {
-        console.log(row)
         return row.original.estimated_hours;
       },
     },
@@ -1405,7 +1409,6 @@ const TaskTable = ({ isModalOpen, searchQuery, selectedColumns }) => {
       header: 'Issues',
       size: 140,
       cell: (info) => {
-        console.log(info)
         return (
           <div className='cursor-pointer' onClick={() => navigate(`/issues?task_id=${info.row.original.id}`)}>
             <ProgressBar

@@ -912,10 +912,8 @@ const IssuesTable = ({ selectedColumns, projectId, searchQuery = '' }) => {
           ).unwrap();
         }
       } catch (error) {
-        console.error('Failed to update comment:', error);
-        const errorMessage =
-          error?.response?.data?.message || error?.message || 'Failed to update comment.';
-        setLocalError(errorMessage);
+        const errorMessage = error.response.data.error
+        toast.error(errorMessage)
         dispatch(
           fetchIssue({
             token,

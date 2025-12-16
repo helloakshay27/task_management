@@ -378,12 +378,12 @@ const SubtaskTable = ({ projectId }) => {
       setLocalError(null);
       try {
         if (fieldName === 'status') {
-          const response = await dispatch(
-            changeTaskStatus({ token, id: taskId, payload })
-          ).unwrap();
-          console.log(response);
-          if (response.error) {
-            toast.error(response.error);
+          try {
+            await dispatch(
+              changeTaskStatus({ token, id: taskId, payload })
+            ).unwrap();
+          } catch (error) {
+            toast.error(error.response.data.error);
           }
         } else {
           await dispatch(updateTask({ token, id: taskId, payload })).unwrap();
