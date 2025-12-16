@@ -15,7 +15,7 @@ import {
   resetEditSuccess,
   resetProjectSuccess,
 } from '../../../../redux/slices/projectSlice';
-import { fetchUsers } from '../../../../redux/slices/userSlice';
+import { fetchDistinctUsers } from '../../../../redux/slices/userSlice';
 import { fetchActiveTags, fetchTags } from '../../../../redux/slices/tagsSlice';
 import { useParams } from 'react-router-dom';
 import toast from 'react-hot-toast';
@@ -35,7 +35,7 @@ const Details = ({
   const dispatch = useDispatch();
 
   const {
-    fetchUsers: users = [],
+    fetchDistinctUsers: users = [],
     fetchActiveTags: tags = [],
     fetchProjectDetails: editData = {},
     createProject: { success },
@@ -44,7 +44,7 @@ const Details = ({
     fetchTemplates: templates = [],
     fetchProjectTeams: teams = [],
   } = useSelector((state) => ({
-    fetchUsers: state.fetchUsers.fetchUsers,
+    fetchDistinctUsers: state.fetchDistinctUsers.fetchDistinctUsers,
     fetchActiveTags: state.fetchActiveTags.fetchActiveTags,
     fetchProjectDetails: state.fetchProjectDetails.fetchProjectDetails,
     createProject: state.createProject,
@@ -84,7 +84,7 @@ const Details = ({
   }, [isEdit]);
 
   useEffect(() => {
-    dispatch(fetchUsers({ token }));
+    dispatch(fetchDistinctUsers({ token }));
     dispatch(fetchActiveTags({ token }));
     dispatch(fetchActiveProjectTypes({ token }));
     dispatch(fetchTemplates({ token }));
@@ -399,7 +399,7 @@ const Details = ({
             <SelectBox
               options={users.map((user) => ({
                 value: user.id,
-                label: `${user.firstname} ${user.lastname}`,
+                label: `${user.full_name}`,
               }))}
               value={formData.projectOwner}
               onChange={(value) => handleSelectChange('projectOwner', value)}

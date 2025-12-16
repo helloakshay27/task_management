@@ -382,7 +382,7 @@ const IssuesTable = ({ selectedColumns, projectId, searchQuery = '' }) => {
   const [tasks, setTasks] = useState([]);
 
   const [pagination, setPagination] = useState({
-    pageIndex: current_page - 1,
+    pageIndex: 0,
     pageSize: 10,
   });
 
@@ -1503,17 +1503,46 @@ const IssuesTable = ({ selectedColumns, projectId, searchQuery = '' }) => {
     onPaginationChange: (updater) => {
       setPagination((prev) => {
         const newState = typeof updater === 'function' ? updater(prev) : updater;
-        dispatch(
-          filterIssue({
-            token,
-            filter: {
-              page: newState.pageIndex + 1,
-              per_page: newState.pageSize,
-              ...(projectIdParam && { 'q[project_management_id_eq]': projectIdParam }),
-              ...(taskIdParam && { 'q[task_management_id_eq]': taskIdParam }),
-            }
-          })
-        );
+        const newPage = newState.pageIndex + 1;
+
+        // Dispatch appropriate action based on current filters/search
+        if (searchQuery.trim()) {
+          const filter = {
+            'q[title_or_project_management_title_cont]': searchQuery,
+            page: newPage,
+            per_page: newState.pageSize,
+            ...(projectId && { 'q[project_management_id_eq]': projectId }),
+            ...(projectIdParam && { 'q[project_management_id_eq]': projectIdParam }),
+            ...(taskIdParam && { 'q[task_management_id_eq]': taskIdParam })
+          };
+          const queryString = qs.stringify(filter);
+          dispatch(filterIssue({ token, filter: queryString }));
+        } else if (localStorage.getItem('IssueFilters')) {
+          const item = JSON.parse(localStorage.getItem('IssueFilters'));
+          const newFilter = {
+            'q[status_in][]': item.selectedStatuses.length > 0 ? item.selectedStatuses : [],
+            'q[created_by_id_eq]': item.selectedCreators.length > 0 ? item.selectedCreators : [],
+            'q[start_date_eq]': item.dates['Start Date'],
+            'q[end_date_eq]': item.dates['End Date'],
+            'q[responsible_person_id_in][]': item.selectedResponsible.length > 0 ? item.selectedResponsible : [],
+            'q[issue_type_in][]': item.selectedTypes.length > 0 ? item.selectedTypes : [],
+            'q[project_management_id_in][]': item.selectedProjects.length > 0 ? item.selectedProjects : [],
+            'q[task_management_id_in][]': item.selectedTasks.length > 0 ? item.selectedTasks : [],
+            'q[subtask_management_id_in][]': item.selectedSubtasks?.length > 0 ? item.selectedSubtasks : [],
+            page: newPage,
+            per_page: newState.pageSize,
+          };
+          const queryString = qs.stringify(newFilter, { arrayFormat: 'repeat' });
+          dispatch(filterIssue({ token, filter: queryString }));
+        } else if (localStorage.getItem('issueStatus')) {
+          const status = localStorage.getItem('issueStatus');
+          const filter = { 'q[status_eq]': status, page: newPage, per_page: newState.pageSize };
+          const queryString = qs.stringify(filter);
+          dispatch(filterIssue({ token, filter: queryString }));
+        } else {
+          dispatch(fetchIssue({ token, page: newPage, per_page: newState.pageSize }));
+        }
+
         return newState;
       });
     },
@@ -1629,7 +1658,7 @@ const IssuesTable = ({ selectedColumns, projectId, searchQuery = '' }) => {
               <button
                 onClick={() => table.previousPage()}
                 disabled={!table.getCanPreviousPage()}
-                className="text-blue-600 disabled:opacity-30"
+                className="text-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {'<'}
               </button>
@@ -1637,23 +1666,57 @@ const IssuesTable = ({ selectedColumns, projectId, searchQuery = '' }) => {
                 const { current_page: currPage, total_pages: totPages } = filterSuccess
                   ? filterPagination
                   : { current_page, total_pages };
-                const visiblePages = 3;
-                let start = Math.max(0, currPage - 1 - Math.floor(visiblePages / 2));
-                let end = start + visiblePages;
-                if (end > totPages) {
-                  end = totPages;
-                  start = Math.max(0, end - visiblePages);
+
+                const pages = [];
+                const siblingCount = 1;
+                const leftSiblingIndex = Math.max(currPage - siblingCount, 1);
+                const rightSiblingIndex = Math.min(currPage + siblingCount, totPages);
+
+                // Always add first page
+                pages.push(1);
+
+                // Add left ellipsis if there's a gap between 1 and left sibling
+                if (leftSiblingIndex > 2) {
+                  pages.push('...');
                 }
-                return [...Array(end - start)].map((_, i) => {
-                  const page = start + i;
-                  const isActive = page === currPage - 1;
+
+                // Add sibling pages (excluding boundaries which are handled separately)
+                for (let i = leftSiblingIndex; i <= rightSiblingIndex; i++) {
+                  if (i > 1 && i < totPages && !pages.includes(i)) {
+                    pages.push(i);
+                  }
+                }
+
+                // Add right ellipsis if there's a gap between right sibling and last page
+                if (rightSiblingIndex < totPages - 1) {
+                  pages.push('...');
+                }
+
+                // Always add last page if total_pages > 1
+                if (totPages > 1) {
+                  pages.push(totPages);
+                }
+
+                return pages.map((page) => {
+                  if (page === '...') {
+                    return (
+                      <span key={page + Math.random()} className="px-2 py-1 text-gray-500">
+                        ...
+                      </span>
+                    );
+                  }
+
+                  const isActive = page === currPage;
                   return (
                     <button
                       key={page}
-                      onClick={() => table.setPageIndex(page)}
-                      className={`px-3 py-1 ${isActive ? 'bg-gray-200 font-semibold' : ''}`}
+                      onClick={() => table.setPageIndex(page - 1)}
+                      className={`px-3 py-1 ${isActive
+                        ? 'bg-gray-200 font-semibold border border-gray-400'
+                        : 'hover:bg-gray-100'
+                        }`}
                     >
-                      {page + 1}
+                      {page}
                     </button>
                   );
                 });
@@ -1661,7 +1724,7 @@ const IssuesTable = ({ selectedColumns, projectId, searchQuery = '' }) => {
               <button
                 onClick={() => table.nextPage()}
                 disabled={!table.getCanNextPage()}
-                className="text-blue-600 disabled:opacity-30"
+                className="text-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {'>'}
               </button>

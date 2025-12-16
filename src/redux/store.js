@@ -31,6 +31,7 @@ import {
   createExternalUserReducer,
   createInternalUserReducer,
   fetchAssociatedProjectsReducer,
+  fetchDistinctUsersReducer,
   fetchExternalUserReducer,
   fetchInternalUserDetailsReducer,
   fetchInternalUserReducer,
@@ -267,6 +268,7 @@ export const store = configureStore({
 
     //users
     fetchUsers: userReducer,
+    fetchDistinctUsers: fetchDistinctUsersReducer,
     createInternalUser: createInternalUserReducer,
     fetchInternalUser: fetchInternalUserReducer,
     createExternalUser: createExternalUserReducer,

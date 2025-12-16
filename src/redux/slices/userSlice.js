@@ -49,6 +49,20 @@ export const fetchUsers = createAsyncThunk('fetchUsers', async ({ token }) => {
   }
 });
 
+export const fetchDistinctUsers = createAsyncThunk('fetchDistinctUsers', async ({ token }) => {
+  try {
+    const response = await axios.get(`${baseURL}/users/dropdown_users.json?q[active_eq]=true`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    return response.data;
+  } catch (error) {
+    console.log(error);
+  }
+});
+
 export const createInternalUser = createAsyncThunk(
   'createInternalUser',
   async ({ token, payload }, { rejectWithValue }) => {
@@ -240,6 +254,7 @@ export const fetchUserShift = createAsyncThunk('fetchUserShift', async ({ token,
 
 // Create slices
 export const userSlice = createApiSlice('fetchUsers', fetchUsers);
+export const fetchDistinctUsersSlice = createApiSlice('fetchDistinctUsers', fetchDistinctUsers);
 export const createInternalUserSlice = createApiSlice('createInternalUser', createInternalUser);
 export const fetchInternalUserSlice = createApiSlice('fetchInternalUser', fetchInternalUser);
 export const createExternalUserSlice = createApiSlice('createExternalUser', createExternalUser);
@@ -266,6 +281,7 @@ export const fetchUserShiftSlice = createApiSlice('fetchUserShift', fetchUserShi
 
 // Export reducers
 export const userReducer = userSlice.reducer;
+export const fetchDistinctUsersReducer = fetchDistinctUsersSlice.reducer;
 export const createInternalUserReducer = createInternalUserSlice.reducer;
 export const fetchInternalUserReducer = fetchInternalUserSlice.reducer;
 export const createExternalUserReducer = createExternalUserSlice.reducer;

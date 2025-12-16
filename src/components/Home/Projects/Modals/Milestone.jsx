@@ -2,7 +2,7 @@ import { useEffect, useState, useRef } from 'react';
 import DeleteOutlinedIcon from '@mui/icons-material/DeleteOutlined';
 import SelectBox from '../../../SelectBox';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchUsers } from '../../../../redux/slices/userSlice';
+import { fetchDistinctUsers } from '../../../../redux/slices/userSlice';
 import {
   createMilestone,
   fetchMilestone,
@@ -142,7 +142,7 @@ const AddMilestoneModal = ({
           </label>
           <SelectBox
             options={users.map((user) => ({
-              label: `${user.firstname} ${user.lastname}`,
+              label: `${user.full_name}`,
               value: user.id,
             }))}
             onChange={(value) => handleSelectChange('ownerId', value)}
@@ -229,7 +229,7 @@ const Milestones = ({ closeModal, opportunityId, prefillData, onSuccess }) => {
   const dispatch = useDispatch();
   const { id } = useParams();
 
-  const { fetchUsers: users = [] } = useSelector((state) => state.fetchUsers);
+  const { fetchDistinctUsers: users = [] } = useSelector((state) => state.fetchDistinctUsers);
   const { fetchMilestone: milestone = [], savedMilestones = [] } = useSelector(
     (state) => state.fetchMilestone
   );
@@ -259,7 +259,7 @@ const Milestones = ({ closeModal, opportunityId, prefillData, onSuccess }) => {
       try {
         setIsLoading(true);
         await Promise.all([
-          dispatch(fetchUsers({ token })),
+          dispatch(fetchDistinctUsers({ token })),
           dispatch(fetchMilestone({ token, id: project?.id ? project.id : id })),
         ]);
 

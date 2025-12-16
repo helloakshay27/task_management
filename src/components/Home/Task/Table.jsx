@@ -972,9 +972,9 @@ const TaskTable = ({ isModalOpen, searchQuery, selectedColumns }) => {
     setData(newProcessedData);
 
     // Check and update task statuses based on subtasks
-    if (newProcessedData.length > 0) {
-      checkAndUpdateTaskStatuses(newProcessedData);
-    }
+    // if (newProcessedData.length > 0) {
+    //   checkAndUpdateTaskStatuses(newProcessedData);
+    // }
 
     setPagination((prev) => ({
       ...prev,
@@ -994,7 +994,6 @@ const TaskTable = ({ isModalOpen, searchQuery, selectedColumns }) => {
     myTasksError,
     myTaskSuccess,
     filterSuccess,
-    checkAndUpdateTaskStatuses,
   ]);
 
   useEffect(() => {

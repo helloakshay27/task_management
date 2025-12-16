@@ -24,7 +24,7 @@ import {
   filterProjects,
 } from '../../../redux/slices/projectSlice';
 import qs from 'qs';
-import { fetchUsers } from '../../../redux/slices/userSlice';
+import { fetchDistinctUsers } from '../../../redux/slices/userSlice';
 import StatusBadge from './statusBadge';
 import './Table.css';
 import Loader from '../../Loader';
@@ -277,10 +277,10 @@ const ProjectList = ({ searchQuery, selectedColumns }) => {
   const { success } = useSelector((state) => state.createProject);
 
   const {
-    fetchUsers: users,
+    fetchDistinctUsers: users,
     loading: loadingUsers,
     error: usersFetchError,
-  } = useSelector((state) => state.fetchUsers || { users: [], loading: false, error: null });
+  } = useSelector((state) => state.fetchDistinctUsers || { users: [], loading: false, error: null });
 
   const { loading: deleteProjectLoading, error: deleteProjectError } = useSelector(
     (state) => state.deleteProject
@@ -505,7 +505,7 @@ const ProjectList = ({ searchQuery, selectedColumns }) => {
   }, [initialProjects, filteredProjects, isFiltered]);
 
   useEffect(() => {
-    dispatch(fetchUsers({ token }));
+    dispatch(fetchDistinctUsers({ token }));
     dispatch(fetchProjects({ token, page: 1 }));
   }, [dispatch]);
 
@@ -791,7 +791,7 @@ const ProjectList = ({ searchQuery, selectedColumns }) => {
       ...(Array.isArray(users)
         ? users.map((u) => ({
           value: u.id,
-          label: `${u.firstname || ''} ${u.lastname || ''}`.trim(),
+          label: `${u.full_name}`.trim(),
         }))
         : []),
     ],
