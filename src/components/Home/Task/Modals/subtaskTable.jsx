@@ -13,7 +13,7 @@ import {
   changeTaskStatus,
   fetchKanbanTasks,
 } from '../../../../redux/slices/taskSlice';
-import { fetchUsers } from '../../../../redux/slices/userSlice';
+import { fetchDistinctUsers } from '../../../../redux/slices/userSlice';
 import { fetchTags } from '../../../../redux/slices/tagsSlice';
 import { fetchStatus } from '../../../../redux/slices/statusSlice';
 import toast from 'react-hot-toast';
@@ -289,10 +289,10 @@ const SubtaskTable = ({ projectId }) => {
   } = useSelector((state) => state.fetchKanbanTasks);
 
   const {
-    fetchUsers: users,
+    fetchDistinctUsers: users,
     loading: loadingUsers,
     error: usersFetchError,
-  } = useSelector((state) => state.fetchUsers || { users: [], loading: false, error: null });
+  } = useSelector((state) => state.fetchDistinctUsers || { users: [], loading: false, error: null });
 
   const { fetchProjectTeamMembers: projectTeamMembers } = useSelector(
     (state) => state.fetchProjectTeamMembers
@@ -437,7 +437,7 @@ const SubtaskTable = ({ projectId }) => {
       !usersFetchError &&
       !userFetchInitiatedRef.current
     ) {
-      dispatch(fetchUsers({ token }));
+      dispatch(fetchDistinctUsers({ token }));
       userFetchInitiatedRef.current = true;
     } else if ((Array.isArray(users) && users.length > 0) || usersFetchError) {
       userFetchInitiatedRef.current = true;
@@ -744,7 +744,7 @@ const SubtaskTable = ({ projectId }) => {
         : Array.isArray(users)
           ? users.map((u) => ({
             value: u.id,
-            label: `${u.firstname} ${u.lastname}`,
+            label: `${u.full_name}`,
           }))
           : [],
     [projectTeamMembers, users, members]

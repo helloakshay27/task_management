@@ -3,7 +3,7 @@ import SelectBox from '@/components/SelectBox';
 import { removeTagFromProject } from '@/redux/slices/projectSlice';
 import { fetchTags } from '@/redux/slices/tagsSlice';
 import { createSubTask, fetchKanbanTasks, fetchTargetDateTasks, taskDetails } from '@/redux/slices/taskSlice';
-import { fetchUserAvailability, fetchUsers, fetchUserShift } from '@/redux/slices/userSlice';
+import { fetchDistinctUsers, fetchUserAvailability, fetchUserShift } from '@/redux/slices/userSlice';
 import { useGSAP } from '@gsap/react';
 import gsap from 'gsap';
 import { CalendarIcon, X } from 'lucide-react';
@@ -82,7 +82,6 @@ const AddSubtaskModal = ({
         priority: '',
         tags: [],
     });
-    console.log(projectTeamMembers);
 
     useEffect(() => {
         if (projectTeamMembers) {
@@ -97,12 +96,10 @@ const AddSubtaskModal = ({
         }
     }, [projectTeamMembers]);
 
-    console.log(members);
-
     useEffect(() => {
         const getUsers = async () => {
             try {
-                await dispatch(fetchUsers({ token })).unwrap();
+                await dispatch(fetchDistinctUsers({ token })).unwrap();
                 await dispatch(fetchTags({ token })).unwrap();
                 // Fetch parent task details to check subtask duration limit
                 if (tid) {

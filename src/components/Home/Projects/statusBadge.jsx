@@ -1,6 +1,15 @@
 import { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 
+const STATUS_COLOR_MAP = {
+  'OPEN': '#3B82F6',           // Blue
+  'IN_PROGRESS': '#F59E0B',    // Amber
+  'CLOSED': '#EF4444',         // Red
+  'COMPLETED': '#10B981',      // Green
+  'ON_HOLD': '#8B5CF6',        // Purple
+  'OVERDUE': '#DC2626',        // Dark Red
+};
+
 const StatusBadge = ({ status: initialStatus, statusOptions, onStatusChange, statusColors }) => {
   const [currentStatus, setCurrentStatus] = useState(initialStatus);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -80,8 +89,10 @@ const StatusBadge = ({ status: initialStatus, statusOptions, onStatusChange, sta
         onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && toggleDropdown()}
       >
         <span
-          className={`rounded-full w-[5px] h-[5px] ${!statusColors ? `status-${currentStatus?.toLowerCase().replace('_', '-')}` : ''}`}
-          style={statusColors && currentStatus ? { backgroundColor: statusColors[currentStatus] || '#c72030' } : {}}
+          className="rounded-full w-[5px] h-[5px] inline-block flex-shrink-0"
+          style={{
+            backgroundColor: STATUS_COLOR_MAP[currentStatus?.toUpperCase()] || '#6B7280'
+          }}
         ></span>
         <span>
           {currentStatus &&
@@ -114,9 +125,9 @@ const StatusBadge = ({ status: initialStatus, statusOptions, onStatusChange, sta
                   key={option}
                   onClick={(e) => handleDropdownItemClick(e, option)}
                   className={`dropdown-item ${option?.toLowerCase().replace(' ', '-') ===
-                      currentStatus?.toLowerCase().replace(' ', '-')
-                      ? 'selected'
-                      : ''
+                    currentStatus?.toLowerCase().replace(' ', '-')
+                    ? 'selected'
+                    : ''
                     }`}
                   style={{
                     display: 'block',

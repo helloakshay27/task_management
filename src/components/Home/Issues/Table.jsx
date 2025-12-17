@@ -14,7 +14,7 @@ import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from '../../
 import qs from 'qs';
 
 // Redux Thunks
-import { fetchUsers } from '../../../redux/slices/userSlice';
+import { fetchDistinctUsers, fetchUsers } from '../../../redux/slices/userSlice';
 import {
   fetchIssue,
   createIssue,
@@ -282,10 +282,10 @@ const IssuesTable = ({ selectedColumns, projectId, searchQuery = '' }) => {
   );
 
   const {
-    fetchUsers: users,
+    fetchDistinctUsers: users,
     loading: loadingUsers,
     error: usersFetchError,
-  } = useSelector((state) => state.fetchUsers || { fetchUsers: [], loading: false, error: null });
+  } = useSelector((state) => state.fetchDistinctUsers || { fetchDistinctUsers: [], loading: false, error: null });
 
   const {
     fetchKanbanProjects: projects,
@@ -620,7 +620,7 @@ const IssuesTable = ({ selectedColumns, projectId, searchQuery = '' }) => {
       !usersFetchError &&
       !userFetchInitiatedRef.current
     ) {
-      dispatch(fetchUsers({ token }));
+      dispatch(fetchDistinctUsers({ token }));
       userFetchInitiatedRef.current = true;
     }
   }, [dispatch, users, loadingUsers, usersFetchError, token]);
@@ -1077,7 +1077,7 @@ const IssuesTable = ({ selectedColumns, projectId, searchQuery = '' }) => {
       ...(Array.isArray(users)
         ? users.map((u) => ({
           value: u.id,
-          label: `${u.firstname || ''} ${u.lastname || ''}`.trim(),
+          label: `${u.full_name || ''}`.trim(),
         }))
         : []),
     ],

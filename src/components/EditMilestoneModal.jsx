@@ -9,7 +9,7 @@ import {
   fetchMilestoneById,
   updateMilestone,
 } from '../redux/slices/milestoneSlice';
-import { fetchUsers } from '../redux/slices/userSlice';
+import { fetchDistinctUsers } from '../redux/slices/userSlice';
 import SelectBox from './SelectBox';
 import { useParams } from 'react-router-dom';
 
@@ -19,7 +19,7 @@ const EditMilestoneModal = ({ isModalOpen, setIsModalOpen, milestoneId }) => {
   const dispatch = useDispatch();
   const addTaskModalRef = useRef(null);
 
-  const { fetchUsers: users = [] } = useSelector((state) => state.fetchUsers);
+  const { fetchDistinctUsers: users = [] } = useSelector((state) => state.fetchDistinctUsers);
   const { fetchMilestone: milestones = [] } = useSelector((state) => state.fetchMilestone);
 
   const [formData, setFormData] = useState({
@@ -49,7 +49,7 @@ const EditMilestoneModal = ({ isModalOpen, setIsModalOpen, milestoneId }) => {
 
       try {
         setIsLoading(true);
-        await dispatch(fetchUsers({ token }));
+        await dispatch(fetchDistinctUsers({ token }));
         const milestone = await dispatch(fetchMilestoneById({ token, id: milestoneId })).unwrap();
 
         setFormData({
@@ -208,7 +208,7 @@ const EditMilestoneModal = ({ isModalOpen, setIsModalOpen, milestoneId }) => {
                 </label>
                 <SelectBox
                   options={users.map((user) => ({
-                    label: `${user.firstname} ${user.lastname}`,
+                    label: `${user.full_name}`,
                     value: user.id,
                   }))}
                   onChange={(value) => handleSelectChange('ownerId', value)}

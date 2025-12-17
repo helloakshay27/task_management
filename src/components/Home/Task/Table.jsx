@@ -20,7 +20,7 @@ import {
   fetchMyTasks,
   createTaskComment,
 } from '../../../redux/slices/taskSlice';
-import { fetchUsers } from '../../../redux/slices/userSlice';
+import { fetchDistinctUsers } from '../../../redux/slices/userSlice';
 import { fetchStatus } from '../../../redux/slices/statusSlice';
 import SelectBox from '../../SelectBox';
 import Loader from '../../Loader';
@@ -30,7 +30,7 @@ import { fetchProjectTeamMembers } from '../../../redux/slices/projectSlice';
 import axios from 'axios';
 import toast from 'react-hot-toast';
 import { baseURL } from '../../../../apiDomain';
-import { X, Play, Pause, ChevronDown } from 'lucide-react';
+import { X, Play, Pause } from 'lucide-react';
 import { useDrag, useDrop, DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 
@@ -441,10 +441,10 @@ const TaskTable = ({ isModalOpen, searchQuery, selectedColumns }) => {
     success: myTaskSuccess,
   } = useSelector((state) => state.fetchMyTasks);
   const {
-    fetchUsers: users,
+    fetchDistinctUsers: users,
     loading: loadingUsers,
     error: usersFetchError,
-  } = useSelector((state) => state.fetchUsers || { users: [], loading: false, error: null });
+  } = useSelector((state) => state.fetchDistinctUsers || { fetchDistinctUsers: [], loading: false, error: null });
   const {
     filterTask: filterTasks,
     loading: loadingFilterTasks,
@@ -915,7 +915,7 @@ const TaskTable = ({ isModalOpen, searchQuery, selectedColumns }) => {
       !isUpdatingTask
     ) {
       if (!userFetchInitiatedRef.current) {
-        dispatch(fetchUsers({ token }));
+        dispatch(fetchDistinctUsers({ token }));
         userFetchInitiatedRef.current = true;
       }
     } else if (Array.isArray(users) && (users.length > 0 || usersFetchError)) {
@@ -1334,7 +1334,7 @@ const TaskTable = ({ isModalOpen, searchQuery, selectedColumns }) => {
           options={(members?.filter(Boolean).length > 0 ? members.filter(Boolean) : users)?.map(
             (user) => ({
               value: user?.id,
-              label: user?.name || `${user?.firstname} ${user?.lastname}`,
+              label: user?.full_name || user.name,
             })
           )}
           value={getValue()}
@@ -1504,7 +1504,7 @@ const TaskTable = ({ isModalOpen, searchQuery, selectedColumns }) => {
             options={(members?.filter(Boolean).length > 0 ? members.filter(Boolean) : users)?.map(
               (user) => ({
                 value: user?.id,
-                label: user?.name || `${user?.firstname} ${user?.lastname}`,
+                label: user?.full_name || user.name,
               })
             )}
             value={newTaskResponsiblePersonId}

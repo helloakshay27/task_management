@@ -5,6 +5,7 @@ import {
   fetchUsers,
   fetchUserAvailability,
   fetchUserShift,
+  fetchDistinctUsers,
 } from '../../../../redux/slices/userSlice';
 import { createIssue, fetchIssue, fetchIssueType } from '../../../../redux/slices/IssueSlice';
 import { fetchMilestone } from '../../../../redux/slices/milestoneSlice';
@@ -162,8 +163,8 @@ const Issues = ({ closeModal }) => {
     'Dec',
   ];
 
-  const { fetchUsers: users, loading: loadingUsers } = useSelector(
-    (state) => state.fetchUsers || { users: [], loading: false, error: null }
+  const { fetchDistinctUsers: users, loading: loadingUsers } = useSelector(
+    (state) => state.fetchDistinctUsers || { users: [], loading: false, error: null }
   );
 
   const { fetchUserAvailability: userAvailability = [] } = useSelector(
@@ -206,7 +207,7 @@ const Issues = ({ closeModal }) => {
   const dispatch = useDispatch();
 
   useEffect(() => {
-    dispatch(fetchUsers({ token }));
+    dispatch(fetchDistinctUsers({ token }));
   }, [dispatch]);
 
   // Animate when showDatePicker changes
@@ -627,7 +628,7 @@ const Issues = ({ closeModal }) => {
               users
                 ? users.map((user) => ({
                   value: user.id,
-                  label: `${user.firstname || ''} ${user.lastname || ''}`.trim(),
+                  label: `${user.full_name || ''}`.trim(),
                 }))
                 : []
             }
@@ -715,7 +716,7 @@ const Issues = ({ closeModal }) => {
               startDate={startDate}
               endDate={endDate}
               resposiblePerson={
-                responsiblePerson ? users.find((u) => u.id === responsiblePerson)?.firstname : ''
+                responsiblePerson ? users.find((u) => u.id === responsiblePerson)?.full_name : ''
               }
               totalWorkingHours={totalWorkingHours}
               setTotalWorkingHours={setTotalWorkingHours}

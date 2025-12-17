@@ -13,7 +13,7 @@ import {
 } from '../../redux/slices/IssueSlice';
 import toast from 'react-hot-toast';
 import { Mention, MentionsInput } from 'react-mentions';
-import { fetchUsers } from '@/redux/slices/userSlice';
+import { fetchDistinctUsers } from '@/redux/slices/userSlice';
 import { fetchActiveTags } from '@/redux/slices/tagsSlice';
 import {
   createTaskComment,
@@ -190,18 +190,18 @@ const Comments = ({ comments, getIssue }) => {
     (state) => state.editTaskComment
   );
   const { success: deleteSuccess } = useSelector((state) => state.deleteTaskComment);
-  const { fetchUsers: name } = useSelector((state) => state.fetchUsers);
+  const { fetchDistinctUsers: name } = useSelector((state) => state.fetchDistinctUsers);
   const { fetchActiveTags: tags } = useSelector((state) => state.fetchActiveTags);
 
   useEffect(() => {
-    dispatch(fetchUsers({ token }));
+    dispatch(fetchDistinctUsers({ token }));
     dispatch(fetchActiveTags({ token }));
   }, [dispatch, token]);
 
   const mentionData = name
     ? name.map((user) => ({
       id: user.id.toString(),
-      display: `${user.firstname} ${user.lastname}` || 'Unknown User',
+      display: `${user.full_name}` || 'Unknown User',
     }))
     : [];
 
@@ -366,14 +366,14 @@ const Comments = ({ comments, getIssue }) => {
             trigger="@"
             data={mentionData}
             markup="@[__display__](__id__)"
-            displayTransform={(id, display) => `@${display}`}
+            displayTransform={(id, display) => `@${display} `}
             appendSpaceOnAdd
           />
           <Mention
             trigger="#"
             data={tagData}
             markup="#[__display__](__id__)"
-            displayTransform={(id, display) => `#${display}`}
+            displayTransform={(id, display) => `#${display} `}
             appendSpaceOnAdd
           />
         </MentionsInput>
@@ -435,14 +435,14 @@ const Comments = ({ comments, getIssue }) => {
                     trigger="@"
                     data={mentionData}
                     markup="@[__display__](__id__)"
-                    displayTransform={(id, display) => `@${display}`}
+                    displayTransform={(id, display) => `@${display} `}
                     appendSpaceOnAdd
                   />
                   <Mention
                     trigger="#"
                     data={tagData}
                     markup="#[__display__](__id__)"
-                    displayTransform={(id, display) => `#${display}`}
+                    displayTransform={(id, display) => `#${display} `}
                     appendSpaceOnAdd
                   />
                 </MentionsInput>
@@ -645,7 +645,7 @@ const IssueDetails = () => {
 
             {/* Status Dropdown */}
             <span
-              className={`flex items-center gap-2 cursor-pointer px-2 py-1 rounded-md text-sm ${STATUS_COLORS[mapDisplayToApiStatus(selectedOption).toLowerCase()] || 'bg-gray-400 text-white'}`}
+              className={`flex items - center gap - 2 cursor - pointer px - 2 py - 1 rounded - md text - sm ${STATUS_COLORS[mapDisplayToApiStatus(selectedOption).toLowerCase()] || 'bg-gray-400 text-white'} `}
             >
               <div className="relative" ref={dropdownRef}>
                 <div
@@ -661,11 +661,11 @@ const IssueDetails = () => {
                   {/* Display selected option */}
                   <ChevronDown
                     size={15}
-                    className={`${openDropdown ? 'rotate-180' : ''} transition-transform`}
+                    className={`${openDropdown ? 'rotate-180' : ''} transition - transform`}
                   />
                 </div>
                 <ul
-                  className={`dropdown-menu absolute right-0 mt-2 bg-white border border-gray-200 rounded-md shadow-lg overflow-hidden ${openDropdown ? 'block' : 'hidden'}`}
+                  className={`dropdown - menu absolute right - 0 mt - 2 bg - white border border - gray - 200 rounded - md shadow - lg overflow - hidden ${openDropdown ? 'block' : 'hidden'} `}
                   role="menu"
                   style={{
                     minWidth: '150px',
@@ -677,8 +677,8 @@ const IssueDetails = () => {
                   {dropdownOptions.map((option, idx) => (
                     <li key={idx} role="menuitem">
                       <button
-                        className={`dropdown-item w-full text-left px-4 py-2 text-[13px] text-gray-700 hover:bg-gray-100 ${selectedOption === option ? 'bg-gray-100 font-semibold' : ''
-                          }`}
+                        className={`dropdown - item w - full text - left px - 4 py - 2 text - [13px] text - gray - 700 hover: bg - gray - 100 ${selectedOption === option ? 'bg-gray-100 font-semibold' : ''
+                          } `}
                         onClick={() => handleOptionSelect(option)}
                       >
                         {option}
@@ -700,7 +700,7 @@ const IssueDetails = () => {
               color="#E95420"
               size={30}
               className={`${isFirstCollapsed ? 'rotate-180' : 'rotate-0'
-                } transition-transform cursor-pointer`}
+                } transition - transform cursor - pointer`}
               onClick={toggleFirstCollapse}
             />{' '}
             Description
@@ -716,7 +716,7 @@ const IssueDetails = () => {
               <ChevronDownCircle
                 color="#E95420"
                 size={30}
-                className={`${isSecondCollapsed ? 'rotate-180' : 'rotate-0'} transition-transform cursor-pointer`}
+                className={`${isSecondCollapsed ? 'rotate-180' : 'rotate-0'} transition - transform cursor - pointer`}
                 onClick={toggleSecondCollapse}
               />{' '}
               Details
@@ -746,7 +746,7 @@ const IssueDetails = () => {
             )}
           </div>
 
-          <div className={`mt-3 ${isSecondCollapsed ? 'overflow-hidden' : ''}`} ref={secondContentRef}>
+          <div className={`mt - 3 ${isSecondCollapsed ? 'overflow-hidden' : ''} `} ref={secondContentRef}>
             <div className="flex flex-col">
               <div className="flex items-center ml-36">
                 <div className="w-1/2 flex items-center justify-start gap-3">
@@ -820,8 +820,8 @@ const IssueDetails = () => {
                 <div
                   key={item}
                   id={idx + 1}
-                  className={`text-[14px] font-[400] ${tab === item ? 'selected' : 'cursor-pointer'
-                    }`}
+                  className={`text - [14px] font - [400] ${tab === item ? 'selected' : 'cursor-pointer'
+                    } `}
                   onClick={() => setTab(item)}
                 >
                   {item}

@@ -7,7 +7,7 @@ import {
   createMilestone,
 } from '../redux/slices/milestoneSlice';
 import { useParams } from 'react-router-dom';
-import { fetchUsers } from '../redux/slices/userSlice';
+import { fetchDistinctUsers } from '../redux/slices/userSlice';
 import toast from 'react-hot-toast';
 import { fetchProjectDetails } from '../redux/slices/projectSlice';
 
@@ -107,7 +107,7 @@ const MilestoneDependencyTable = () => {
 
   const getUsers = async () => {
     try {
-      const response = await dispatch(fetchUsers({ token })).unwrap();
+      const response = await dispatch(fetchDistinctUsers({ token })).unwrap();
       setUserOptions(response);
     } catch (error) {
       console.log(error);
@@ -406,14 +406,14 @@ const MilestoneDependencyTable = () => {
                                   onClick={() => {
                                     setEditData({
                                       ...editData,
-                                      owner_name: user.firstname + ' ' + user.lastname,
+                                      owner_name: user.full_name,
                                       owner_id: user.id,
                                     });
                                     setOpenOwnerDropdown(null);
                                   }}
                                   className="w-full px-4 py-2 text-sm hover:bg-gray-100 text-left text-gray-800"
                                 >
-                                  {user.firstname + ' ' + user.lastname}
+                                  {user.full_name}
                                 </button>
                               ))
                             ) : (
@@ -585,7 +585,7 @@ const MilestoneDependencyTable = () => {
                               onClick={() => {
                                 setNewMilestone({
                                   ...newMilestone,
-                                  owner_name: user.firstname + ' ' + user.lastname,
+                                  owner_name: user.full_name,
                                   owner_id: user.id,
                                 });
                                 setOpenOwnerDropdown(null);

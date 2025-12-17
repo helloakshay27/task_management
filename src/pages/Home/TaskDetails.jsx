@@ -29,7 +29,7 @@ import AddTaskModal from '../../components/Home/Task/AddTaskModal';
 import toast, { Toaster } from 'react-hot-toast';
 import { deleteTask } from '../../redux/slices/taskSlice';
 import { useNavigate } from 'react-router-dom';
-import { fetchUsers } from '../../redux/slices/userSlice';
+import { fetchDistinctUsers } from '../../redux/slices/userSlice';
 import { MentionsInput, Mention } from 'react-mentions';
 import { fetchStatus } from '../../redux/slices/statusSlice';
 import { fetchActiveTags } from '../../redux/slices/tagsSlice';
@@ -398,18 +398,18 @@ const Comments = ({ comments }) => {
     (state) => state.editTaskComment
   );
   const { success: deleteSuccess } = useSelector((state) => state.deleteTaskComment);
-  const { fetchUsers: name } = useSelector((state) => state.fetchUsers);
+  const { fetchDistinctUsers: name } = useSelector((state) => state.fetchDistinctUsers);
   const { fetchActiveTags: tags } = useSelector((state) => state.fetchActiveTags);
 
   useEffect(() => {
-    dispatch(fetchUsers({ token }));
+    dispatch(fetchDistinctUsers({ token }));
     dispatch(fetchActiveTags({ token }));
   }, [dispatch, token]);
 
   const mentionData = name
     ? name.map((user) => ({
       id: user.id.toString(),
-      display: `${user.firstname} ${user.lastname}` || 'Unknown User',
+      display: `${user.full_name}` || 'Unknown User',
     }))
     : [];
 

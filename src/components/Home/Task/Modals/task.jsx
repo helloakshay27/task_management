@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import {
   fetchUserAvailability,
-  fetchUsers,
+  fetchDistinctUsers,
   fetchUserShift,
   removeUserFromProject,
 } from '../../../../redux/slices/userSlice';
@@ -397,7 +397,7 @@ const TaskForm = ({
             options={users.map((user) => ({
               label: user.name
                 ? user.name
-                : `${user.firstname ?? ''} ${user.lastname ?? ''}`.trim(),
+                : `${user.full_name ?? ''}`.trim(),
               value: user.id,
             }))}
             placeholder="Select Person"
@@ -406,8 +406,8 @@ const TaskForm = ({
               const user = users.find((u) => u.user_id === value || u.id === value);
 
               const responsiblePersonName = user
-                ? user.firstname || user.lastname
-                  ? `${user.firstname} ${user.lastname}`
+                ? user.full_name
+                  ? `${user.full_name} `
                   : user.name || '-'
                 : '-';
 
@@ -622,7 +622,7 @@ const TaskForm = ({
           </label>
           <MultiSelectBox
             options={users.map((user) => ({
-              label: user.name ? user.name : user?.firstname + ' ' + user?.lastname,
+              label: user.name ? user.name : user?.full_name,
               value: user.id,
             }))}
             value={formData.observer}
@@ -656,8 +656,8 @@ const Tasks = ({ isEdit, onCloseModal, prefillData, onSuccess }) => {
   const { id, mid, tid } = useParams();
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const { loading, success, error } = useSelector((state) => state.createTask);
-  const { fetchUsers: users = [] } = useSelector((state) => state.fetchUsers);
+  const { loading } = useSelector((state) => state.createTask);
+  const { fetchDistinctUsers: users = [] } = useSelector((state) => state.fetchDistinctUsers);
   const { fetchTags: tags = [] } = useSelector((state) => state.fetchTags);
   const { taskDetails: task } = useSelector((state) => state.taskDetails);
   const { fetchProjectDetails: project } = useSelector((state) => state.fetchProjectDetails);
@@ -722,7 +722,7 @@ const Tasks = ({ isEdit, onCloseModal, prefillData, onSuccess }) => {
   const [prevObservers, setPrevObservers] = useState([]);
 
   useEffect(() => {
-    dispatch(fetchUsers({ token }));
+    dispatch(fetchDistinctUsers({ token }));
     dispatch(fetchTags({ token }));
     dispatch(fetchProjectDetails({ token, id }));
     dispatch(fetchMilestoneById({ token, id: mid }));
