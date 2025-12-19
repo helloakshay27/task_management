@@ -24,7 +24,7 @@ const Sprints = () => {
     if (!fetchProject?.fetchProjects?.length) {
       dispatch(fetchProjects({ token }));
     }
-  }, [dispatch, fetchProject, token]);
+  }, [dispatch, token]);
 
   // ⬇️ Automatically select and fetch the first project on page load
   useEffect(() => {
